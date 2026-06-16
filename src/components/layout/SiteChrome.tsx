@@ -13,6 +13,10 @@ function isAuthRoute(pathname: string) {
   );
 }
 
+function isRecruitersLanding(pathname: string) {
+  return pathname === "/recruiters";
+}
+
 export function SiteChrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
@@ -22,7 +26,7 @@ export function SiteChrome({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <SiteHeader />
+      {!isRecruitersLanding(pathname) ? <SiteHeader /> : null}
       <main className="flex-1">{children}</main>
       <SiteFooter />
     </div>

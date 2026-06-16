@@ -4,3 +4,85 @@ body {
   margin: 0;
   font-family: system-ui, -apple-system, sans-serif;
 }
+
+@media (prefers-reduced-motion: no-preference) {
+  .animate-in {
+    opacity: 0;
+    transition-property: opacity, transform;
+    transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: opacity, transform;
+  }
+
+  .animate-in-fade-up {
+    transform: translateY(28px);
+  }
+
+  .animate-in-fade-left {
+    transform: translateX(-28px);
+  }
+
+  .animate-in-fade-right {
+    transform: translateX(28px);
+  }
+
+  .animate-in-scale-in {
+    transform: scale(0.96);
+  }
+
+  .animate-in-fade-in {
+    transform: none;
+  }
+
+  .animate-in-visible {
+    opacity: 1;
+    transform: none;
+  }
+
+  @keyframes landing-float {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  .animate-float {
+    animation: landing-float 5s ease-in-out infinite;
+  }
+
+  @keyframes landing-shimmer {
+    0% {
+      background-position: -200% center;
+    }
+
+    100% {
+      background-position: 200% center;
+    }
+  }
+
+  .animate-shimmer-bar {
+    background: linear-gradient(
+      90deg,
+      rgb(37 99 235) 0%,
+      rgb(96 165 250) 50%,
+      rgb(37 99 235) 100%
+    );
+    background-size: 200% 100%;
+    animation: landing-shimmer 4s linear infinite;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-in {
+    opacity: 1;
+    transform: none;
+  }
+
+  .animate-float,
+  .animate-shimmer-bar {
+    animation: none;
+  }
+}

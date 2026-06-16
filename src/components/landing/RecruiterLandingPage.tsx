@@ -14,7 +14,9 @@ import {
 import Link from "next/link";
 
 import { FaqAccordion } from "@/components/landing/shared/FaqAccordion";
+import { AnimateIn } from "@/components/landing/shared/AnimateIn";
 import { SectionContainer } from "@/components/landing/shared/SectionContainer";
+import { RecruiterSiteHeader } from "@/components/layout/RecruiterSiteHeader";
 
 const recruiterFaqs = [
   {
@@ -38,6 +40,7 @@ const recruiterFaqs = [
 export function RecruiterLandingPage() {
   return (
     <div className="min-h-screen bg-white">
+      <RecruiterSiteHeader />
       <RecruiterHero />
       <TrustStatement />
       <RecruiterPainPoints />
@@ -62,49 +65,51 @@ function RecruiterHero() {
     <section className="bg-gradient-to-br from-gray-900 via-blue-950 to-gray-900 px-4 py-16 text-white sm:px-6 sm:py-20 lg:px-8 lg:pt-24 lg:pb-28">
       <div className="mx-auto max-w-[1440px]">
         <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-2 lg:gap-20">
-          <div>
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-blue-400/30 bg-blue-500/20 px-4 py-1.5">
-              <Shield className="h-3.5 w-3.5 text-blue-300" />
-              <span className="text-sm font-medium text-blue-200">
-                Professional Trust Infrastructure
-              </span>
-            </div>
-            <h1 className="mb-6 text-4xl leading-tight font-semibold sm:text-5xl lg:text-6xl">
-              Hire Faster.
-              <br />
-              Verify <span className="text-blue-400">Once.</span>
-            </h1>
-            <p className="mb-8 text-lg leading-relaxed text-gray-300 sm:text-xl">
-              Access pre-verified candidates with authenticated references
-              attached. No more chasing referees — every profile comes with
-              verified employment history and trusted reference records.
-            </p>
-            <div className="mb-8 flex flex-col gap-3 sm:mb-10 sm:flex-row sm:gap-4">
-              <Link
-                href="/login"
-                className="rounded-xl bg-blue-600 px-6 py-3 text-center text-base font-semibold text-white transition-colors hover:bg-blue-500 sm:px-8 sm:py-4"
-              >
-                Start Free Trial
-              </Link>
-              <Link
-                href="/login"
-                className="rounded-xl border border-white/20 px-6 py-3 text-center text-base font-semibold text-white transition-colors hover:bg-white/10 sm:px-8 sm:py-4"
-              >
-                View Demo
-              </Link>
-            </div>
-            <div className="flex flex-col gap-3 text-sm text-gray-400 sm:flex-row sm:flex-wrap sm:items-center sm:gap-6">
-              {trustItems.map((item) => (
-                <span key={item} className="flex items-center gap-1.5">
-                  <CheckCircle className="h-4 w-4 shrink-0 text-blue-400" />
-                  {item}
+          <AnimateIn immediate variant="fade-up">
+            <div>
+              <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-blue-400/30 bg-blue-500/20 px-4 py-1.5">
+                <Shield className="h-3.5 w-3.5 text-blue-300" />
+                <span className="text-sm font-medium text-blue-200">
+                  Professional Trust Infrastructure
                 </span>
-              ))}
+              </div>
+              <h1 className="mb-6 text-4xl leading-tight font-semibold sm:text-5xl lg:text-6xl">
+                Hire Faster.
+                <br />
+                Verify <span className="text-blue-400">Once.</span>
+              </h1>
+              <p className="mb-8 text-lg leading-relaxed text-gray-300 sm:text-xl">
+                Access pre-verified candidates with authenticated references
+                attached. No more chasing referees — every profile comes with
+                verified employment history and trusted reference records.
+              </p>
+              <div className="mb-8 flex flex-col gap-3 sm:mb-10 sm:flex-row sm:gap-4">
+                <Link
+                  href="/login"
+                  className="rounded-xl bg-blue-600 px-6 py-3 text-center text-base font-semibold text-white transition-colors hover:bg-blue-500 sm:px-8 sm:py-4"
+                >
+                  Start Free Trial
+                </Link>
+                <Link
+                  href="/login"
+                  className="rounded-xl border border-white/20 px-6 py-3 text-center text-base font-semibold text-white transition-colors hover:bg-white/10 sm:px-8 sm:py-4"
+                >
+                  View Demo
+                </Link>
+              </div>
+              <div className="flex flex-col gap-3 text-sm text-gray-400 sm:flex-row sm:flex-wrap sm:items-center sm:gap-6">
+                {trustItems.map((item) => (
+                  <span key={item} className="flex items-center gap-1.5">
+                    <CheckCircle className="h-4 w-4 shrink-0 text-blue-400" />
+                    {item}
+                  </span>
+                ))}
+              </div>
             </div>
-          </div>
+          </AnimateIn>
 
-          <div className="space-y-4">
-            <div className="rounded-2xl border border-white/10 bg-white/10 p-5 backdrop-blur sm:p-6">
+          <AnimateIn immediate delay={150} variant="fade-up" className="space-y-4">
+            <div className="animate-float rounded-2xl border border-white/10 bg-white/10 p-5 backdrop-blur sm:p-6">
               <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center">
                 <div className="flex items-center gap-4">
                   <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-blue-400/30">
@@ -153,19 +158,18 @@ function RecruiterHero() {
                 { value: "82%", label: "Faster hiring" },
                 { value: "0", label: "Reference calls needed" },
                 { value: "100%", label: "Pre-verified talent" },
-              ].map(({ value, label }) => (
-                <div
-                  key={label}
-                  className="rounded-xl border border-white/10 bg-white/5 p-4 text-center"
-                >
-                  <p className="text-2xl font-bold text-blue-400 sm:text-3xl">
-                    {value}
-                  </p>
-                  <p className="mt-1 text-xs text-gray-400">{label}</p>
-                </div>
+              ].map(({ value, label }, i) => (
+                <AnimateIn key={label} delay={300 + i * 100} variant="scale-in">
+                  <div className="rounded-xl border border-white/10 bg-white/5 p-4 text-center">
+                    <p className="text-2xl font-bold text-blue-400 sm:text-3xl">
+                      {value}
+                    </p>
+                    <p className="mt-1 text-xs text-gray-400">{label}</p>
+                  </div>
+                </AnimateIn>
               ))}
             </div>
-          </div>
+          </AnimateIn>
         </div>
       </div>
     </section>
@@ -174,12 +178,14 @@ function RecruiterHero() {
 
 function TrustStatement() {
   return (
-    <section className="bg-blue-600 px-4 py-4 sm:px-6 lg:px-8">
-      <p className="mx-auto max-w-[1440px] text-center text-sm text-white/90">
-        <span className="font-semibold text-white">Trusted by 2,500+ recruiters</span>{" "}
-        at companies including TechCorp, InnovateCo, HireRight, StaffPro, and
-        BuildTeam
-      </p>
+    <section className="animate-shimmer-bar px-4 py-4 sm:px-6 lg:px-8">
+      <AnimateIn>
+        <p className="mx-auto max-w-[1440px] text-center text-sm text-white/90">
+          <span className="font-semibold text-white">Trusted by 2,500+ recruiters</span>{" "}
+          at companies including TechCorp, InnovateCo, HireRight, StaffPro, and
+          BuildTeam
+        </p>
+      </AnimateIn>
     </section>
   );
 }
@@ -218,22 +224,26 @@ function RecruiterPainPoints() {
         </p>
       </div>
       <div className="grid grid-cols-1 gap-6 sm:gap-8 lg:grid-cols-2">
-        <ComparisonCard
-          title="Without Vodora"
-          titleIcon="✕"
-          titleColor="text-red-500"
-          borderColor="border-red-100"
-          items={withoutItems}
-          variant="negative"
-        />
-        <ComparisonCard
-          title="With Vodora"
-          titleIcon="✓"
-          titleColor="text-green-500"
-          borderColor="border-green-100"
-          items={withItems}
-          variant="positive"
-        />
+        <AnimateIn delay={100} variant="fade-left">
+          <ComparisonCard
+            title="Without Vodora"
+            titleIcon="✕"
+            titleColor="text-red-500"
+            borderColor="border-red-100"
+            items={withoutItems}
+            variant="negative"
+          />
+        </AnimateIn>
+        <AnimateIn delay={200} variant="fade-right">
+          <ComparisonCard
+            title="With Vodora"
+            titleIcon="✓"
+            titleColor="text-green-500"
+            borderColor="border-green-100"
+            items={withItems}
+            variant="positive"
+          />
+        </AnimateIn>
       </div>
     </SectionContainer>
   );
@@ -313,17 +323,19 @@ function HowItWorksRecruiter() {
         How It Works
       </h2>
       <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
-        {steps.map(({ icon: Icon, step, title, desc }) => (
-          <div key={step} className="relative text-center">
-            <div className="relative mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-600">
-              <Icon className="h-8 w-8 text-white" />
-              <div className="absolute -top-2 -right-2 flex h-6 w-6 items-center justify-center rounded-full bg-gray-900 text-xs font-bold text-white">
-                {step}
+        {steps.map(({ icon: Icon, step, title, desc }, i) => (
+          <AnimateIn key={step} delay={i * 100} variant="scale-in">
+            <div className="relative text-center">
+              <div className="relative mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-600">
+                <Icon className="h-8 w-8 text-white" />
+                <div className="absolute -top-2 -right-2 flex h-6 w-6 items-center justify-center rounded-full bg-gray-900 text-xs font-bold text-white">
+                  {step}
+                </div>
               </div>
+              <h3 className="mb-2 text-lg font-semibold text-gray-900">{title}</h3>
+              <p className="text-sm leading-relaxed text-gray-600">{desc}</p>
             </div>
-            <h3 className="mb-2 text-lg font-semibold text-gray-900">{title}</h3>
-            <p className="text-sm leading-relaxed text-gray-600">{desc}</p>
-          </div>
+          </AnimateIn>
         ))}
       </div>
     </SectionContainer>
@@ -373,17 +385,16 @@ function RecruiterFeatures() {
         Built for in-house teams, staffing agencies, and labour hire companies.
       </p>
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {features.map(({ icon: Icon, title, desc }) => (
-          <div
-            key={title}
-            className="rounded-2xl border border-gray-200 bg-white p-6 transition-shadow hover:shadow-md sm:p-8"
-          >
-            <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50">
-              <Icon className="h-6 w-6 text-blue-600" />
+        {features.map(({ icon: Icon, title, desc }, i) => (
+          <AnimateIn key={title} delay={i * 80}>
+            <div className="rounded-2xl border border-gray-200 bg-white p-6 transition-shadow hover:shadow-md sm:p-8">
+              <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50">
+                <Icon className="h-6 w-6 text-blue-600" />
+              </div>
+              <h3 className="mb-2 text-lg font-semibold text-gray-900">{title}</h3>
+              <p className="text-sm leading-relaxed text-gray-600">{desc}</p>
             </div>
-            <h3 className="mb-2 text-lg font-semibold text-gray-900">{title}</h3>
-            <p className="text-sm leading-relaxed text-gray-600">{desc}</p>
-          </div>
+          </AnimateIn>
         ))}
       </div>
     </SectionContainer>
@@ -427,29 +438,28 @@ function RecruiterSocialProof() {
         <span className="ml-2 text-sm text-gray-600">4.9 / 5 from 800+ reviews</span>
       </div>
       <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-        {testimonials.map(({ name, role, avatar, quote }) => (
-          <div
-            key={name}
-            className="rounded-2xl border border-gray-200 bg-white p-6 sm:p-8"
-          >
-            <div className="mb-4 flex gap-1">
-              {[...Array(5)].map((_, i) => (
-                <Star key={i} className="h-4 w-4 fill-amber-400 text-amber-400" />
-              ))}
-            </div>
-            <p className="mb-6 leading-relaxed text-gray-700 italic">
-              &ldquo;{quote}&rdquo;
-            </p>
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100">
-                <span className="text-sm font-semibold text-blue-700">{avatar}</span>
+        {testimonials.map(({ name, role, avatar, quote }, i) => (
+          <AnimateIn key={name} delay={i * 120}>
+            <div className="rounded-2xl border border-gray-200 bg-white p-6 sm:p-8">
+              <div className="mb-4 flex gap-1">
+                {[...Array(5)].map((_, starIndex) => (
+                  <Star key={starIndex} className="h-4 w-4 fill-amber-400 text-amber-400" />
+                ))}
               </div>
-              <div>
-                <p className="text-sm font-semibold text-gray-900">{name}</p>
-                <p className="text-xs text-gray-500">{role}</p>
+              <p className="mb-6 leading-relaxed text-gray-700 italic">
+                &ldquo;{quote}&rdquo;
+              </p>
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100">
+                  <span className="text-sm font-semibold text-blue-700">{avatar}</span>
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">{name}</p>
+                  <p className="text-xs text-gray-500">{role}</p>
+                </div>
               </div>
             </div>
-          </div>
+          </AnimateIn>
         ))}
       </div>
     </SectionContainer>
@@ -507,14 +517,14 @@ function RecruiterPricing() {
         14-day free trial on all plans. No credit card required.
       </p>
       <div className="grid grid-cols-1 items-stretch gap-6 lg:grid-cols-3 lg:items-center">
-        {plans.map(({ name, price, desc, features, highlight }) => (
-          <div
-            key={name}
-            className={`rounded-2xl border-2 p-6 sm:p-8 ${highlight
-                ? "border-blue-600 bg-blue-600 text-white shadow-2xl lg:scale-105"
-                : "border-gray-200 bg-white"
-              }`}
-          >
+        {plans.map(({ name, price, desc, features, highlight }, i) => (
+          <AnimateIn key={name} delay={i * 120} variant="scale-in">
+            <div
+              className={`rounded-2xl border-2 p-6 sm:p-8 ${highlight
+                  ? "border-blue-600 bg-blue-600 text-white shadow-2xl lg:scale-105"
+                  : "border-gray-200 bg-white"
+                }`}
+            >
             <h3
               className={`mb-1 text-xl font-semibold ${highlight ? "text-white" : "text-gray-900"
                 }`}
@@ -574,7 +584,8 @@ function RecruiterPricing() {
             >
               {price ? "Start Free Trial" : "Contact Sales"}
             </Link>
-          </div>
+            </div>
+          </AnimateIn>
         ))}
       </div>
     </SectionContainer>
@@ -584,7 +595,7 @@ function RecruiterPricing() {
 function RecruiterCTA() {
   return (
     <section className="bg-gradient-to-br from-gray-900 to-blue-950 px-4 py-16 text-white sm:px-6 sm:py-24 lg:px-8">
-      <div className="mx-auto max-w-3xl text-center">
+      <AnimateIn className="mx-auto max-w-3xl text-center">
         <h2 className="mb-4 text-3xl font-semibold sm:text-4xl lg:text-5xl">
           Start Hiring Smarter Today
         </h2>
@@ -606,7 +617,7 @@ function RecruiterCTA() {
             See Demo <ArrowRight className="h-5 w-5" />
           </Link>
         </div>
-      </div>
+      </AnimateIn>
     </section>
   );
 }

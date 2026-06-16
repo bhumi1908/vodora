@@ -14,33 +14,25 @@ interface FooterColumn {
 
 const footerColumns: FooterColumn[] = [
   {
-    title: "Product",
-    links: [
-      { label: "Features", href: "/#features" },
-      { label: "Trust Verification", href: "/#features" },
-      { label: "Pricing", href: "/recruiters#pricing" },
-    ],
-  },
-  {
     title: "Candidates",
     links: [
       { label: "Create Profile", href: "/signup/candidate" },
-      { label: "References", href: "/#candidates" },
-      { label: "Endorsements", href: "/#candidates" },
+      { label: "My Profile", href: "/my-profile" },
+      { label: "Browse Jobs", href: "/jobs" },
+      { label: "Find Recruiters", href: "/recruiters" },
     ],
   },
   {
     title: "Recruiters",
     links: [
-      { label: "Search Talent", href: "/recruiters" },
-      { label: "Post Jobs", href: "/signup/recruiter" },
-      { label: "Pricing Plans", href: "/recruiters#pricing" },
+      { label: "Recruiter Login", href: "/recruiters" },
+      { label: "Find Candidates", href: "/recruiters#features" },
+      { label: "Create Recruiter Account", href: "/signup/recruiter" },
     ],
   },
   {
     title: "Company",
     links: [
-      { label: "About", href: "/#about" },
       { label: "Contact", href: "/contact-us" },
       { label: "Privacy", href: "/privacy" },
       { label: "Terms", href: "/terms-and-conditions" },
@@ -57,7 +49,7 @@ export function SiteFooter() {
   return (
     <footer className="bg-gray-900 py-12 text-gray-300">
       <div className="mx-auto max-w-[1440px] px-4 sm:px-6 lg:px-8">
-        <div className="mb-8 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mb-8 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
           {footerColumns.map((column) => (
             <div key={column.title}>
               <h3 className="mb-4 font-semibold text-white">{column.title}</h3>
