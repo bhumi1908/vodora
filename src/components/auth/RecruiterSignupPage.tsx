@@ -15,6 +15,7 @@ import {
   TermsAgreement,
 } from "@/components/auth/shared/FormFields";
 import { SignupFormShell } from "@/components/auth/shared/SignupLayout";
+import { showRegistrationSuccessToast } from "@/lib/auth-toast";
 import {
   EMPLOYEE_COUNT_OPTIONS,
   HIRES_PER_YEAR_OPTIONS,
@@ -105,6 +106,8 @@ export function RecruiterSignupPage() {
         setFormError(result.error ?? "Unable to create your account.");
         return;
       }
+
+      showRegistrationSuccessToast(result.needsEmailConfirmation);
 
       if (result.redirectTo) {
         router.push(result.redirectTo);

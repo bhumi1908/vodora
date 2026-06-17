@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { SiteChrome } from "@/components/layout/SiteChrome";
+import { AppToaster } from "@/components/ui/AppToaster";
 
 import "./globals.css";
 
@@ -19,6 +20,7 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <SiteChrome>{children}</SiteChrome>
+        <AppToaster />
       </body>
     </html>
   );

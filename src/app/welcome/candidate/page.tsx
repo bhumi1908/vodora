@@ -1,10 +1,12 @@
 import { redirect } from "next/navigation";
 
 import { CandidateWelcome } from "@/components/welcome/CandidateWelcome";
+import { getCachedAuthUser } from "@/lib/auth/cached-auth";
 import {
   getWelcomeLoginRedirect,
   getWelcomePageRedirect,
 } from "@/lib/auth/welcome-guard";
+import { getOwnCandidateProfileForEdit } from "@/lib/profile/get-candidate-profile-for-edit";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata = {
@@ -14,9 +16,7 @@ export const metadata = {
 
 export default async function CandidateWelcomePage() {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCachedAuthUser(supabase);
 
   if (!user) {
     redirect(getWelcomeLoginRedirect("candidate"));
@@ -28,5 +28,11 @@ export default async function CandidateWelcomePage() {
     redirect(redirectTo);
   }
 
-  return <CandidateWelcome />;
+  const profile = await getOwnCandidateProfileForEdit(supabase);
+
+  if (!profile) {
+    redirect(getWelcomeLoginRedirect("candidate"));
+  }
+
+  return <CandidateWelcome profile={profile} />;
 }

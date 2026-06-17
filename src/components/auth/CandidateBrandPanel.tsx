@@ -16,21 +16,16 @@ export function CandidateBrandPanel() {
           <div className="flex h-10 w-10 items-center justify-center rounded bg-white">
             <Briefcase className="h-5 w-5 text-blue-600" />
           </div>
-          <div className="flex flex-col leading-none">
-            <span className="text-2xl font-semibold">Vodora</span>
-            <span className="text-xs font-medium tracking-wide text-blue-200 uppercase">
-              For Candidates
-            </span>
-          </div>
+          <span className="text-2xl font-semibold">Vodora</span>
         </Link>
 
         <div className="max-w-lg">
           <h1 className="mb-4 text-3xl font-semibold leading-tight lg:mb-6 lg:text-5xl">
-            Own Your Professional Reputation
+            Trusted Hiring, Built on Verification
           </h1>
           <p className="mb-8 text-lg leading-relaxed text-blue-100 lg:mb-12 lg:text-xl">
-            Build a trusted professional profile with verified references,
-            employment history and endorsements that you control.
+            Whether you&apos;re building your career or finding your next hire,
+            Vodora connects verified professionals with trusted recruiters.
           </p>
 
           <div className="mb-8 space-y-3 lg:mb-12 lg:space-y-4">

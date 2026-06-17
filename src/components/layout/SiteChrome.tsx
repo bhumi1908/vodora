@@ -2,8 +2,10 @@
 
 import { usePathname } from "next/navigation";
 
+import { RecruiterAppHeader } from "@/components/layout/RecruiterAppHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
+import { isRecruiterAppRoute } from "@/lib/auth/routes";
 
 const AUTH_ROUTE_PREFIXES = ["/login", "/signup", "/welcome"];
 
@@ -26,7 +28,13 @@ export function SiteChrome({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-screen flex-col">
-      {!isRecruitersLanding(pathname) ? <SiteHeader /> : null}
+      {!isRecruitersLanding(pathname) ? (
+        isRecruiterAppRoute(pathname) ? (
+          <RecruiterAppHeader />
+        ) : (
+          <SiteHeader />
+        )
+      ) : null}
       <main className="flex-1">{children}</main>
       <SiteFooter />
     </div>

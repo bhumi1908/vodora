@@ -6,6 +6,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
+import { showLogoutSuccessToast } from "@/lib/auth-toast";
+
 function getDisplayName(user: User): string {
   const firstName =
     typeof user.user_metadata?.first_name === "string"
@@ -87,6 +89,7 @@ export function UserProfileMenu({
     try {
       await fetch("/api/auth/logout", { method: "POST" });
       onSignOut?.();
+      showLogoutSuccessToast();
       router.push("/");
       router.refresh();
     } finally {

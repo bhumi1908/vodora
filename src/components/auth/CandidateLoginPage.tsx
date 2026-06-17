@@ -3,10 +3,15 @@
 import { Briefcase, Lock, Mail } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { FormEvent, Suspense, useState } from "react";
+import { FormEvent, Suspense, useEffect, useState } from "react";
 
 import { CandidateBrandPanel } from "@/components/auth/CandidateBrandPanel";
 import { AuthInput } from "@/components/auth/shared/AuthInput";
+import {
+  showEmailVerifiedToast,
+  showLoginSuccessToast,
+  showRegistrationSuccessToast,
+} from "@/lib/auth-toast";
 import type { LoginApiResponse } from "@/lib/auth/types";
 
 function LoginFormContent() {
@@ -21,6 +26,18 @@ function LoginFormContent() {
   const [password, setPassword] = useState("");
   const [formError, setFormError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (justVerified) {
+      showEmailVerifiedToast();
+    }
+  }, [justVerified]);
+
+  useEffect(() => {
+    if (justRegistered) {
+      showRegistrationSuccessToast();
+    }
+  }, [justRegistered]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -46,6 +63,7 @@ function LoginFormContent() {
         return;
       }
 
+      showLoginSuccessToast();
       router.push(result.redirectTo ?? "/");
       router.refresh();
     } catch {
@@ -66,14 +84,7 @@ function LoginFormContent() {
               <div className="flex h-9 w-9 items-center justify-center rounded bg-blue-600">
                 <Briefcase className="h-4 w-4 text-white" />
               </div>
-              <div className="flex flex-col leading-none">
-                <span className="text-lg font-semibold text-gray-900">
-                  Vodora
-                </span>
-                <span className="text-[10px] font-medium tracking-wide text-blue-600 uppercase">
-                  For Candidates
-                </span>
-              </div>
+              <span className="text-lg font-semibold text-gray-900">Vodora</span>
             </Link>
           </div>
 
@@ -122,7 +133,7 @@ function LoginFormContent() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@company.com"
+              placeholder={isRecruiterLogin ? "you@company.com" : "you@example.com"}
               hint={
                 isRecruiterLogin
                   ? "Must be a company email address"
@@ -170,7 +181,7 @@ function LoginFormContent() {
           <p className="mt-8 text-center text-sm text-gray-600">
             Don&apos;t have an account?{" "}
             <Link
-              href="/signup"
+              href={isRecruiterLogin ? "/signup/recruiter" : "/signup/candidate"}
               className="font-medium text-blue-600 hover:text-blue-700"
             >
               Create Account

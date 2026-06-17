@@ -11,7 +11,6 @@ import type { User } from "@supabase/supabase-js";
 
 const appNavItems = [
   { label: "Connect", href: "/marketplace" },
-  { label: "Search", href: "/search" },
   { label: "My Profile", href: "/my-profile" },
   { label: "Search for Jobs", href: "/jobs", prefetch: false },
 ];

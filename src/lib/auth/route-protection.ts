@@ -17,7 +17,7 @@ const CANDIDATE_ONLY_PREFIXES = [
   "/jobs",
 ];
 
-const RECRUITER_ONLY_PREFIXES = ["/search", "/welcome/recruiter"];
+const RECRUITER_ONLY_PREFIXES = ["/recruiter", "/welcome/recruiter"];
 
 const PROTECTED_PREFIXES = [
   ...CANDIDATE_ONLY_PREFIXES,

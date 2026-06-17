@@ -79,7 +79,21 @@ export async function POST(request: Request) {
     );
   }
 
-  if (await isRecruiterAccount(supabase, data.user)) {
+  const isRecruiter = await isRecruiterAccount(supabase, data.user);
+
+  if (body.accountType === "recruiter" && !isRecruiter) {
+    await supabase.auth.signOut();
+    return NextResponse.json(
+      {
+        success: false,
+        error:
+          "No recruiter account found with these credentials. Sign in as a candidate or create a recruiter account.",
+      },
+      { status: 403 },
+    );
+  }
+
+  if (isRecruiter) {
     const companyEmailError = validateCompanyEmail(email);
     if (companyEmailError) {
       await supabase.auth.signOut();

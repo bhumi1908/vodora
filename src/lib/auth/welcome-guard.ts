@@ -40,9 +40,13 @@ export async function getWelcomePageRedirect(
 }
 
 export function getWelcomeLoginRedirect(variant: WelcomeVariant): string {
-  return variant === "recruiter"
-    ? `/login?type=recruiter&redirect=${encodeURIComponent(RECRUITER_WELCOME_PATH)}`
-    : `/login?redirect=${encodeURIComponent(CANDIDATE_WELCOME_PATH)}`;
+  const welcomePath =
+    variant === "recruiter" ? RECRUITER_WELCOME_PATH : CANDIDATE_WELCOME_PATH;
+  const params = new URLSearchParams({ redirect: welcomePath });
+  if (variant === "recruiter") {
+    params.set("type", "recruiter");
+  }
+  return `/login?${params.toString()}`;
 }
 
 export { CANDIDATE_DASHBOARD_PATH, RECRUITER_DASHBOARD_PATH };

@@ -1,5 +1,15 @@
 @import "tailwindcss";
 
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}
+
 body {
   margin: 0;
   font-family: system-ui, -apple-system, sans-serif;
@@ -84,5 +94,10 @@ body {
   .animate-float,
   .animate-shimmer-bar {
     animation: none;
+  }
+
+  .motion-safe\:animate-\[shimmer_1\.5s_ease-in-out_infinite\] {
+    animation: none;
+    background: rgb(229 231 235);
   }
 }

@@ -1,0 +1,184 @@
+"use client";
+
+import { useMemo, useState } from "react";
+
+import {
+  AuthFormGrid,
+  FormError,
+  FormField,
+  FormSelect,
+  FormSuccess,
+  FormTextarea,
+} from "@/components/auth/shared/FormFields";
+import { isOverviewDirty, type OverviewFields } from "@/components/profile/edit/profile-edit-dirty";
+import { ProfileEditSection } from "@/components/profile/edit/ProfileEditSection";
+import { saveOverviewSection } from "@/components/profile/edit/profile-edit-api";
+import { SectionSaveButton } from "@/components/profile/edit/SectionSaveButton";
+import { PROFILE_FIELD_LIMITS, validateOverview } from "@/lib/profile/validation";
+import {
+  AVAILABILITY_START_OPTIONS,
+  AVAILABILITY_STATUS_OPTIONS,
+} from "@/lib/profile/availability";
+
+type OverviewEditSectionProps = {
+  value: OverviewFields;
+  savedValue: OverviewFields;
+  onChange: (value: OverviewFields) => void;
+  onSaved?: () => void;
+};
+
+export function OverviewEditSection({
+  value,
+  savedValue,
+  onChange,
+  onSaved,
+}: OverviewEditSectionProps) {
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const isDirty = useMemo(
+    () => isOverviewDirty(savedValue, value),
+    [savedValue, value],
+  );
+
+  function updateField<K extends keyof typeof value>(
+    field: K,
+    fieldValue: (typeof value)[K],
+  ) {
+    onChange({ ...value, [field]: fieldValue });
+    setError("");
+    setSuccess("");
+  }
+
+  async function handleSave() {
+    const validationError = validateOverview(value);
+
+    if (validationError) {
+      setError(validationError);
+      setSuccess("");
+      return;
+    }
+
+    setIsSaving(true);
+    setError("");
+    setSuccess("");
+
+    const result = await saveOverviewSection(value);
+
+    setIsSaving(false);
+
+    if (!result.success) {
+      setError(result.error ?? "Failed to save overview.");
+      return;
+    }
+
+    setSuccess("Overview saved.");
+    onSaved?.();
+  }
+
+  return (
+    <ProfileEditSection
+      id="profile-overview"
+      title="Overview"
+      description="Your headline, contact details, and professional summary."
+      footer={
+        <SectionSaveButton
+          loading={isSaving}
+          disabled={!isDirty}
+          onClick={() => void handleSave()}
+        />
+      }
+    >
+      <AuthFormGrid>
+        <FormField
+          id="profile-title"
+          label="Headline / Current Role"
+          value={value.title}
+          onChange={(event) => updateField("title", event.target.value)}
+          placeholder="Senior Software Engineer"
+        />
+        <FormField
+          id="profile-company"
+          label="Current Company"
+          value={value.company}
+          onChange={(event) => updateField("company", event.target.value)}
+          placeholder="Acme Corp"
+        />
+      </AuthFormGrid>
+
+      <AuthFormGrid>
+        <FormSelect
+          id="profile-availability-status"
+          label="Job search status"
+          required
+          value={value.availabilityStatus}
+          onChange={(event) =>
+            updateField("availabilityStatus", event.target.value)
+          }
+          options={[...AVAILABILITY_STATUS_OPTIONS]}
+          placeholder="Select status"
+        />
+        <FormSelect
+          id="profile-availability-start"
+          label="Available from"
+          value={value.availabilityStart}
+          onChange={(event) =>
+            updateField("availabilityStart", event.target.value)
+          }
+          options={[...AVAILABILITY_START_OPTIONS]}
+          placeholder="Select timing"
+        />
+      </AuthFormGrid>
+
+      <AuthFormGrid>
+        <FormField
+          id="profile-city"
+          label="City"
+          value={value.city}
+          onChange={(event) => updateField("city", event.target.value)}
+          placeholder="Melbourne"
+        />
+        <FormField
+          id="profile-country"
+          label="Country"
+          value={value.country}
+          onChange={(event) => updateField("country", event.target.value)}
+          placeholder="Australia"
+        />
+      </AuthFormGrid>
+
+      <AuthFormGrid>
+        <FormField
+          id="profile-phone"
+          label="Phone"
+          type="tel"
+          value={value.phone}
+          onChange={(event) => updateField("phone", event.target.value)}
+          placeholder="+61 400 000 000"
+        />
+        <FormField
+          id="profile-website"
+          label="Website or LinkedIn"
+          value={value.website}
+          onChange={(event) => updateField("website", event.target.value)}
+          placeholder="linkedin.com/in/you"
+        />
+      </AuthFormGrid>
+
+      <FormTextarea
+        id="profile-about"
+        label="About"
+        value={value.about}
+        onChange={(event) => updateField("about", event.target.value)}
+        placeholder="Write a short professional summary..."
+        rows={5}
+      />
+      <p className="text-xs text-gray-500">
+        {value.about.length}/{PROFILE_FIELD_LIMITS.about} characters
+      </p>
+
+      {error ? <FormError message={error} /> : null}
+      {success ? <FormSuccess title="Saved" message={success} /> : null}
+    </ProfileEditSection>
+  );
+}

@@ -10,27 +10,104 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useMemo, useState } from "react";
 
+import {
+  CandidateProfileEditor,
+  WELCOME_PROFILE_SECTIONS,
+} from "@/components/profile/edit/CandidateProfileEditor";
+import type { CandidateProfileEditData } from "@/components/profile/edit/types";
+import { RequestReferenceModal } from "@/components/profile/reference/RequestReferenceModal";
+import {
+  WelcomeTaskModal,
+  type WelcomeProfileTaskId,
+} from "@/components/welcome/WelcomeTaskModal";
 import { CANDIDATE_DASHBOARD_PATH } from "@/lib/auth/routes";
 
-const tasks = [
-  { icon: Upload, label: "Upload Photo", completed: false },
-  { icon: Briefcase, label: "Add Employment History", completed: false },
-  { icon: Award, label: "Add Skills", completed: false },
-  { icon: Users, label: "Request First Reference", completed: false },
-  { icon: CheckCircle, label: "Complete Verification", completed: false },
-];
+type CandidateWelcomeProps = {
+  profile: CandidateProfileEditData;
+};
 
-export function CandidateWelcome() {
+const tasks = [
+  { id: "photo", icon: Upload, label: "Upload Photo" },
+  { id: "experience", icon: Briefcase, label: "Add Employment History" },
+  { id: "skills", icon: Award, label: "Add Skills" },
+  { id: "documents", icon: Upload, label: "Upload Resume or Documents" },
+  { id: "references", icon: Users, label: "Request First Reference" },
+] as const;
+
+type WelcomeTaskId = (typeof tasks)[number]["id"];
+
+function calculateProgress(
+  profile: CandidateProfileEditData,
+  referenceRequested: boolean,
+): number {
+  const checks = [
+    Boolean(profile.profilePictureUrl),
+    profile.experience.length > 0,
+    profile.skills.length > 0,
+    profile.documents.some((document) => document.type === "resume"),
+    referenceRequested,
+  ];
+
+  const completed = checks.filter(Boolean).length;
+  return Math.round((completed / checks.length) * 100);
+}
+
+function isTaskComplete(
+  taskId: WelcomeTaskId,
+  profile: CandidateProfileEditData,
+  referenceRequested: boolean,
+): boolean {
+  switch (taskId) {
+    case "photo":
+      return Boolean(profile.profilePictureUrl);
+    case "experience":
+      return profile.experience.length > 0;
+    case "skills":
+      return profile.skills.length > 0;
+    case "documents":
+      return profile.documents.some((document) => document.type === "resume");
+    case "references":
+      return referenceRequested;
+    default:
+      return false;
+  }
+}
+
+export function CandidateWelcome({ profile }: CandidateWelcomeProps) {
   const router = useRouter();
+  const [activeProfileTask, setActiveProfileTask] =
+    useState<WelcomeProfileTaskId | null>(null);
+  const [referenceModalOpen, setReferenceModalOpen] = useState(false);
+  const [referenceRequested, setReferenceRequested] = useState(false);
+  const [editorKey, setEditorKey] = useState(0);
+
+  const progress = useMemo(
+    () => calculateProgress(profile, referenceRequested),
+    [profile, referenceRequested],
+  );
 
   function goToDashboard() {
     router.push(CANDIDATE_DASHBOARD_PATH);
   }
 
+  function openTask(taskId: WelcomeTaskId) {
+    if (taskId === "references") {
+      setReferenceModalOpen(true);
+      return;
+    }
+
+    setActiveProfileTask(taskId);
+  }
+
+  function handleProfileTaskSaved() {
+    setEditorKey((current) => current + 1);
+  }
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-50 to-white p-8">
-      <div className="w-full max-w-2xl">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white px-4 py-8">
+      <div className="mx-auto w-full max-w-3xl">
         <div className="mb-8 text-center">
           <Link href="/" className="mb-6 inline-flex items-center gap-2">
             <div className="flex h-10 w-10 items-center justify-center rounded bg-blue-600">
@@ -39,44 +116,51 @@ export function CandidateWelcome() {
             <span className="text-2xl font-semibold text-gray-900">Vodora</span>
           </Link>
           <h1 className="mb-3 text-4xl font-semibold text-gray-900">
-            Welcome to Vodora! 🎉
+            Welcome to Vodora!
           </h1>
           <p className="text-xl text-gray-600">
             Let&apos;s complete your professional profile
           </p>
         </div>
 
-        <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
+        <div className="mb-8 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
           <div className="mb-6">
             <div className="mb-2 flex items-center justify-between">
               <span className="text-sm font-medium text-gray-700">
                 Profile Progress
               </span>
-              <span className="text-sm font-medium text-blue-600">25%</span>
+              <span className="text-sm font-medium text-blue-600">
+                {progress}%
+              </span>
             </div>
             <div className="h-2 w-full rounded-full bg-gray-200">
               <div
-                className="h-2 rounded-full bg-blue-600"
-                style={{ width: "25%" }}
+                className="h-2 rounded-full bg-blue-600 transition-all"
+                style={{ width: `${progress}%` }}
               />
             </div>
           </div>
 
-          <h2 className="mb-6 text-2xl font-semibold text-gray-900">
+          <h2 className="mb-4 text-xl font-semibold text-gray-900">
             Complete Your Profile
           </h2>
 
-          <div className="mb-8 space-y-4">
+          <div className="space-y-3">
             {tasks.map((task) => {
               const Icon = task.icon;
+              const completed = isTaskComplete(
+                task.id,
+                profile,
+                referenceRequested,
+              );
 
               return (
                 <div
-                  key={task.label}
-                  className="flex cursor-default items-center justify-between rounded-lg border-2 border-gray-200 p-4 transition-colors hover:border-blue-500"
+                  key={task.id}
+                  className="flex items-center justify-between rounded-lg border-2 border-gray-200 p-4 transition-colors hover:border-blue-500"
                 >
                   <div className="flex items-center gap-3">
-                    {task.completed ? (
+                    {completed ? (
                       <CheckCircle className="h-5 w-5 text-green-600" />
                     ) : (
                       <Circle className="h-5 w-5 text-gray-400" />
@@ -88,16 +172,17 @@ export function CandidateWelcome() {
                   </div>
                   <button
                     type="button"
+                    onClick={() => openTask(task.id)}
                     className="text-sm font-medium text-blue-600 hover:text-blue-700"
                   >
-                    Start
+                    {completed ? "Edit" : "Start"}
                   </button>
                 </div>
               );
             })}
           </div>
 
-          <div className="flex gap-3">
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row">
             <Link
               href={CANDIDATE_DASHBOARD_PATH}
               className="flex-1 rounded-lg bg-blue-600 py-3 text-center text-base font-medium text-white transition-colors hover:bg-blue-700"
@@ -113,6 +198,28 @@ export function CandidateWelcome() {
             </button>
           </div>
         </div>
+
+        <CandidateProfileEditor
+          key={editorKey}
+          initialProfile={profile}
+          sections={WELCOME_PROFILE_SECTIONS}
+          showSectionNav={false}
+          title="Build your profile"
+          description="Complete the sections below. You can always update them later from My Profile."
+        />
+
+        <WelcomeTaskModal
+          taskId={activeProfileTask}
+          initialProfile={profile}
+          onClose={() => setActiveProfileTask(null)}
+          onSaved={handleProfileTaskSaved}
+        />
+
+        <RequestReferenceModal
+          open={referenceModalOpen}
+          onClose={() => setReferenceModalOpen(false)}
+          onSubmitted={() => setReferenceRequested(true)}
+        />
       </div>
     </div>
   );

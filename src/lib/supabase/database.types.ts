@@ -9,6 +9,108 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      candidate_documents: {
+        Row: {
+          candidate_id: string;
+          document_type: string;
+          file_name: string;
+          file_size_bytes: number | null;
+          file_url: string;
+          id: string;
+          is_primary: boolean;
+          mime_type: string | null;
+          uploaded_at: string;
+        };
+        Insert: {
+          candidate_id: string;
+          document_type: string;
+          file_name: string;
+          file_size_bytes?: number | null;
+          file_url: string;
+          id?: string;
+          is_primary?: boolean;
+          mime_type?: string | null;
+          uploaded_at?: string;
+        };
+        Update: {
+          candidate_id?: string;
+          document_type?: string;
+          file_name?: string;
+          file_size_bytes?: number | null;
+          file_url?: string;
+          id?: string;
+          is_primary?: boolean;
+          mime_type?: string | null;
+          uploaded_at?: string;
+        };
+        Relationships: [];
+      };
+      candidate_education: {
+        Row: {
+          candidate_id: string;
+          created_at: string;
+          degree_or_class: string;
+          description: string | null;
+          end_date: string | null;
+          id: string;
+          institution_name: string;
+          sort_order: number;
+          start_date: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          candidate_id: string;
+          created_at?: string;
+          degree_or_class: string;
+          description?: string | null;
+          end_date?: string | null;
+          id?: string;
+          institution_name: string;
+          sort_order?: number;
+          start_date?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          candidate_id?: string;
+          created_at?: string;
+          degree_or_class?: string;
+          description?: string | null;
+          end_date?: string | null;
+          id?: string;
+          institution_name?: string;
+          sort_order?: number;
+          start_date?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      candidate_skills: {
+        Row: {
+          candidate_id: string;
+          created_at: string;
+          id: string;
+          proficiency: string | null;
+          skill_name: string;
+          years_experience: number | null;
+        };
+        Insert: {
+          candidate_id: string;
+          created_at?: string;
+          id?: string;
+          proficiency?: string | null;
+          skill_name: string;
+          years_experience?: number | null;
+        };
+        Update: {
+          candidate_id?: string;
+          created_at?: string;
+          id?: string;
+          proficiency?: string | null;
+          skill_name?: string;
+          years_experience?: number | null;
+        };
+        Relationships: [];
+      };
       candidate_work_types: {
         Row: {
           candidate_id: string;
@@ -207,6 +309,51 @@ export type Database = {
         };
         Relationships: [];
       };
+      employment_history: {
+        Row: {
+          candidate_id: string;
+          company_name: string;
+          created_at: string;
+          description: string | null;
+          end_date: string | null;
+          id: string;
+          is_current: boolean;
+          job_title: string;
+          location: string | null;
+          sort_order: number;
+          start_date: string;
+          updated_at: string;
+        };
+        Insert: {
+          candidate_id: string;
+          company_name: string;
+          created_at?: string;
+          description?: string | null;
+          end_date?: string | null;
+          id?: string;
+          is_current?: boolean;
+          job_title: string;
+          location?: string | null;
+          sort_order?: number;
+          start_date: string;
+          updated_at?: string;
+        };
+        Update: {
+          candidate_id?: string;
+          company_name?: string;
+          created_at?: string;
+          description?: string | null;
+          end_date?: string | null;
+          id?: string;
+          is_current?: boolean;
+          job_title?: string;
+          location?: string | null;
+          sort_order?: number;
+          start_date?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       industry_categories: {
         Row: {
           code: string;
@@ -396,6 +543,22 @@ export type Database = {
     };
     Views: Record<string, never>;
     Functions: {
+      get_own_candidate_profile: {
+        Args: Record<PropertyKey, never>;
+        Returns: Json;
+      };
+      get_recruiter_dashboard_candidates: {
+        Args: {
+          p_limit?: number;
+        };
+        Returns: Json;
+      };
+      get_recruiter_candidate_profile: {
+        Args: {
+          p_vodora_id: string;
+        };
+        Returns: Json;
+      };
       register_candidate: {
         Args: {
           p_city: string;

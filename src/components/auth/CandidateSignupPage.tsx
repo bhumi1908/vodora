@@ -13,6 +13,7 @@ import {
   TermsAgreement,
 } from "@/components/auth/shared/FormFields";
 import { SignupFormShell } from "@/components/auth/shared/SignupLayout";
+import { showRegistrationSuccessToast } from "@/lib/auth-toast";
 import { WORK_TYPE_OPTIONS } from "@/lib/auth/constants";
 import type { CandidateSignupRequest, SignupApiResponse } from "@/lib/auth/types";
 
@@ -106,6 +107,8 @@ export function CandidateSignupPage() {
         setFormError(result.error ?? "Unable to create your account.");
         return;
       }
+
+      showRegistrationSuccessToast(result.needsEmailConfirmation);
 
       if (result.redirectTo) {
         router.push(result.redirectTo);

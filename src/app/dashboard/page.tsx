@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 
 import { getAccountType } from "@/lib/auth/account-type";
 import { getRouteProtectionRedirect } from "@/lib/auth/route-protection";
+import { RECRUITER_DASHBOARD_PATH } from "@/lib/auth/routes";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata = {
@@ -28,7 +29,7 @@ export default async function CandidateDashboardPage() {
   const accountType = user ? await getAccountType(supabase, user) : null;
 
   if (accountType !== "candidate") {
-    redirect("/search");
+    redirect(RECRUITER_DASHBOARD_PATH);
   }
 
   return (
