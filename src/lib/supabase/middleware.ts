@@ -1,7 +1,14 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+import { getRouteProtectionRedirect } from "@/lib/auth/route-protection";
 import { env } from "@/lib/env";
+
+function copyCookies(from: NextResponse, to: NextResponse) {
+  from.cookies.getAll().forEach((cookie) => {
+    to.cookies.set(cookie);
+  });
+}
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
@@ -29,7 +36,22 @@ export async function updateSession(request: NextRequest) {
     },
   );
 
-  await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const redirectPath = await getRouteProtectionRedirect(
+    supabase,
+    user,
+    request.nextUrl.pathname,
+  );
+
+  if (redirectPath) {
+    const redirectUrl = new URL(redirectPath, request.url);
+    const redirectResponse = NextResponse.redirect(redirectUrl);
+    copyCookies(supabaseResponse, redirectResponse);
+    return redirectResponse;
+  }
 
   return supabaseResponse;
 }

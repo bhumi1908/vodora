@@ -2,23 +2,57 @@
 
 import { Briefcase, Lock, Mail } from "lucide-react";
 import Link from "next/link";
-import { FormEvent, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { FormEvent, Suspense, useState } from "react";
 
 import { CandidateBrandPanel } from "@/components/auth/CandidateBrandPanel";
-import { AuthDivider } from "@/components/auth/shared/AuthDivider";
 import { AuthInput } from "@/components/auth/shared/AuthInput";
-import {
-  GoogleLoginButton,
-  LinkedInLoginButton,
-  MicrosoftLoginButton,
-} from "@/components/auth/shared/SocialLoginButton";
+import type { LoginApiResponse } from "@/lib/auth/types";
 
-export function CandidateLoginPage() {
+function LoginFormContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const justRegistered = searchParams.get("registered") === "1";
+  const justVerified = searchParams.get("verified") === "1";
+  const authCallbackFailed = searchParams.get("error") === "auth_callback_failed";
+  const isRecruiterLogin = searchParams.get("type") === "recruiter";
+  const redirectAfterLogin = searchParams.get("redirect");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [formError, setFormError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setFormError("");
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          password,
+          ...(isRecruiterLogin ? { accountType: "recruiter" as const } : {}),
+          ...(redirectAfterLogin ? { redirect: redirectAfterLogin } : {}),
+        }),
+      });
+
+      const result = (await response.json()) as LoginApiResponse;
+
+      if (!response.ok || !result.success) {
+        setFormError(result.error ?? "Unable to sign in.");
+        return;
+      }
+
+      router.push(result.redirectTo ?? "/");
+      router.refresh();
+    } catch {
+      setFormError("Something went wrong. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -48,9 +82,37 @@ export function CandidateLoginPage() {
               Welcome Back
             </h2>
             <p className="text-sm text-gray-600 sm:text-base">
-              Sign in to your Vodora candidate account
+              {isRecruiterLogin
+                ? "Sign in to your Vodora recruiter account"
+                : "Sign in to your Vodora candidate account"}
             </p>
           </div>
+
+          {justVerified ? (
+            <div className="mb-5 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
+              Your email has been verified. Sign in with your email and password
+              to continue.
+            </div>
+          ) : null}
+
+          {justRegistered ? (
+            <div className="mb-5 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
+              Account created. Sign in with the email and password you just used.
+            </div>
+          ) : null}
+
+          {authCallbackFailed ? (
+            <div className="mb-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              Email verification failed or the link has expired. Try signing in or
+              request a new verification email.
+            </div>
+          ) : null}
+
+          {formError ? (
+            <div className="mb-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              {formError}
+            </div>
+          ) : null}
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <AuthInput
@@ -61,6 +123,11 @@ export function CandidateLoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@company.com"
+              hint={
+                isRecruiterLogin
+                  ? "Must be a company email address"
+                  : undefined
+              }
               icon={<Mail className="h-5 w-5" />}
             />
 
@@ -93,21 +160,12 @@ export function CandidateLoginPage() {
 
             <button
               type="submit"
-              className="w-full rounded-lg bg-blue-600 py-3 text-base font-medium text-white transition-colors hover:bg-blue-700"
+              disabled={isSubmitting}
+              className="w-full rounded-lg bg-blue-600 py-3 text-base font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
             >
-              Sign In
+              {isSubmitting ? "Signing in..." : "Sign In"}
             </button>
           </form>
-
-          <div className="mt-6">
-            <AuthDivider />
-
-            <div className="mt-6 space-y-3">
-              <LinkedInLoginButton />
-              <GoogleLoginButton />
-              <MicrosoftLoginButton />
-            </div>
-          </div>
 
           <p className="mt-8 text-center text-sm text-gray-600">
             Don&apos;t have an account?{" "}
@@ -121,5 +179,13 @@ export function CandidateLoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export function CandidateLoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginFormContent />
+    </Suspense>
   );
 }

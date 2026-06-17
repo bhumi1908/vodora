@@ -1,46 +1,32 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import { useRouter } from "next/navigation";
 
 import {
   AuthFormGrid,
   AuthSubmitButton,
+  FormError,
   FormField,
   FormRadioGroup,
   FormSelect,
+  FormSuccess,
   InfoAlert,
+  TermsAgreement,
 } from "@/components/auth/shared/FormFields";
 import { SignupFormShell } from "@/components/auth/shared/SignupLayout";
-
-const employeeCountOptions = [
-  { value: "1-10", label: "1-10" },
-  { value: "11-50", label: "11-50" },
-  { value: "51-200", label: "51-200" },
-  { value: "201-500", label: "201-500" },
-  { value: "501-1000", label: "501-1000" },
-  { value: "1000+", label: "1000+" },
-];
-
-const hiresPerYearOptions = [
-  { value: "1-5", label: "1-5" },
-  { value: "6-20", label: "6-20" },
-  { value: "21-50", label: "21-50" },
-  { value: "51-100", label: "51-100" },
-  { value: "100+", label: "100+" },
-];
-
-const recruiterTypeOptions = [
-  "Internal Recruiter",
-  "Recruitment Agency",
-  "Labour Hire Company",
-  "Hiring Manager",
-  "Business Owner",
-];
+import {
+  EMPLOYEE_COUNT_OPTIONS,
+  HIRES_PER_YEAR_OPTIONS,
+  RECRUITER_TYPE_OPTIONS,
+} from "@/lib/auth/constants";
+import type { RecruiterSignupRequest, SignupApiResponse } from "@/lib/auth/types";
 
 interface RecruiterFormData {
   firstName: string;
   lastName: string;
   email: string;
+  password: string;
   companyName: string;
   position: string;
   country: string;
@@ -49,12 +35,14 @@ interface RecruiterFormData {
   employeeCount: string;
   hiresPerYear: string;
   recruiterType: string;
+  agreedToTerms: boolean;
 }
 
 const initialData: RecruiterFormData = {
   firstName: "",
   lastName: "",
   email: "",
+  password: "",
   companyName: "",
   position: "",
   country: "",
@@ -63,25 +51,86 @@ const initialData: RecruiterFormData = {
   employeeCount: "",
   hiresPerYear: "",
   recruiterType: "",
+  agreedToTerms: false,
 };
 
 export function RecruiterSignupPage() {
+  const router = useRouter();
   const [formData, setFormData] = useState<RecruiterFormData>(initialData);
+  const [formError, setFormError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   function updateField<K extends keyof RecruiterFormData>(
     field: K,
     value: RecruiterFormData[K],
   ) {
     setFormData((prev) => ({ ...prev, [field]: value }));
+    setFormError("");
+    setSuccessMessage("");
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setFormError("");
+    setSuccessMessage("");
+    setIsSubmitting(true);
+
+    const payload: RecruiterSignupRequest = {
+      firstName: formData.firstName,
+      lastName: formData.lastName,
+      email: formData.email,
+      password: formData.password,
+      country: formData.country,
+      city: formData.city,
+      companyName: formData.companyName,
+      position: formData.position,
+      website: formData.website,
+      employeeCount: formData.employeeCount,
+      hiresPerYear: formData.hiresPerYear,
+      recruiterType: formData.recruiterType,
+      agreedToTerms: formData.agreedToTerms,
+    };
+
+    try {
+      const response = await fetch("/api/auth/register/recruiter", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const result = (await response.json()) as SignupApiResponse;
+
+      if (!response.ok || !result.success) {
+        setFormError(result.error ?? "Unable to create your account.");
+        return;
+      }
+
+      if (result.redirectTo) {
+        router.push(result.redirectTo);
+        if (!result.needsEmailConfirmation) {
+          router.refresh();
+        }
+        return;
+      }
+    } catch {
+      setFormError("Something went wrong. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
     <SignupFormShell accountType="recruiter">
       <form onSubmit={handleSubmit} className="space-y-6">
+        {formError ? <FormError message={formError} /> : null}
+        {successMessage ? (
+          <FormSuccess
+            title="Account created"
+            message={successMessage}
+          />
+        ) : null}
+
         <AuthFormGrid>
           <FormField
             id="recruiter-firstName"
@@ -110,6 +159,17 @@ export function RecruiterSignupPage() {
           onChange={(e) => updateField("email", e.target.value)}
           placeholder="you@company.com"
           hint="Must be a company email address"
+        />
+
+        <FormField
+          id="recruiter-password"
+          label="Password"
+          type="password"
+          required
+          value={formData.password}
+          onChange={(e) => updateField("password", e.target.value)}
+          placeholder="••••••••"
+          hint="Must be at least 8 characters"
         />
 
         <AuthFormGrid>
@@ -167,7 +227,7 @@ export function RecruiterSignupPage() {
             required
             value={formData.employeeCount}
             onChange={(e) => updateField("employeeCount", e.target.value)}
-            options={employeeCountOptions}
+            options={[...EMPLOYEE_COUNT_OPTIONS]}
           />
           <FormSelect
             id="recruiter-hiresPerYear"
@@ -175,7 +235,7 @@ export function RecruiterSignupPage() {
             required
             value={formData.hiresPerYear}
             onChange={(e) => updateField("hiresPerYear", e.target.value)}
-            options={hiresPerYearOptions}
+            options={[...HIRES_PER_YEAR_OPTIONS]}
           />
         </AuthFormGrid>
 
@@ -185,7 +245,12 @@ export function RecruiterSignupPage() {
           required
           value={formData.recruiterType}
           onChange={(value) => updateField("recruiterType", value)}
-          options={recruiterTypeOptions}
+          options={[...RECRUITER_TYPE_OPTIONS]}
+        />
+
+        <TermsAgreement
+          checked={formData.agreedToTerms}
+          onChange={(checked) => updateField("agreedToTerms", checked)}
         />
 
         <InfoAlert title="Verification Required">
@@ -195,7 +260,9 @@ export function RecruiterSignupPage() {
           </p>
         </InfoAlert>
 
-        <AuthSubmitButton>Create Recruiter Account</AuthSubmitButton>
+        <AuthSubmitButton loading={isSubmitting}>
+          Create Recruiter Account
+        </AuthSubmitButton>
       </form>
     </SignupFormShell>
   );

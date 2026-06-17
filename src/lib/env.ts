@@ -3,10 +3,16 @@ export const REQUIRED_ENV_KEYS = [
   "NEXT_PUBLIC_SUPABASE_ANON_KEY",
 ] as const;
 
+export const env = {
+  NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
+  NEXT_PUBLIC_SUPABASE_ANON_KEY:
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "",
+} as const;
+
 export function validateEnv(): void {
   const missing = REQUIRED_ENV_KEYS.filter((key) => {
-    const value = process.env[key];
-    return value === undefined || value.trim() === "";
+    const value = env[key];
+    return value.trim() === "";
   });
 
   if (missing.length > 0) {
@@ -15,9 +21,3 @@ export function validateEnv(): void {
     );
   }
 }
-
-export const env = {
-  NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
-  NEXT_PUBLIC_SUPABASE_ANON_KEY:
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "",
-} as const;

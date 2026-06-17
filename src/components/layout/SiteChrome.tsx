@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 
-const AUTH_ROUTE_PREFIXES = ["/login", "/signup"];
+const AUTH_ROUTE_PREFIXES = ["/login", "/signup", "/welcome"];
 
 function isAuthRoute(pathname: string) {
   return AUTH_ROUTE_PREFIXES.some(

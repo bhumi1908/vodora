@@ -5,17 +5,91 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import { UserProfileMenu } from "@/components/layout/UserProfileMenu";
+import { createClient } from "@/lib/supabase/client";
+import type { User } from "@supabase/supabase-js";
+
 const appNavItems = [
   { label: "Connect", href: "/marketplace" },
   { label: "Search", href: "/search" },
   { label: "My Profile", href: "/my-profile" },
-  { label: "Search for Jobs", href: "/jobs" },
+  { label: "Search for Jobs", href: "/jobs", prefetch: false },
 ];
+
+function AuthButtons({ onNavigate }: { onNavigate?: () => void }) {
+  return (
+    <>
+      <Link
+        href="/login"
+        className="px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:text-gray-900 sm:px-5"
+        onClick={onNavigate}
+      >
+        Login
+      </Link>
+      <Link
+        href="/signup"
+        className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 sm:px-5"
+        onClick={onNavigate}
+      >
+        Sign Up
+      </Link>
+    </>
+  );
+}
+
+function MobileAuthButtons({ onNavigate }: { onNavigate?: () => void }) {
+  return (
+    <>
+      <Link
+        href="/login"
+        className="block w-full rounded-lg border border-gray-200 px-4 py-2.5 text-center text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+        onClick={onNavigate}
+      >
+        Login
+      </Link>
+      <Link
+        href="/signup"
+        className="block w-full rounded-lg bg-blue-600 px-4 py-2.5 text-center text-sm font-medium text-white transition-colors hover:bg-blue-700"
+        onClick={onNavigate}
+      >
+        Sign Up
+      </Link>
+    </>
+  );
+}
+
+function useAuthUser() {
+  const [user, setUser] = useState<User | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+
+  useEffect(() => {
+    const supabase = createClient();
+
+    supabase.auth.getUser().then(({ data: { user: currentUser } }) => {
+      setUser(currentUser);
+      setAuthLoading(false);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+      setAuthLoading(false);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  return { user, authLoading, setUser };
+}
 
 export function SiteHeader() {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [lastPathname, setLastPathname] = useState(pathname);
+  const { user, authLoading, setUser } = useAuthUser();
   const isLanding = pathname === "/";
 
   if (pathname !== lastPathname) {
@@ -50,6 +124,9 @@ export function SiteHeader() {
         : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
     }`;
 
+  const showAuthActions = !authLoading;
+  const isLoggedIn = Boolean(user);
+
   return (
     <header className="sticky top-0 z-50 border-b border-gray-200 bg-white">
       <div className="mx-auto max-w-[1440px] px-4 sm:px-6 lg:px-8">
@@ -73,6 +150,7 @@ export function SiteHeader() {
                 <Link
                   key={item.label}
                   href={item.href}
+                  prefetch={item.prefetch}
                   className={desktopNavLinkClass(item.href)}
                 >
                   {item.label}
@@ -83,18 +161,19 @@ export function SiteHeader() {
 
           <div className="flex items-center gap-2 sm:gap-3">
             <div className="hidden items-center gap-2 sm:gap-3 md:flex">
-              <Link
-                href="/login"
-                className="px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:text-gray-900 sm:px-5"
-              >
-                Login
-              </Link>
-              <Link
-                href="/signup"
-                className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 sm:px-5"
-              >
-                Sign Up
-              </Link>
+              {showAuthActions ? (
+                isLoggedIn && user ? (
+                  <UserProfileMenu
+                    user={user}
+                    variant="desktop"
+                    onSignOut={() => setUser(null)}
+                  />
+                ) : (
+                  <AuthButtons />
+                )
+              ) : (
+                <div className="h-8 w-24 animate-pulse rounded-lg bg-gray-100" />
+              )}
             </div>
 
             <button
@@ -130,6 +209,7 @@ export function SiteHeader() {
                     <Link
                       key={item.label}
                       href={item.href}
+                      prefetch={item.prefetch}
                       className={
                         isActive(item.href) ? navLinkActiveClass : navLinkClass
                       }
@@ -144,20 +224,20 @@ export function SiteHeader() {
               <div
                 className={`space-y-2 ${!isLanding ? "mt-4 border-t border-gray-100 pt-4" : ""}`}
               >
-                <Link
-                  href="/login"
-                  className="block w-full rounded-lg border border-gray-200 px-4 py-2.5 text-center text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
-                  onClick={closeMobileMenu}
-                >
-                  Login
-                </Link>
-                <Link
-                  href="/signup"
-                  className="block w-full rounded-lg bg-blue-600 px-4 py-2.5 text-center text-sm font-medium text-white transition-colors hover:bg-blue-700"
-                  onClick={closeMobileMenu}
-                >
-                  Sign Up
-                </Link>
+                {showAuthActions ? (
+                  isLoggedIn && user ? (
+                    <UserProfileMenu
+                      user={user}
+                      variant="mobile"
+                      onNavigate={closeMobileMenu}
+                      onSignOut={() => setUser(null)}
+                    />
+                  ) : (
+                    <MobileAuthButtons onNavigate={closeMobileMenu} />
+                  )
+                ) : (
+                  <div className="h-16 animate-pulse rounded-lg bg-gray-100" />
+                )}
               </div>
             </nav>
           </div>

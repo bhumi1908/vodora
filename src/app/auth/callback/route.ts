@@ -2,12 +2,12 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
+import { completePendingSignupForUser } from "@/lib/auth/signup-flow";
 import { env } from "@/lib/env";
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const next = searchParams.get("next") ?? "/";
 
   if (code) {
     const cookieStore = await cookies();
@@ -32,7 +32,17 @@ export async function GET(request: Request) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (!error) {
-      return NextResponse.redirect(`${origin}${next}`);
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (user) {
+        await completePendingSignupForUser(supabase, user);
+      }
+
+      await supabase.auth.signOut();
+
+      return NextResponse.redirect(`${origin}/login?verified=1`);
     }
   }
 

@@ -5,6 +5,7 @@ interface FooterLink {
   label: string;
   href: string;
   className?: string;
+  prefetch?: boolean;
 }
 
 interface FooterColumn {
@@ -18,7 +19,7 @@ const footerColumns: FooterColumn[] = [
     links: [
       { label: "Create Profile", href: "/signup/candidate" },
       { label: "My Profile", href: "/my-profile" },
-      { label: "Browse Jobs", href: "/jobs" },
+      { label: "Browse Jobs", href: "/jobs", prefetch: false },
       { label: "Find Recruiters", href: "/recruiters" },
     ],
   },
@@ -40,6 +41,7 @@ const footerColumns: FooterColumn[] = [
         label: "Admin",
         href: "/admin",
         className: "text-gray-600 hover:text-white",
+        prefetch: false,
       },
     ],
   },
@@ -58,6 +60,7 @@ export function SiteFooter() {
                   <li key={link.label}>
                     <Link
                       href={link.href}
+                      prefetch={link.prefetch}
                       className={`transition-colors hover:text-white ${link.className ?? ""}`}
                     >
                       {link.label}

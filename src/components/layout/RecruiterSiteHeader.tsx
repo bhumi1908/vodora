@@ -68,7 +68,7 @@ export function RecruiterSiteHeader() {
                 For Candidates
               </Link>
               <Link
-                href="/login"
+                href="/login?type=recruiter"
                 className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 sm:px-4"
               >
                 Log In
@@ -130,7 +130,7 @@ export function RecruiterSiteHeader() {
                   For Candidates
                 </Link>
                 <Link
-                  href="/login"
+                  href="/login?type=recruiter"
                   className="block w-full rounded-lg border border-gray-300 px-4 py-2.5 text-center text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
                   onClick={closeMobileMenu}
                 >

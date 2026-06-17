@@ -1,38 +1,20 @@
 "use client";
 
-import { Upload } from "lucide-react";
 import { FormEvent, useState } from "react";
+import { useRouter } from "next/navigation";
 
 import {
   AuthFormGrid,
   AuthSubmitButton,
   FormCheckboxGrid,
+  FormError,
   FormField,
-  FormSection,
-  ImportActionButton,
+  FormSuccess,
   TermsAgreement,
 } from "@/components/auth/shared/FormFields";
 import { SignupFormShell } from "@/components/auth/shared/SignupLayout";
-
-const workAvailabilityOptions = [
-  "Full Time",
-  "Part Time",
-  "Contract",
-  "Freelance",
-  "Labour Hire",
-  "Casual",
-  "Remote",
-  "FIFO (Fly-In Fly-Out)",
-];
-
-const linkedInIcon = (
-  <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
-    <path
-      fill="#0A66C2"
-      d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"
-    />
-  </svg>
-);
+import { WORK_TYPE_OPTIONS } from "@/lib/auth/constants";
+import type { CandidateSignupRequest, SignupApiResponse } from "@/lib/auth/types";
 
 interface CandidateFormData {
   firstName: string;
@@ -43,7 +25,7 @@ interface CandidateFormData {
   city: string;
   profession: string;
   industry: string;
-  workAvailability: string[];
+  workTypeCodes: string[];
   agreedToTerms: boolean;
 }
 
@@ -56,36 +38,100 @@ const initialData: CandidateFormData = {
   city: "",
   profession: "",
   industry: "",
-  workAvailability: [],
+  workTypeCodes: [],
   agreedToTerms: false,
 };
 
+const workAvailabilityOptions = WORK_TYPE_OPTIONS.map((option) => ({
+  value: option.code,
+  label: option.label,
+}));
+
 export function CandidateSignupPage() {
+  const router = useRouter();
   const [formData, setFormData] = useState<CandidateFormData>(initialData);
   const [availabilityError, setAvailabilityError] = useState("");
+  const [formError, setFormError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   function updateField<K extends keyof CandidateFormData>(
     field: K,
     value: CandidateFormData[K],
   ) {
     setFormData((prev) => ({ ...prev, [field]: value }));
-    if (field === "workAvailability") {
+    setFormError("");
+    setSuccessMessage("");
+
+    if (field === "workTypeCodes") {
       setAvailabilityError("");
     }
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setFormError("");
+    setSuccessMessage("");
 
-    if (formData.workAvailability.length === 0) {
+    if (formData.workTypeCodes.length === 0) {
       setAvailabilityError("Please select at least one work availability option.");
       return;
+    }
+
+    setIsSubmitting(true);
+
+    const payload: CandidateSignupRequest = {
+      firstName: formData.firstName,
+      lastName: formData.lastName,
+      email: formData.email,
+      password: formData.password,
+      country: formData.country,
+      city: formData.city,
+      profession: formData.profession,
+      industry: formData.industry,
+      workTypeCodes: formData.workTypeCodes,
+      agreedToTerms: formData.agreedToTerms,
+    };
+
+    try {
+      const response = await fetch("/api/auth/register/candidate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const result = (await response.json()) as SignupApiResponse;
+
+      if (!response.ok || !result.success) {
+        setFormError(result.error ?? "Unable to create your account.");
+        return;
+      }
+
+      if (result.redirectTo) {
+        router.push(result.redirectTo);
+        if (!result.needsEmailConfirmation) {
+          router.refresh();
+        }
+        return;
+      }
+    } catch {
+      setFormError("Something went wrong. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
   return (
     <SignupFormShell accountType="candidate">
       <form onSubmit={handleSubmit} className="space-y-6">
+        {formError ? <FormError message={formError} /> : null}
+        {successMessage ? (
+          <FormSuccess
+            title="Account created"
+            message={successMessage}
+          />
+        ) : null}
+
         <AuthFormGrid>
           <FormField
             id="candidate-firstName"
@@ -168,31 +214,19 @@ export function CandidateSignupPage() {
           label="Work Availability"
           required
           options={workAvailabilityOptions}
-          value={formData.workAvailability}
-          onChange={(value) => updateField("workAvailability", value)}
+          value={formData.workTypeCodes}
+          onChange={(value) => updateField("workTypeCodes", value)}
           error={availabilityError}
         />
-
-        <FormSection title="Quick Import" optional>
-          <div className="space-y-3">
-            <ImportActionButton icon={linkedInIcon}>
-              Import LinkedIn Profile
-            </ImportActionButton>
-            <ImportActionButton icon={<Upload className="h-5 w-5 text-gray-500" />}>
-              Upload Resume (PDF/DOC)
-            </ImportActionButton>
-            <ImportActionButton icon={<Upload className="h-5 w-5 text-gray-500" />}>
-              Upload Profile Photo
-            </ImportActionButton>
-          </div>
-        </FormSection>
 
         <TermsAgreement
           checked={formData.agreedToTerms}
           onChange={(checked) => updateField("agreedToTerms", checked)}
         />
 
-        <AuthSubmitButton>Create Candidate Account</AuthSubmitButton>
+        <AuthSubmitButton loading={isSubmitting}>
+          Create Candidate Account
+        </AuthSubmitButton>
       </form>
     </SignupFormShell>
   );

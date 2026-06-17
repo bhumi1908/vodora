@@ -99,7 +99,7 @@ interface FormRadioGroupProps {
   label: string;
   value: string;
   onChange: (value: string) => void;
-  options: string[];
+  options: FormSelectOption[];
   required?: boolean;
 }
 
@@ -120,19 +120,19 @@ export function FormRadioGroup({
       <div className="space-y-2">
         {options.map((option, index) => (
           <label
-            key={option}
+            key={option.value}
             className="flex cursor-pointer items-center gap-3 rounded-lg border-2 border-gray-200 p-3 transition-colors hover:border-blue-500 has-[:checked]:border-blue-500"
           >
             <input
               type="radio"
               name={name}
-              value={option}
-              checked={value === option}
-              onChange={() => onChange(option)}
+              value={option.value}
+              checked={value === option.value}
+              onChange={() => onChange(option.value)}
               required={required && index === 0 && !value}
               className="h-4 w-4 text-blue-600"
             />
-            <span className="text-sm text-gray-700">{option}</span>
+            <span className="text-sm text-gray-700">{option.label}</span>
           </label>
         ))}
       </div>
@@ -142,7 +142,7 @@ export function FormRadioGroup({
 
 interface FormCheckboxGridProps {
   label: string;
-  options: string[];
+  options: FormSelectOption[];
   value: string[];
   onChange: (value: string[]) => void;
   required?: boolean;
@@ -157,11 +157,11 @@ export function FormCheckboxGrid({
   required = false,
   error,
 }: FormCheckboxGridProps) {
-  function toggleOption(option: string) {
-    if (value.includes(option)) {
-      onChange(value.filter((item) => item !== option));
+  function toggleOption(optionValue: string) {
+    if (value.includes(optionValue)) {
+      onChange(value.filter((item) => item !== optionValue));
     } else {
-      onChange([...value, option]);
+      onChange([...value, optionValue]);
     }
   }
 
@@ -174,16 +174,16 @@ export function FormCheckboxGrid({
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
         {options.map((option) => (
           <label
-            key={option}
+            key={option.value}
             className="flex cursor-pointer items-center gap-3 rounded-lg border-2 border-gray-200 p-3 transition-colors hover:border-blue-500 has-[:checked]:border-blue-500"
           >
             <input
               type="checkbox"
-              checked={value.includes(option)}
-              onChange={() => toggleOption(option)}
+              checked={value.includes(option.value)}
+              onChange={() => toggleOption(option.value)}
               className="h-4 w-4 rounded text-blue-600"
             />
-            <span className="text-sm text-gray-700">{option}</span>
+            <span className="text-sm text-gray-700">{option.label}</span>
           </label>
         ))}
       </div>
@@ -346,16 +346,47 @@ export function AuthFormGrid({ children }: AuthFormGridProps) {
 interface AuthSubmitButtonProps {
   children: ReactNode;
   disabled?: boolean;
+  loading?: boolean;
 }
 
-export function AuthSubmitButton({ children, disabled = false }: AuthSubmitButtonProps) {
+export function AuthSubmitButton({
+  children,
+  disabled = false,
+  loading = false,
+}: AuthSubmitButtonProps) {
   return (
     <button
       type="submit"
-      disabled={disabled}
+      disabled={disabled || loading}
       className="w-full rounded-lg bg-blue-600 py-3 text-base font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
     >
-      {children}
+      {loading ? "Creating account..." : children}
     </button>
+  );
+}
+
+interface FormErrorProps {
+  message: string;
+}
+
+export function FormError({ message }: FormErrorProps) {
+  return (
+    <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+      {message}
+    </div>
+  );
+}
+
+interface FormSuccessProps {
+  title: string;
+  message: string;
+}
+
+export function FormSuccess({ title, message }: FormSuccessProps) {
+  return (
+    <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
+      <p className="font-medium">{title}</p>
+      <p className="mt-1">{message}</p>
+    </div>
   );
 }

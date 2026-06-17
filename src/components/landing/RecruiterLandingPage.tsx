@@ -85,13 +85,13 @@ function RecruiterHero() {
               </p>
               <div className="mb-8 flex flex-col gap-3 sm:mb-10 sm:flex-row sm:gap-4">
                 <Link
-                  href="/login"
+                  href="/login?type=recruiter"
                   className="rounded-xl bg-blue-600 px-6 py-3 text-center text-base font-semibold text-white transition-colors hover:bg-blue-500 sm:px-8 sm:py-4"
                 >
                   Start Free Trial
                 </Link>
                 <Link
-                  href="/login"
+                  href="/login?type=recruiter"
                   className="rounded-xl border border-white/20 px-6 py-3 text-center text-base font-semibold text-white transition-colors hover:bg-white/10 sm:px-8 sm:py-4"
                 >
                   View Demo
@@ -576,7 +576,7 @@ function RecruiterPricing() {
               ))}
             </ul>
             <Link
-              href="/login"
+              href="/login?type=recruiter"
               className={`block rounded-xl py-3 text-center text-sm font-semibold transition-colors ${highlight
                   ? "bg-white text-blue-600 hover:bg-gray-100"
                   : "bg-blue-600 text-white hover:bg-blue-700"
@@ -605,13 +605,13 @@ function RecruiterCTA() {
         </p>
         <div className="flex flex-col justify-center gap-3 sm:flex-row sm:gap-4">
           <Link
-            href="/login"
+            href="/login?type=recruiter"
             className="rounded-xl bg-blue-600 px-8 py-4 text-base font-semibold text-white transition-colors hover:bg-blue-500 sm:text-lg"
           >
             Start Free Trial
           </Link>
           <Link
-            href="/login"
+            href="/login?type=recruiter"
             className="flex items-center justify-center gap-2 rounded-xl border border-white/20 px-8 py-4 text-base font-semibold text-white transition-colors hover:bg-white/10 sm:text-lg"
           >
             See Demo <ArrowRight className="h-5 w-5" />
