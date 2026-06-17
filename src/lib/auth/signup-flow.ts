@@ -1,6 +1,7 @@
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 
 import { getAuthErrorMessage } from "@/lib/auth/errors";
+import { env } from "@/lib/env";
 import {
   completeSignupProfile,
   getPostSignupRedirect,
@@ -107,5 +108,5 @@ export function getRequestOrigin(request: Request): string {
     return `${protocol}://${host}`;
   }
 
-  return "http://localhost:3000";
+  return env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 }
