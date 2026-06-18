@@ -13,11 +13,11 @@ import {
 import { isExperienceDirty } from "@/components/profile/edit/profile-edit-dirty";
 import { ProfileEditSection } from "@/components/profile/edit/ProfileEditSection";
 import { ProfileMonthField } from "@/components/profile/edit/ProfileMonthField";
-import { saveExperienceSection } from "@/components/profile/edit/profile-edit-api";
 import { createEmptyExperience } from "@/components/profile/edit/profile-edit-utils";
 import { SectionSaveButton } from "@/components/profile/edit/SectionSaveButton";
 import type { EditableExperience } from "@/components/profile/edit/types";
 import { validateExperienceEntries } from "@/lib/profile/validation";
+import { useSaveExperienceMutation } from "@/lib/query/use-profile-mutations";
 
 type ExperienceEditSectionProps = {
   entries: EditableExperience[];
@@ -32,7 +32,7 @@ export function ExperienceEditSection({
   onChange,
   onSaved,
 }: ExperienceEditSectionProps) {
-  const [isSaving, setIsSaving] = useState(false);
+  const saveMutation = useSaveExperienceMutation();
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const isDirty = useMemo(
@@ -67,21 +67,22 @@ export function ExperienceEditSection({
       return;
     }
 
-    setIsSaving(true);
     setError("");
     setSuccess("");
 
-    const result = await saveExperienceSection(entries);
+    try {
+      const result = await saveMutation.mutateAsync(entries);
 
-    setIsSaving(false);
+      if (!result.success) {
+        setError(result.error ?? "Failed to save experience.");
+        return;
+      }
 
-    if (!result.success) {
-      setError(result.error ?? "Failed to save experience.");
-      return;
+      setSuccess("Experience saved.");
+      onSaved?.();
+    } catch {
+      setError("Failed to save experience.");
     }
-
-    setSuccess("Experience saved.");
-    onSaved?.();
   }
 
   return (
@@ -91,7 +92,7 @@ export function ExperienceEditSection({
       description="Add your employment history and key responsibilities."
       footer={
         <SectionSaveButton
-          loading={isSaving}
+          loading={saveMutation.isPending}
           disabled={!isDirty}
           onClick={() => void handleSave()}
         />

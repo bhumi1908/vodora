@@ -8,11 +8,13 @@ import {
   Star,
   TrendingUp,
 } from "lucide-react";
+import Link from "next/link";
 
 import type { RecruiterDashboardContext } from "@/lib/recruiter/dashboard.types";
+import { RECRUITER_SAVED_PATH, RECRUITER_SEARCH_PATH } from "@/lib/auth/routes";
 import { getInitials } from "@/lib/profile/format";
 
-const stats = [
+const staticStats = [
   {
     label: "Active Job Posts",
     value: "3",
@@ -24,12 +26,6 @@ const stats = [
     value: "148",
     icon: Eye,
     color: "bg-purple-50 text-purple-600",
-  },
-  {
-    label: "Saved Profiles",
-    value: "27",
-    icon: Bookmark,
-    color: "bg-amber-50 text-amber-600",
   },
   {
     label: "Avg. Time to Hire",
@@ -67,23 +63,67 @@ type RecruiterDashboardSidebarProps = {
   context: RecruiterDashboardContext;
 };
 
-export function RecruiterDashboardStats() {
+type RecruiterDashboardStatsProps = {
+  savedCount: number;
+};
+
+type DashboardStatItem = {
+  label: string;
+  value: string;
+  icon: typeof Briefcase;
+  color: string;
+  href?: string;
+};
+
+export function RecruiterDashboardStats({ savedCount }: RecruiterDashboardStatsProps) {
+  const stats: DashboardStatItem[] = [
+    ...staticStats.slice(0, 2).map((stat) => ({ ...stat })),
+    {
+      label: "Saved Profiles",
+      value: String(savedCount),
+      icon: Bookmark,
+      color: "bg-amber-50 text-amber-600",
+      href: RECRUITER_SAVED_PATH,
+    },
+    ...staticStats.slice(2).map((stat) => ({ ...stat })),
+  ];
+
   return (
     <div className="mb-8 grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
-      {stats.map(({ label, value, icon: Icon, color }) => (
-        <div
-          key={label}
-          className="rounded-2xl border border-gray-200 bg-white p-6"
-        >
+      {stats.map(({ label, value, icon: Icon, color, href }) => {
+        const content = (
+          <>
+            <div
+              className={`mb-4 flex h-10 w-10 items-center justify-center rounded-xl ${color}`}
+            >
+              <Icon className="h-5 w-5" />
+            </div>
+            <p className="text-3xl font-bold text-gray-900">{value}</p>
+            <p className="mt-1 text-sm text-gray-500">{label}</p>
+          </>
+        );
+
+        if (href) {
+          return (
+            <Link
+              key={label}
+              href={href}
+              className="rounded-2xl border border-gray-200 bg-white p-6 transition-shadow hover:shadow-md"
+            >
+              {content}
+            </Link>
+          );
+        }
+
+        return (
           <div
-            className={`mb-4 flex h-10 w-10 items-center justify-center rounded-xl ${color}`}
+            key={label}
+            className="rounded-2xl border border-gray-200 bg-white p-6"
           >
-            <Icon className="h-5 w-5" />
+            {content}
           </div>
-          <p className="text-3xl font-bold text-gray-900">{value}</p>
-          <p className="mt-1 text-sm text-gray-500">{label}</p>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
@@ -205,9 +245,12 @@ export function RecruiterDashboardCandidatesHeader() {
   return (
     <div className="flex items-center justify-between">
       <h2 className="text-xl font-semibold text-gray-900">Verified Candidates</h2>
-      <span className="flex items-center gap-1 text-sm font-medium text-blue-600 opacity-60">
+      <Link
+        href={RECRUITER_SEARCH_PATH}
+        className="flex items-center gap-1 text-sm font-medium text-blue-600 transition-colors hover:text-blue-700"
+      >
         View all <ArrowRight className="h-4 w-4" />
-      </span>
+      </Link>
     </div>
   );
 }

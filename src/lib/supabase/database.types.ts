@@ -417,6 +417,27 @@ export type Database = {
         };
         Relationships: [];
       };
+      recruiter_saved_candidates: {
+        Row: {
+          candidate_id: string;
+          id: string;
+          recruiter_id: string;
+          saved_at: string;
+        };
+        Insert: {
+          candidate_id: string;
+          id?: string;
+          recruiter_id: string;
+          saved_at?: string;
+        };
+        Update: {
+          candidate_id?: string;
+          id?: string;
+          recruiter_id?: string;
+          saved_at?: string;
+        };
+        Relationships: [];
+      };
       roles: {
         Row: {
           created_at: string;
@@ -557,6 +578,37 @@ export type Database = {
         Args: {
           p_vodora_id: string;
         };
+        Returns: Json;
+      };
+      get_recruiter_saved_candidates: {
+        Args: {
+          p_offset?: number;
+          p_limit?: number;
+        };
+        Returns: Json;
+      };
+      get_recruiter_saved_count: {
+        Args: Record<PropertyKey, never>;
+        Returns: number;
+      };
+      search_recruiter_candidates: {
+        Args: {
+          p_query?: string;
+          p_category_id?: string;
+          p_availability_start?: string;
+          p_availability_status?: string;
+          p_work_type_codes?: string[];
+          p_country?: string;
+          p_experience_min?: number;
+          p_experience_max?: number;
+          p_min_references?: number;
+          p_offset?: number;
+          p_limit?: number;
+        };
+        Returns: Json;
+      };
+      get_recruiter_search_metadata: {
+        Args: Record<PropertyKey, never>;
         Returns: Json;
       };
       register_candidate: {

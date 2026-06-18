@@ -1,0 +1,47 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { cache } from "react";
+
+import type { RecruiterSearchFilters } from "@/lib/recruiter/search.types";
+import type { Database } from "@/lib/supabase/database.types";
+
+type Supabase = SupabaseClient<Database>;
+
+type SearchMetadata = {
+  total_directory_count?: number;
+  countries?: string[];
+};
+
+async function fetchRecruiterSearchFilters(
+  supabase: Supabase,
+): Promise<RecruiterSearchFilters> {
+  const [{ data: categories }, { data: workTypes }, { data: metadata }] =
+    await Promise.all([
+      supabase
+        .from("industry_categories")
+        .select("id, name")
+        .eq("is_active", true)
+        .order("sort_order")
+        .order("name"),
+      supabase
+        .from("work_types")
+        .select("code, name")
+        .eq("is_active", true)
+        .order("sort_order")
+        .order("name"),
+      supabase.rpc("get_recruiter_search_metadata"),
+    ]);
+
+  const meta =
+    metadata && typeof metadata === "object" && !Array.isArray(metadata)
+      ? (metadata as SearchMetadata)
+      : null;
+
+  return {
+    categories: categories ?? [],
+    workTypes: workTypes ?? [],
+    countries: Array.isArray(meta?.countries) ? meta.countries : [],
+    totalDirectoryCount: meta?.total_directory_count ?? 0,
+  };
+}
+
+export const getCachedRecruiterSearchFilters = cache(fetchRecruiterSearchFilters);

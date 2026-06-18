@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 
-import { RECRUITER_DASHBOARD_PATH } from "@/lib/auth/routes";
+import { RECRUITER_SEARCH_PATH } from "@/lib/auth/routes";
 
 export default function LegacyRecruiterSearchRedirect() {
-  redirect(RECRUITER_DASHBOARD_PATH);
+  redirect(RECRUITER_SEARCH_PATH);
 }

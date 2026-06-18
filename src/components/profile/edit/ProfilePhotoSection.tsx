@@ -5,8 +5,8 @@ import { useRef, useState } from "react";
 
 import { FormError, FormSuccess } from "@/components/auth/shared/FormFields";
 import { ProfileEditSection } from "@/components/profile/edit/ProfileEditSection";
-import { uploadProfilePhoto } from "@/components/profile/edit/profile-edit-api";
 import { SectionSaveButton } from "@/components/profile/edit/SectionSaveButton";
+import { useUploadProfilePhotoMutation } from "@/lib/query/use-profile-mutations";
 import {
   MAX_PROFILE_FILE_SIZE_LABEL,
   validateProfileFile,
@@ -25,9 +25,9 @@ export function ProfilePhotoSection({
   profilePictureUrl,
   onPhotoSaved,
 }: ProfilePhotoSectionProps) {
+  const uploadMutation = useUploadProfilePhotoMutation();
   const inputRef = useRef<HTMLInputElement>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(profilePictureUrl);
-  const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
@@ -47,21 +47,23 @@ export function ProfilePhotoSection({
     }
 
     setPreviewUrl(URL.createObjectURL(file));
-    setIsSaving(true);
 
-    const result = await uploadProfilePhoto(file);
+    try {
+      const result = await uploadMutation.mutateAsync(file);
 
-    setIsSaving(false);
+      if (!result.success) {
+        setError(result.error);
+        setPreviewUrl(profilePictureUrl);
+        return;
+      }
 
-    if (!result.success) {
-      setError(result.error);
+      setPreviewUrl(result.profilePictureUrl);
+      onPhotoSaved(result.profilePictureUrl);
+      setSuccess("Profile photo updated.");
+    } catch {
+      setError("Failed to upload photo.");
       setPreviewUrl(profilePictureUrl);
-      return;
     }
-
-    setPreviewUrl(result.profilePictureUrl);
-    onPhotoSaved(result.profilePictureUrl);
-    setSuccess("Profile photo updated.");
   }
 
   return (
@@ -72,7 +74,7 @@ export function ProfilePhotoSection({
       footer={
         <SectionSaveButton
           label="Choose photo"
-          loading={isSaving}
+          loading={uploadMutation.isPending}
           onClick={() => inputRef.current?.click()}
         />
       }
@@ -92,7 +94,7 @@ export function ProfilePhotoSection({
             </span>
           )}
 
-          {isSaving ? (
+          {uploadMutation.isPending ? (
             <div className="absolute inset-0 flex items-center justify-center bg-black/40">
               <Loader2 className="h-6 w-6 animate-spin text-white" />
             </div>
@@ -106,7 +108,7 @@ export function ProfilePhotoSection({
           <button
             type="button"
             onClick={() => inputRef.current?.click()}
-            disabled={isSaving}
+            disabled={uploadMutation.isPending}
             className="inline-flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-50"
           >
             <Camera className="h-4 w-4" />

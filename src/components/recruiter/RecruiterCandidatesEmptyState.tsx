@@ -6,6 +6,8 @@ function isMissingRpcError(message: string): boolean {
   const normalized = message.toLowerCase();
   return (
     normalized.includes("get_recruiter_dashboard_candidates") ||
+    normalized.includes("search_recruiter_candidates") ||
+    normalized.includes("get_recruiter_search_metadata") ||
     normalized.includes("could not find the function") ||
     normalized.includes("schema cache")
   );
@@ -23,11 +25,7 @@ export function RecruiterCandidatesEmptyState({
         <p className="mt-2 text-sm text-amber-800">
           Apply the Supabase migrations{" "}
           <code className="rounded bg-amber-100 px-1 py-0.5 text-xs">
-            20250617220000_recruiter_dashboard_candidates.sql
-          </code>{" "}
-          and{" "}
-          <code className="rounded bg-amber-100 px-1 py-0.5 text-xs">
-            20250617230000_candidate_recruiter_visibility.sql
+            20250618000000_search_recruiter_candidates.sql
           </code>{" "}
           in your Supabase project, then refresh this page.
         </p>

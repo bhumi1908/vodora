@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 
-import { RecruiterDashboard } from "@/components/recruiter/RecruiterDashboard";
-import { getAccountType } from "@/lib/auth/account-type";
+import { RecruiterDashboardWithCache } from "@/components/recruiter/RecruiterDashboardWithCache";
 import {
   getLoginRedirect,
   getRouteProtectionRedirect,
@@ -31,17 +30,16 @@ export default async function RecruiterDashboardPage() {
     redirect(redirectPath);
   }
 
-  const accountType = user ? await getAccountType(supabase, user) : null;
-
-  if (accountType !== "recruiter") {
-    redirect("/dashboard");
-  }
-
-  const data = await getCachedRecruiterDashboardData(supabase);
+  const data = await getCachedRecruiterDashboardData(supabase, user!.id);
 
   if (!data) {
     redirect(getLoginRedirect(RECRUITER_DASHBOARD_PATH));
   }
 
-  return <RecruiterDashboard data={data} />;
+  return (
+    <RecruiterDashboardWithCache
+      initialData={data}
+      initialDataUpdatedAt={Date.now()}
+    />
+  );
 }

@@ -7,8 +7,11 @@ import type {
   RecruiterDashboardData,
 } from "@/lib/recruiter/dashboard.types";
 import type { Database } from "@/lib/supabase/database.types";
+import { fetchRecruiterSavedCount } from "@/lib/recruiter/fetch-recruiter-saved-candidates";
 
 type Supabase = SupabaseClient<Database>;
+
+export const RECRUITER_DASHBOARD_CANDIDATE_LIMIT = 15;
 
 type RpcCandidateRow = {
   id: string;
@@ -25,6 +28,7 @@ type RpcCandidateRow = {
   skills: string[] | null;
   verified: boolean;
   reference_count: number;
+  is_saved?: boolean;
 };
 
 function normalizeCandidate(row: RpcCandidateRow): RecruiterDashboardCandidate {
@@ -43,31 +47,25 @@ function normalizeCandidate(row: RpcCandidateRow): RecruiterDashboardCandidate {
     skills: row.skills ?? [],
     verified: row.verified,
     referenceCount: row.reference_count,
+    isSaved: row.is_saved ?? false,
   };
 }
 
 async function fetchRecruiterDashboardContext(
   supabase: Supabase,
+  userId: string,
 ): Promise<RecruiterDashboardContext | null> {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return null;
-  }
-
   const [{ data: userRow, error: userError }, { data: recruiter }] =
     await Promise.all([
       supabase
         .from("users")
         .select("first_name, last_name")
-        .eq("id", user.id)
+        .eq("id", userId)
         .maybeSingle(),
       supabase
         .from("recruiters")
         .select("job_title, company_id")
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .maybeSingle(),
     ]);
 
@@ -99,7 +97,7 @@ async function fetchRecruiterDashboardCandidates(
   supabase: Supabase,
 ): Promise<{ candidates: RecruiterDashboardCandidate[]; error: string | null }> {
   const { data, error } = await supabase.rpc("get_recruiter_dashboard_candidates", {
-    p_limit: 50,
+    p_limit: RECRUITER_DASHBOARD_CANDIDATE_LIMIT,
   });
 
   if (error) {
@@ -126,10 +124,25 @@ async function fetchRecruiterDashboardCandidates(
 
 async function fetchRecruiterDashboardData(
   supabase: Supabase,
+  userId?: string,
 ): Promise<RecruiterDashboardData | null> {
-  const [context, candidateResult] = await Promise.all([
-    fetchRecruiterDashboardContext(supabase),
+  let resolvedUserId = userId;
+
+  if (!resolvedUserId) {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    resolvedUserId = user?.id;
+  }
+
+  if (!resolvedUserId) {
+    return null;
+  }
+
+  const [context, candidateResult, savedCount] = await Promise.all([
+    fetchRecruiterDashboardContext(supabase, resolvedUserId),
     fetchRecruiterDashboardCandidates(supabase),
+    fetchRecruiterSavedCount(supabase),
   ]);
 
   if (!context) {
@@ -140,6 +153,7 @@ async function fetchRecruiterDashboardData(
     context,
     candidates: candidateResult.candidates,
     candidatesError: candidateResult.error,
+    savedCount,
   };
 }
 

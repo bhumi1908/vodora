@@ -5,8 +5,10 @@ import { ChevronDown, LogOut, Settings, UserRound } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { showLogoutSuccessToast } from "@/lib/auth-toast";
+import { clearQueryCacheOnLogout } from "@/lib/query/logout";
 
 function getDisplayName(user: User): string {
   const firstName =
@@ -51,6 +53,7 @@ export function UserProfileMenu({
   onNavigate,
 }: UserProfileMenuProps) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -88,6 +91,7 @@ export function UserProfileMenu({
 
     try {
       await fetch("/api/auth/logout", { method: "POST" });
+      clearQueryCacheOnLogout(queryClient);
       onSignOut?.();
       showLogoutSuccessToast();
       router.push("/");

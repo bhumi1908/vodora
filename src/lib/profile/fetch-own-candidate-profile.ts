@@ -34,7 +34,7 @@ async function fetchOwnCandidateProfileFallback(
       supabase
         .from("candidates")
         .select(
-          "id, vodora_id, profession, current_position, current_company_name, headline, summary, city, country, linkedin_profile_url, profile_picture_url, availability_status, availability_start",
+          "id, vodora_id, profession, current_position, current_company_name, headline, summary, city, country, linkedin_profile_url, profile_picture_url, availability_status, availability_start, experience_level, total_years_experience",
         )
         .eq("user_id", user.id)
         .maybeSingle(),
@@ -69,6 +69,8 @@ async function fetchOwnCandidateProfileFallback(
           profile_picture_url: candidate.profile_picture_url,
           availability_status: candidate.availability_status,
           availability_start: candidate.availability_start,
+          experience_level: candidate.experience_level,
+          total_years_experience: candidate.total_years_experience,
         }
       : null,
     skills: [],

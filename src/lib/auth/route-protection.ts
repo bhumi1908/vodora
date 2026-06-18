@@ -1,11 +1,11 @@
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 
-import { getAccountType } from "@/lib/auth/account-type";
 import {
-  CANDIDATE_DASHBOARD_PATH,
-  getDashboardPath,
-  RECRUITER_DASHBOARD_PATH,
-} from "@/lib/auth/routes";
+  getCandidateDashboardAccessDeniedRedirect,
+  getRecruiterDashboardAccessDeniedRedirect,
+} from "@/lib/auth/access-denied";
+import { getAccountType } from "@/lib/auth/account-type";
+import { getDashboardPath } from "@/lib/auth/routes";
 
 const GUEST_ONLY_PREFIXES = ["/login", "/signup"];
 
@@ -69,14 +69,14 @@ export async function getRouteProtectionRedirect(
   if (user && isCandidateOnlyRoute(pathname)) {
     const accountType = await getAccountType(supabase, user);
     if (accountType === "recruiter") {
-      return RECRUITER_DASHBOARD_PATH;
+      return getRecruiterDashboardAccessDeniedRedirect();
     }
   }
 
   if (user && isRecruiterOnlyRoute(pathname)) {
     const accountType = await getAccountType(supabase, user);
     if (accountType === "candidate") {
-      return CANDIDATE_DASHBOARD_PATH;
+      return getCandidateDashboardAccessDeniedRedirect();
     }
   }
 

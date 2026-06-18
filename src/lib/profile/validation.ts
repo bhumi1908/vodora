@@ -7,6 +7,10 @@ import {
   validateAvailabilityStart,
   validateAvailabilityStatus,
 } from "@/lib/profile/availability";
+import {
+  validateExperienceLevel,
+  validateTotalYearsExperience,
+} from "@/lib/profile/experience";
 
 export const MAX_PROFILE_FILE_SIZE_BYTES = 5 * 1024 * 1024;
 export const MAX_PROFILE_FILE_SIZE_LABEL = "5 MB";
@@ -44,6 +48,7 @@ export const PROFILE_FIELD_LIMITS = {
   country: 100,
   website: 500,
   maxSkillYears: 60,
+  maxTotalYearsExperience: 60,
 } as const;
 
 function isNonEmpty(value: unknown): value is string {
@@ -141,6 +146,8 @@ export function validateOverview(input: {
   country?: string;
   availabilityStatus?: string;
   availabilityStart?: string;
+  totalYearsExperience?: string;
+  experienceLevel?: string;
 }): string | null {
   const title = input.title?.trim() ?? "";
   const company = input.company?.trim() ?? "";
@@ -164,6 +171,21 @@ export function validateOverview(input: {
 
   if (availabilityStartError) {
     return availabilityStartError;
+  }
+
+  const experienceLevelError = validateExperienceLevel(input.experienceLevel);
+
+  if (experienceLevelError) {
+    return experienceLevelError;
+  }
+
+  const totalYearsError = validateTotalYearsExperience(
+    input.totalYearsExperience,
+    PROFILE_FIELD_LIMITS.maxTotalYearsExperience,
+  );
+
+  if (totalYearsError) {
+    return totalYearsError;
   }
 
   if (exceedsMaxLength(title, PROFILE_FIELD_LIMITS.title)) {

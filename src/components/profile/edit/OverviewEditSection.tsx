@@ -12,13 +12,14 @@ import {
 } from "@/components/auth/shared/FormFields";
 import { isOverviewDirty, type OverviewFields } from "@/components/profile/edit/profile-edit-dirty";
 import { ProfileEditSection } from "@/components/profile/edit/ProfileEditSection";
-import { saveOverviewSection } from "@/components/profile/edit/profile-edit-api";
 import { SectionSaveButton } from "@/components/profile/edit/SectionSaveButton";
 import { PROFILE_FIELD_LIMITS, validateOverview } from "@/lib/profile/validation";
+import { useSaveOverviewMutation } from "@/lib/query/use-profile-mutations";
 import {
   AVAILABILITY_START_OPTIONS,
   AVAILABILITY_STATUS_OPTIONS,
 } from "@/lib/profile/availability";
+import { EXPERIENCE_LEVEL_OPTIONS } from "@/lib/profile/experience";
 
 type OverviewEditSectionProps = {
   value: OverviewFields;
@@ -33,7 +34,7 @@ export function OverviewEditSection({
   onChange,
   onSaved,
 }: OverviewEditSectionProps) {
-  const [isSaving, setIsSaving] = useState(false);
+  const saveMutation = useSaveOverviewMutation();
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const isDirty = useMemo(
@@ -59,21 +60,22 @@ export function OverviewEditSection({
       return;
     }
 
-    setIsSaving(true);
     setError("");
     setSuccess("");
 
-    const result = await saveOverviewSection(value);
+    try {
+      const result = await saveMutation.mutateAsync(value);
 
-    setIsSaving(false);
+      if (!result.success) {
+        setError(result.error ?? "Failed to save overview.");
+        return;
+      }
 
-    if (!result.success) {
-      setError(result.error ?? "Failed to save overview.");
-      return;
+      setSuccess("Overview saved.");
+      onSaved?.();
+    } catch {
+      setError("Failed to save overview.");
     }
-
-    setSuccess("Overview saved.");
-    onSaved?.();
   }
 
   return (
@@ -83,7 +85,7 @@ export function OverviewEditSection({
       description="Your headline, contact details, and professional summary."
       footer={
         <SectionSaveButton
-          loading={isSaving}
+          loading={saveMutation.isPending}
           disabled={!isDirty}
           onClick={() => void handleSave()}
         />
@@ -127,6 +129,30 @@ export function OverviewEditSection({
           }
           options={[...AVAILABILITY_START_OPTIONS]}
           placeholder="Select timing"
+        />
+      </AuthFormGrid>
+
+      <AuthFormGrid>
+        <FormField
+          id="profile-total-years-experience"
+          label="Total years of experience"
+          type="number"
+          value={value.totalYearsExperience}
+          onChange={(event) =>
+            updateField("totalYearsExperience", event.target.value)
+          }
+          placeholder="8"
+          hint={`Optional. Used in recruiter search filters. Maximum ${PROFILE_FIELD_LIMITS.maxTotalYearsExperience} years.`}
+        />
+        <FormSelect
+          id="profile-experience-level"
+          label="Experience level"
+          value={value.experienceLevel}
+          onChange={(event) =>
+            updateField("experienceLevel", event.target.value)
+          }
+          options={[...EXPERIENCE_LEVEL_OPTIONS]}
+          placeholder="Select level"
         />
       </AuthFormGrid>
 

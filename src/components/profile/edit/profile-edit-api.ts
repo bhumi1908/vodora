@@ -26,6 +26,8 @@ export async function saveOverviewSection(payload: {
   country: string;
   availabilityStatus: string;
   availabilityStart: string;
+  totalYearsExperience: string;
+  experienceLevel: string;
 }): Promise<ApiResult> {
   const response = await fetch("/api/profile/overview", {
     method: "PATCH",

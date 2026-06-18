@@ -9,16 +9,16 @@ import {
   FormSuccess,
 } from "@/components/auth/shared/FormFields";
 import { ProfileEditSection } from "@/components/profile/edit/ProfileEditSection";
-import {
-  deleteProfileDocument,
-  uploadProfileDocument,
-} from "@/components/profile/edit/profile-edit-api";
 import type {
   CandidateProfileEditData,
   EditableDocument,
 } from "@/components/profile/edit/types";
 import { DOCUMENT_TYPE_OPTIONS } from "@/components/profile/edit/types";
 import { formatDocumentType } from "@/lib/profile/format";
+import {
+  useDeleteProfileDocumentMutation,
+  useUploadProfileDocumentMutation,
+} from "@/lib/query/use-profile-mutations";
 import {
   MAX_PROFILE_FILE_SIZE_LABEL,
   validateProfileFile,
@@ -51,10 +51,11 @@ export function DocumentsEditSection({
   onDocumentsSaved,
   onProfilePictureCleared,
 }: DocumentsEditSectionProps) {
+  const uploadMutation = useUploadProfileDocumentMutation();
+  const deleteMutation = useDeleteProfileDocumentMutation();
   const inputRef = useRef<HTMLInputElement>(null);
   const [documentType, setDocumentType] = useState("resume");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -91,28 +92,29 @@ export function DocumentsEditSection({
       return;
     }
 
-    setIsUploading(true);
     setError("");
     setSuccess("");
 
-    const result = await uploadProfileDocument(
-      selectedFile,
-      documentType,
-      documentType === "resume",
-    );
+    try {
+      const result = await uploadMutation.mutateAsync({
+        file: selectedFile,
+        documentType,
+        isPrimary: documentType === "resume",
+      });
 
-    setIsUploading(false);
+      if (!result.success) {
+        setError(result.error);
+        return;
+      }
 
-    if (!result.success) {
-      setError(result.error);
-      return;
+      const nextDocuments = [result.document, ...documents];
+      onChange({ documents: nextDocuments });
+      onDocumentsSaved?.(nextDocuments);
+      clearSelectedFile();
+      setSuccess(`${formatDocumentType(documentType)} uploaded.`);
+    } catch {
+      setError("Failed to upload document.");
     }
-
-    const nextDocuments = [result.document, ...documents];
-    onChange({ documents: nextDocuments });
-    onDocumentsSaved?.(nextDocuments);
-    clearSelectedFile();
-    setSuccess(`${formatDocumentType(documentType)} uploaded.`);
   }
 
   async function handleDelete(document: EditableDocument) {
@@ -120,24 +122,28 @@ export function DocumentsEditSection({
     setError("");
     setSuccess("");
 
-    const result = await deleteProfileDocument(document.id);
+    try {
+      const result = await deleteMutation.mutateAsync(document.id);
 
-    setDeletingId(null);
+      if (!result.success) {
+        setError(result.error ?? "Failed to delete document.");
+        return;
+      }
 
-    if (!result.success) {
-      setError(result.error ?? "Failed to delete document.");
-      return;
+      const nextDocuments = documents.filter((item) => item.id !== document.id);
+      onChange({ documents: nextDocuments });
+      onDocumentsSaved?.(nextDocuments);
+
+      if (document.type === "profile_photo") {
+        onProfilePictureCleared?.();
+      }
+
+      setSuccess("Document removed.");
+    } catch {
+      setError("Failed to delete document.");
+    } finally {
+      setDeletingId(null);
     }
-
-    const nextDocuments = documents.filter((item) => item.id !== document.id);
-    onChange({ documents: nextDocuments });
-    onDocumentsSaved?.(nextDocuments);
-
-    if (document.type === "profile_photo") {
-      onProfilePictureCleared?.();
-    }
-
-    setSuccess("Document removed.");
   }
 
   return (
@@ -163,7 +169,7 @@ export function DocumentsEditSection({
           <button
             type="button"
             onClick={() => inputRef.current?.click()}
-            disabled={isUploading}
+            disabled={uploadMutation.isPending}
             className="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 px-4 py-3 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-50"
           >
             <Upload className="h-4 w-4" />
@@ -185,7 +191,7 @@ export function DocumentsEditSection({
               <button
                 type="button"
                 onClick={clearSelectedFile}
-                disabled={isUploading}
+                disabled={uploadMutation.isPending}
                 className="inline-flex items-center gap-1 rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-white disabled:opacity-50"
               >
                 <X className="h-4 w-4" />
@@ -194,11 +200,11 @@ export function DocumentsEditSection({
               <button
                 type="button"
                 onClick={() => void handleUpload()}
-                disabled={isUploading}
+                disabled={uploadMutation.isPending}
                 className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
               >
                 <Upload className="h-4 w-4" />
-                {isUploading ? "Uploading..." : "Upload file"}
+                {uploadMutation.isPending ? "Uploading..." : "Upload file"}
               </button>
             </div>
           </div>

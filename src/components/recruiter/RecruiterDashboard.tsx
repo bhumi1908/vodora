@@ -14,7 +14,7 @@ type RecruiterDashboardProps = {
 };
 
 export function RecruiterDashboard({ data }: RecruiterDashboardProps) {
-  const { context, candidates, candidatesError } = data;
+  const { context, candidates, candidatesError, savedCount } = data;
 
   return (
     <div className="mx-auto max-w-[1440px] px-4 py-8 sm:px-6 lg:px-8">
@@ -22,7 +22,7 @@ export function RecruiterDashboard({ data }: RecruiterDashboardProps) {
 
       <StaticWorkInProgressNotice section="stats, job posts, recruiter profile, and hiring insights" />
 
-      <RecruiterDashboardStats />
+      <RecruiterDashboardStats savedCount={savedCount} />
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
         <div className="space-y-4 xl:col-span-2">

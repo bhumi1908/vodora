@@ -1,7 +1,9 @@
 import { Plus, Search } from "lucide-react";
+import Link from "next/link";
 
 import type { RecruiterDashboardContext } from "@/lib/recruiter/dashboard.types";
 import { getRecruiterGreeting } from "@/lib/recruiter/format-candidate-availability";
+import { RECRUITER_SEARCH_PATH } from "@/lib/auth/routes";
 
 type RecruiterDashboardHeaderProps = {
   context: RecruiterDashboardContext;
@@ -25,15 +27,13 @@ export function RecruiterDashboardHeader({
         <p className="mt-1 text-gray-500">{subtitleParts.join(" · ")}</p>
       </div>
       <div className="flex gap-3">
-        <button
-          type="button"
-          disabled
-          title="Coming soon"
-          className="flex items-center gap-2 rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 opacity-60"
+        <Link
+          href={RECRUITER_SEARCH_PATH}
+          className="flex items-center gap-2 rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
         >
           <Search className="h-4 w-4" />
           Find Candidates
-        </button>
+        </Link>
         <button
           type="button"
           disabled

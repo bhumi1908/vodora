@@ -57,6 +57,8 @@ export type CandidateProfileEditData = {
   about: string;
   availabilityStatus: string;
   availabilityStart: string;
+  totalYearsExperience: string;
+  experienceLevel: string;
   experience: EditableExperience[];
   education: EditableEducation[];
   skills: EditableSkill[];

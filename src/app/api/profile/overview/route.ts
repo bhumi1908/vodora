@@ -14,6 +14,8 @@ type OverviewPayload = {
   country?: string;
   availabilityStatus?: string;
   availabilityStart?: string;
+  totalYearsExperience?: string;
+  experienceLevel?: string;
 };
 
 export async function PATCH(request: Request) {
@@ -73,6 +75,11 @@ export async function PATCH(request: Request) {
   const about = body.about?.trim() || null;
   const availabilityStatus = body.availabilityStatus?.trim() || "not_looking";
   const availabilityStart = body.availabilityStart?.trim() || null;
+  const experienceLevel = body.experienceLevel?.trim() || null;
+  const totalYearsRaw = body.totalYearsExperience?.trim() ?? "";
+  const totalYearsExperience = totalYearsRaw
+    ? Number.parseInt(totalYearsRaw, 10)
+    : null;
 
   const { error: candidateError } = await supabase
     .from("candidates")
@@ -87,6 +94,8 @@ export async function PATCH(request: Request) {
       availability_status: availabilityStatus,
       availability_start: availabilityStart,
       availability_updated_at: new Date().toISOString(),
+      experience_level: experienceLevel,
+      total_years_experience: totalYearsExperience,
     })
     .eq("id", context.candidateId);
 

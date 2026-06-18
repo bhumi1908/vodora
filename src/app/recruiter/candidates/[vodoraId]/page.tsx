@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
-import { ProfilePage } from "@/components/profile/ProfilePage";
+import { RecruiterCandidateProfileWithCache } from "@/components/recruiter/RecruiterCandidateProfileWithCache";
+import { getCandidateDashboardAccessDeniedRedirect } from "@/lib/auth/access-denied";
 import { getAccountType } from "@/lib/auth/account-type";
 import { getRouteProtectionRedirect } from "@/lib/auth/route-protection";
 import {
@@ -55,7 +56,7 @@ export default async function RecruiterCandidateProfilePage({
   const accountType = user ? await getAccountType(supabase, user) : null;
 
   if (accountType !== "recruiter") {
-    redirect("/dashboard");
+    redirect(getCandidateDashboardAccessDeniedRedirect());
   }
 
   const profile = await getCachedRecruiterCandidateProfile(supabase, vodoraId);
@@ -74,7 +75,10 @@ export default async function RecruiterCandidateProfilePage({
           ← Back to dashboard
         </Link>
       </div>
-      <ProfilePage profile={profile} recruiterView />
+      <RecruiterCandidateProfileWithCache
+        vodoraId={vodoraId}
+        initialProfile={profile}
+      />
     </>
   );
 }

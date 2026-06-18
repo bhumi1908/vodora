@@ -146,6 +146,12 @@ export function transformOwnCandidateProfileToEdit(
     about: candidate.summary ?? "",
     availabilityStatus: candidate.availability_status ?? "not_looking",
     availabilityStart: candidate.availability_start ?? "",
+    totalYearsExperience:
+      candidate.total_years_experience !== null &&
+      candidate.total_years_experience !== undefined
+        ? String(candidate.total_years_experience)
+        : "",
+    experienceLevel: candidate.experience_level ?? "",
     experience: employment.map((entry) => ({
       id: entry.id,
       title: entry.job_title,

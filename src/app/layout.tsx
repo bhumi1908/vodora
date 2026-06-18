@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 
+import { AccessDeniedToast } from "@/components/auth/AccessDeniedToast";
 import { SiteChrome } from "@/components/layout/SiteChrome";
+import { QueryProvider } from "@/components/providers/QueryProvider";
 import { AppToaster } from "@/components/ui/AppToaster";
 
 import "./globals.css";
@@ -19,8 +21,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <SiteChrome>{children}</SiteChrome>
+        <QueryProvider>
+          <SiteChrome>{children}</SiteChrome>
+        </QueryProvider>
         <AppToaster />
+        <AccessDeniedToast />
       </body>
     </html>
   );

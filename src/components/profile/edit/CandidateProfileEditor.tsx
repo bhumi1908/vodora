@@ -71,6 +71,8 @@ export function CandidateProfileEditor({
       country: profile.country,
       availabilityStatus: profile.availabilityStatus,
       availabilityStart: profile.availabilityStart,
+      totalYearsExperience: profile.totalYearsExperience,
+      experienceLevel: profile.experienceLevel,
     }),
     [profile],
   );
@@ -86,13 +88,14 @@ export function CandidateProfileEditor({
       country: savedProfile.country,
       availabilityStatus: savedProfile.availabilityStatus,
       availabilityStart: savedProfile.availabilityStart,
+      totalYearsExperience: savedProfile.totalYearsExperience,
+      experienceLevel: savedProfile.experienceLevel,
     }),
     [savedProfile],
   );
 
   function handleSaved() {
     onSectionSaved?.();
-    router.refresh();
   }
 
   function syncOverviewSaved() {

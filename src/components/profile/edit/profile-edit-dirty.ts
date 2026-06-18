@@ -17,6 +17,8 @@ export type OverviewFields = Pick<
   | "country"
   | "availabilityStatus"
   | "availabilityStart"
+  | "totalYearsExperience"
+  | "experienceLevel"
 >;
 
 function stableSerialize(value: unknown): string {

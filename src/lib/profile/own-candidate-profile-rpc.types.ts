@@ -22,6 +22,8 @@ export type OwnCandidateProfileCandidateRow = {
   profile_picture_url: string | null;
   availability_status: string;
   availability_start: string | null;
+  experience_level: string | null;
+  total_years_experience: number | null;
 };
 
 export type OwnCandidateProfileSkillRow = {

@@ -1,15 +1,16 @@
 "use client";
 
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createContext,
   useContext,
-  useEffect,
   useMemo,
-  useState,
   type ReactNode,
 } from "react";
 
 import type { OwnCandidateProfileRpcResult } from "@/lib/profile/own-candidate-profile-rpc.types";
+import { profileKeys } from "@/lib/query/keys";
+import { fetchOwnCandidateProfile } from "@/lib/query/profile-fetchers";
 
 type MyProfileDataContextValue = {
   rawProfile: OwnCandidateProfileRpcResult;
@@ -25,14 +26,14 @@ type MyProfileDataProviderProps = {
 };
 
 export function MyProfileDataProvider({
-  rawProfile,
+  rawProfile: initialProfile,
   children,
 }: MyProfileDataProviderProps) {
-  const [profile, setProfile] = useState(rawProfile);
-
-  useEffect(() => {
-    setProfile(rawProfile);
-  }, [rawProfile]);
+  const { data: profile = initialProfile } = useQuery({
+    queryKey: profileKeys.own(),
+    queryFn: fetchOwnCandidateProfile,
+    initialData: initialProfile,
+  });
 
   const value = useMemo(() => ({ rawProfile: profile }), [profile]);
 
@@ -55,4 +56,11 @@ export function useRequiredMyProfileData(): OwnCandidateProfileRpcResult {
   }
 
   return rawProfile;
+}
+
+export function useInvalidateOwnProfile() {
+  const queryClient = useQueryClient();
+
+  return () =>
+    queryClient.invalidateQueries({ queryKey: profileKeys.own() });
 }

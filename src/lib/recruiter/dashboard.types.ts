@@ -20,10 +20,17 @@ export type RecruiterDashboardCandidate = {
   skills: string[];
   verified: boolean;
   referenceCount: number;
+  isSaved: boolean;
+};
+
+export type RecruiterCandidateCardData = RecruiterDashboardCandidate & {
+  category?: string | null;
+  totalYearsExperience?: number | null;
 };
 
 export type RecruiterDashboardData = {
   context: RecruiterDashboardContext;
   candidates: RecruiterDashboardCandidate[];
   candidatesError?: string | null;
+  savedCount: number;
 };

@@ -4,6 +4,7 @@ import type { User } from "@supabase/supabase-js";
 import {
   ArrowLeft,
   Bell,
+  Bookmark,
   Briefcase,
   LayoutGrid,
   Menu,
@@ -18,6 +19,8 @@ import { useEffect, useState } from "react";
 import { RecruiterUserProfileMenu } from "@/components/layout/RecruiterUserProfileMenu";
 import {
   RECRUITER_DASHBOARD_PATH,
+  RECRUITER_SAVED_PATH,
+  RECRUITER_SEARCH_PATH,
 } from "@/lib/auth/routes";
 import { createClient } from "@/lib/supabase/client";
 
@@ -31,9 +34,17 @@ const recruiterNavItems = [
   },
   {
     label: "Find Candidates",
-    href: RECRUITER_DASHBOARD_PATH,
+    href: RECRUITER_SEARCH_PATH,
     icon: Search,
-    isActive: (pathname: string) => pathname.startsWith("/recruiter/candidates"),
+    isActive: (pathname: string) =>
+      pathname === RECRUITER_SEARCH_PATH ||
+      pathname.startsWith("/recruiter/candidates/"),
+  },
+  {
+    label: "Saved Candidates",
+    href: RECRUITER_SAVED_PATH,
+    icon: Bookmark,
+    isActive: (pathname: string) => pathname === RECRUITER_SAVED_PATH,
   },
   {
     label: "My Profile",

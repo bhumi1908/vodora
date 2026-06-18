@@ -12,7 +12,6 @@ import {
 } from "@/components/auth/shared/FormFields";
 import { isSkillsDirty } from "@/components/profile/edit/profile-edit-dirty";
 import { ProfileEditSection } from "@/components/profile/edit/ProfileEditSection";
-import { saveSkillsSection } from "@/components/profile/edit/profile-edit-api";
 import { createEmptySkill } from "@/components/profile/edit/profile-edit-utils";
 import { SectionSaveButton } from "@/components/profile/edit/SectionSaveButton";
 import {
@@ -23,6 +22,7 @@ import {
   PROFILE_FIELD_LIMITS,
   validateSkillsEntries,
 } from "@/lib/profile/validation";
+import { useSaveSkillsMutation } from "@/lib/query/use-profile-mutations";
 
 type SkillsEditSectionProps = {
   entries: EditableSkill[];
@@ -37,7 +37,7 @@ export function SkillsEditSection({
   onChange,
   onSaved,
 }: SkillsEditSectionProps) {
-  const [isSaving, setIsSaving] = useState(false);
+  const saveMutation = useSaveSkillsMutation();
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const isDirty = useMemo(
@@ -72,21 +72,22 @@ export function SkillsEditSection({
       return;
     }
 
-    setIsSaving(true);
     setError("");
     setSuccess("");
 
-    const result = await saveSkillsSection(entries);
+    try {
+      const result = await saveMutation.mutateAsync(entries);
 
-    setIsSaving(false);
+      if (!result.success) {
+        setError(result.error ?? "Failed to save skills.");
+        return;
+      }
 
-    if (!result.success) {
-      setError(result.error ?? "Failed to save skills.");
-      return;
+      setSuccess("Skills saved.");
+      onSaved?.();
+    } catch {
+      setError("Failed to save skills.");
     }
-
-    setSuccess("Skills saved.");
-    onSaved?.();
   }
 
   return (
@@ -96,7 +97,7 @@ export function SkillsEditSection({
       description="Highlight technical and professional skills recruiters should know about."
       footer={
         <SectionSaveButton
-          loading={isSaving}
+          loading={saveMutation.isPending}
           disabled={!isDirty}
           onClick={() => void handleSave()}
         />
