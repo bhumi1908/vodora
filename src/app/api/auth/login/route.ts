@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { isRecruiterAccount } from "@/lib/auth/account-type";
 import { EMAIL_FEATURES_ENABLED } from "@/lib/auth/email-features";
+import { getVerifyEmailPath } from "@/lib/auth/email-verification-status";
 import { getAuthErrorMessage } from "@/lib/auth/errors";
 import { resolvePostLoginRedirect } from "@/lib/auth/safe-redirect";
 import { completePendingSignupForUser } from "@/lib/auth/signup-flow";
@@ -73,10 +74,26 @@ export async function POST(request: Request) {
   });
 
   if (error || !data.user) {
+    const authError = getAuthErrorMessage(error, "Invalid email or password.");
+
+    if (
+      EMAIL_FEATURES_ENABLED &&
+      authError.includes("verify your email")
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          needsEmailVerification: true,
+          redirectTo: getVerifyEmailPath(email),
+        } satisfies LoginApiResponse,
+        { status: 403 },
+      );
+    }
+
     return NextResponse.json(
       {
         success: false,
-        error: getAuthErrorMessage(error, "Invalid email or password."),
+        error: authError,
       },
       { status: 401 },
     );
@@ -94,9 +111,9 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           success: false,
-          error:
-            "Please verify your email before signing in. Check your inbox for the verification link.",
-        },
+          needsEmailVerification: true,
+          redirectTo: getVerifyEmailPath(email),
+        } satisfies LoginApiResponse,
         { status: 403 },
       );
     }

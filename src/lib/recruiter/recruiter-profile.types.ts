@@ -9,6 +9,9 @@ export type RecruiterProfileData = {
   phone: string | null;
   website: string | null;
   avatarInitials: string;
+  profilePictureUrl: string | null;
   bio: string | null;
+  specialisations: string[];
+  industries: string[];
   verified: boolean;
 };

@@ -1,5 +1,3 @@
-export const RECRUITER_PROFILE_STATIC_RATING = 4.8;
-
 export const RECRUITER_PROFILE_STATIC_STATS = {
   totalPlacements: "312",
   activeRoles: "3",
@@ -7,21 +5,10 @@ export const RECRUITER_PROFILE_STATIC_STATS = {
   avgTimeToHire: "11 days",
 } as const;
 
-export const RECRUITER_PROFILE_STATIC_SPECIALISATIONS = [
-  "Software Engineering",
-  "Product Management",
-  "Data Science",
-  "DevOps",
-  "UX Design",
-] as const;
-
-export const RECRUITER_PROFILE_STATIC_INDUSTRIES = [
-  "Technology",
-  "FinTech",
-  "SaaS",
-  "E-commerce",
-  "Healthcare Tech",
-] as const;
+export {
+  RECRUITER_INDUSTRY_OPTIONS as RECRUITER_PROFILE_STATIC_INDUSTRIES,
+  RECRUITER_SPECIALISATION_OPTIONS as RECRUITER_PROFILE_STATIC_SPECIALISATIONS,
+} from "@/lib/recruiter/recruiter-profile-options";
 
 export const RECRUITER_PROFILE_STATIC_ACTIVE_ROLES = [
   {

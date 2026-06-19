@@ -18,7 +18,20 @@ import type { LoginApiResponse } from "@/lib/auth/types";
 import { getLoginFieldErrors } from "@/lib/auth/validation";
 import { hasFieldErrors } from "@/lib/form/field-errors";
 
-function LoginFormContent() {
+function buildForgotPasswordHref(email: string): string {
+  const trimmed = email.trim();
+  if (!trimmed) {
+    return "/forgot-password";
+  }
+
+  return `/forgot-password?${new URLSearchParams({ email: trimmed }).toString()}`;
+}
+
+type LoginFormContentProps = {
+  emailFeaturesEnabled: boolean;
+};
+
+function LoginFormContent({ emailFeaturesEnabled }: LoginFormContentProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const justRegistered = searchParams.get("registered") === "1";
@@ -86,6 +99,15 @@ function LoginFormContent() {
       const result = (await response.json()) as LoginApiResponse;
 
       if (!response.ok || !result.success) {
+        if (result.needsEmailVerification && result.redirectTo) {
+          const verifyUrl = new URL(result.redirectTo, window.location.origin);
+          if (isRecruiterLogin) {
+            verifyUrl.searchParams.set("type", "recruiter");
+          }
+          router.push(`${verifyUrl.pathname}?${verifyUrl.searchParams.toString()}`);
+          return;
+        }
+
         setFormError(result.error ?? "Unable to sign in.");
         return;
       }
@@ -200,7 +222,14 @@ function LoginFormContent() {
                 />
                 <span className="text-sm text-gray-600">Remember me</span>
               </label>
-              {/* Forgot password hidden until email service is ready — see email-features.ts */}
+              {emailFeaturesEnabled ? (
+                <Link
+                  href={buildForgotPasswordHref(email)}
+                  className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                >
+                  Forgot password?
+                </Link>
+              ) : null}
             </div>
 
             <button
@@ -227,10 +256,16 @@ function LoginFormContent() {
   );
 }
 
-export function CandidateLoginPage() {
+type CandidateLoginPageProps = {
+  emailFeaturesEnabled?: boolean;
+};
+
+export function CandidateLoginPage({
+  emailFeaturesEnabled = false,
+}: CandidateLoginPageProps) {
   return (
     <Suspense fallback={null}>
-      <LoginFormContent />
+      <LoginFormContent emailFeaturesEnabled={emailFeaturesEnabled} />
     </Suspense>
   );
 }

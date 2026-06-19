@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { sendPasswordResetEmail } from "@/lib/auth/password-reset";
+import { queuePasswordResetEmail } from "@/lib/auth/password-reset";
 import { getRequestOrigin } from "@/lib/auth/signup-flow";
 import type { ForgotPasswordApiResponse } from "@/lib/auth/types";
 import { validateForgotPassword } from "@/lib/auth/validation";
@@ -59,18 +59,9 @@ export async function POST(request: Request) {
 
   const origin = getRequestOrigin(request);
 
-  try {
-    await sendPasswordResetEmail(normalizedEmail, origin);
-  } catch (error) {
+  void queuePasswordResetEmail(normalizedEmail, origin).catch((error) => {
     console.error("Forgot password email failed:", error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: "Unable to send reset email. Please try again later.",
-      } satisfies ForgotPasswordApiResponse,
-      { status: 500 },
-    );
-  }
+  });
 
   // Always return success to avoid revealing whether the email exists.
   return NextResponse.json({

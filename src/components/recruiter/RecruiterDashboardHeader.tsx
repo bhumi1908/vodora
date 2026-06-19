@@ -7,10 +7,12 @@ import { RECRUITER_SEARCH_PATH } from "@/lib/auth/routes";
 
 type RecruiterDashboardHeaderProps = {
   context: RecruiterDashboardContext;
+  onPostJob: () => void;
 };
 
 export function RecruiterDashboardHeader({
   context,
+  onPostJob,
 }: RecruiterDashboardHeaderProps) {
   const greeting = getRecruiterGreeting();
   const subtitleParts = [
@@ -36,9 +38,8 @@ export function RecruiterDashboardHeader({
         </Link>
         <button
           type="button"
-          disabled
-          title="Coming soon"
-          className="flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-medium text-white opacity-60"
+          onClick={onPostJob}
+          className="flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700"
         >
           <Plus className="h-4 w-4" />
           Post a Job

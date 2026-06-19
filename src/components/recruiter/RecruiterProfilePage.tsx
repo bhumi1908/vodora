@@ -10,45 +10,75 @@ import {
   Mail,
   MapPin,
   Phone,
-  Plus,
   Shield,
-  Star,
   TrendingUp,
   Users,
 } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 
 import { CollectReferenceTab } from "@/components/recruiter/CollectReferenceTab";
+import { RecruiterActiveRolesTab } from "@/components/recruiter/RecruiterActiveRolesTab";
 import {
   useMyRecruiterProfileLoading,
   useRequiredMyRecruiterProfileData,
 } from "@/components/recruiter/MyRecruiterProfileDataProvider";
 import { RecruiterProfileSkeleton } from "@/components/recruiter/RecruiterProfileSkeleton";
-import { RECRUITER_SEARCH_PATH } from "@/lib/auth/routes";
+import { Skeleton } from "@/components/ui/Skeleton";
+import {
+  RECRUITER_PROFILE_EDIT_PATH,
+  RECRUITER_SEARCH_PATH,
+} from "@/lib/auth/routes";
+import { formatRecruiterJobStatsForDisplay } from "@/lib/jobs/format-recruiter-job-stats";
 import {
   formatWebsiteHref,
   formatWebsiteLabel,
 } from "@/lib/profile/format";
+import { useRecruiterJobsQuery } from "@/lib/query/use-job-queries";
 import {
-  RECRUITER_PROFILE_STATIC_ACTIVE_ROLES,
-  RECRUITER_PROFILE_STATIC_INDUSTRIES,
-  RECRUITER_PROFILE_STATIC_RATING,
   RECRUITER_PROFILE_STATIC_RECENT_PLACEMENTS,
-  RECRUITER_PROFILE_STATIC_SPECIALISATIONS,
-  RECRUITER_PROFILE_STATIC_STATS,
 } from "@/lib/recruiter/recruiter-profile-static-data";
 import { transformOwnRecruiterProfileToView } from "@/lib/recruiter/transform-own-recruiter-profile";
 
 type RecruiterProfileTab = "overview" | "roles" | "collect";
 
+function getInitialProfileTab(
+  tabParam: string | null,
+): RecruiterProfileTab {
+  if (tabParam === "roles" || tabParam === "collect") {
+    return tabParam;
+  }
+
+  return "overview";
+}
+
 export function RecruiterProfilePage() {
+  const searchParams = useSearchParams();
   const rawProfile = useRequiredMyRecruiterProfileData();
   const isLoading = useMyRecruiterProfileLoading();
+  const { data: recruiterJobsData, isPending: isJobsPending } =
+    useRecruiterJobsQuery();
   const profile = useMemo(
     () => transformOwnRecruiterProfileToView(rawProfile),
     [rawProfile],
   );
-  const [activeTab, setActiveTab] = useState<RecruiterProfileTab>("overview");
+  const jobStats = useMemo(
+    () =>
+      formatRecruiterJobStatsForDisplay(
+        recruiterJobsData?.stats ?? {
+          totalPlacements: 0,
+          activeRoles: 0,
+          candidatesWorkedWith: 0,
+          avgTimeToHireDays: null,
+          hiringFasterPercent: null,
+          hoursSavedThisMonth: 0,
+        },
+      ),
+    [recruiterJobsData?.stats],
+  );
+  const [activeTab, setActiveTab] = useState<RecruiterProfileTab>(() =>
+    getInitialProfileTab(searchParams.get("tab")),
+  );
 
   if (isLoading || !profile) {
     return <RecruiterProfileSkeleton />;
@@ -67,20 +97,28 @@ export function RecruiterProfilePage() {
         <div className="h-24 bg-gradient-to-r from-gray-900 via-blue-950 to-gray-900 sm:h-32" />
         <div className="px-4 pb-6 sm:px-6 sm:pb-8 lg:px-8">
           <div className="-mt-12 mb-5 flex flex-col gap-4 sm:-mt-14 sm:flex-row sm:items-end sm:justify-between">
-            <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-2xl border-4 border-white bg-blue-100 shadow-lg sm:h-28 sm:w-28">
-              <span className="text-3xl font-bold text-blue-700 sm:text-4xl">
-                {profile.avatarInitials}
-              </span>
+            <div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-2xl border-4 border-white bg-blue-100 shadow-lg sm:h-28 sm:w-28">
+              {profile.profilePictureUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={profile.profilePictureUrl}
+                  alt={profile.name}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <span className="text-3xl font-bold text-blue-700 sm:text-4xl">
+                  {profile.avatarInitials}
+                </span>
+              )}
             </div>
             <div className="flex w-full flex-col gap-2 sm:mb-1 sm:w-auto sm:flex-row">
-              <button
-                type="button"
-                disabled
-                className="flex items-center justify-center gap-2 rounded-xl border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 opacity-60 transition-colors sm:justify-start"
+              <Link
+                href={RECRUITER_PROFILE_EDIT_PATH}
+                className="flex items-center justify-center gap-2 rounded-xl border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 sm:justify-start"
               >
                 <Edit className="h-4 w-4 shrink-0" />
                 Edit Profile
-              </button>
+              </Link>
               <Link
                 href={RECRUITER_SEARCH_PATH}
                 className="flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 sm:justify-start"
@@ -91,77 +129,54 @@ export function RecruiterProfilePage() {
             </div>
           </div>
 
-          <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
-            <div className="min-w-0 flex-1">
-              <div className="mb-1 flex flex-wrap items-center gap-2 sm:gap-3">
-                <h1 className="text-xl font-semibold text-gray-900 sm:text-2xl">
-                  {profile.name}
-                </h1>
-                {profile.verified ? (
-                  <span className="inline-flex items-center gap-1 rounded-full border border-green-200 bg-green-50 px-2.5 py-1 text-xs text-green-700">
-                    <CheckCircle className="h-3.5 w-3.5 shrink-0" /> Verified Recruiter
-                  </span>
-                ) : null}
-              </div>
-              {profile.title ? (
-                <p className="mb-1 text-gray-600">{profile.title}</p>
-              ) : null}
-              <div className="mt-3 flex flex-col gap-2 text-sm text-gray-500 sm:flex-row sm:flex-wrap sm:gap-4">
-                {profile.company ? (
-                  <span className="flex min-w-0 items-center gap-1.5">
-                    <Building2 className="h-4 w-4 shrink-0" />
-                    <span className="truncate">{profile.company}</span>
-                  </span>
-                ) : null}
-                {profile.location ? (
-                  <span className="flex min-w-0 items-center gap-1.5">
-                    <MapPin className="h-4 w-4 shrink-0" />
-                    <span className="truncate">{profile.location}</span>
-                  </span>
-                ) : null}
-                <span className="flex min-w-0 items-center gap-1.5 break-all">
-                  <Mail className="h-4 w-4 shrink-0" />
-                  {profile.email}
+          <div className="min-w-0">
+            <div className="mb-1 flex flex-wrap items-center gap-2 sm:gap-3">
+              <h1 className="text-xl font-semibold text-gray-900 sm:text-2xl">
+                {profile.name}
+              </h1>
+              {profile.verified ? (
+                <span className="inline-flex items-center gap-1 rounded-full border border-green-200 bg-green-50 px-2.5 py-1 text-xs text-green-700">
+                  <CheckCircle className="h-3.5 w-3.5 shrink-0" /> Verified Recruiter
                 </span>
-                {profile.phone ? (
-                  <span className="flex min-w-0 items-center gap-1.5">
-                    <Phone className="h-4 w-4 shrink-0" />
-                    {profile.phone}
-                  </span>
-                ) : null}
-                {websiteLabel && websiteHref ? (
-                  <a
-                    href={websiteHref}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex min-w-0 items-center gap-1.5 break-all text-blue-600 hover:underline"
-                  >
-                    <Globe className="h-4 w-4 shrink-0" />
-                    {websiteLabel}
-                  </a>
-                ) : null}
-              </div>
+              ) : null}
             </div>
-
-            <div className="flex shrink-0 items-center gap-3 sm:block sm:text-right">
-              <div className="flex items-center gap-1 sm:mb-1 sm:justify-end">
-                {[...Array(5)].map((_, index) => (
-                  <Star
-                    key={index}
-                    className={`h-4 w-4 sm:h-5 sm:w-5 ${
-                      index < Math.floor(RECRUITER_PROFILE_STATIC_RATING)
-                        ? "fill-amber-400 text-amber-400"
-                        : "text-gray-200"
-                    }`}
-                  />
-                ))}
-              </div>
-              <div>
-                <p className="text-xl font-bold text-gray-900 sm:text-2xl">
-                  {RECRUITER_PROFILE_STATIC_RATING}
-                </p>
-                <p className="text-xs text-gray-500">recruiter rating</p>
-              </div>
+            {profile.title ? (
+              <p className="mb-1 text-gray-600">{profile.title}</p>
+            ) : null}
+            <div className="mt-3 flex flex-col gap-2 text-sm text-gray-500 sm:flex-row sm:flex-wrap sm:gap-4">
+              {profile.company ? (
+                <span className="flex min-w-0 items-center gap-1.5">
+                  <Building2 className="h-4 w-4 shrink-0" />
+                  <span className="truncate">{profile.company}</span>
+                </span>
+              ) : null}
+              {profile.location ? (
+                <span className="flex min-w-0 items-center gap-1.5">
+                  <MapPin className="h-4 w-4 shrink-0" />
+                  <span className="truncate">{profile.location}</span>
+                </span>
+              ) : null}
+              <span className="flex min-w-0 items-center gap-1.5 break-all">
+                <Mail className="h-4 w-4 shrink-0" />
+                {profile.email}
+              </span>
+              {profile.phone ? (
+                <span className="flex min-w-0 items-center gap-1.5">
+                  <Phone className="h-4 w-4 shrink-0" />
+                  {profile.phone}
+                </span>
+              ) : null}
+              {websiteLabel && websiteHref ? (
+                <a
+                  href={websiteHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex min-w-0 items-center gap-1.5 break-all text-blue-600 hover:underline"
+                >
+                  <Globe className="h-4 w-4 shrink-0" />
+                  {websiteLabel}
+                </a>
+              ) : null}
             </div>
           </div>
         </div>
@@ -172,25 +187,25 @@ export function RecruiterProfilePage() {
           {
             icon: TrendingUp,
             label: "Total Placements",
-            value: RECRUITER_PROFILE_STATIC_STATS.totalPlacements,
+            value: jobStats.totalPlacements,
             color: "text-blue-600 bg-blue-50",
           },
           {
             icon: Briefcase,
             label: "Active Roles",
-            value: RECRUITER_PROFILE_STATIC_STATS.activeRoles,
+            value: jobStats.activeRoles,
             color: "text-purple-600 bg-purple-50",
           },
           {
             icon: Users,
             label: "Candidates Worked With",
-            value: RECRUITER_PROFILE_STATIC_STATS.candidatesWorkedWith,
+            value: jobStats.candidatesWorkedWith,
             color: "text-green-600 bg-green-50",
           },
           {
             icon: Shield,
             label: "Avg. Time to Hire",
-            value: RECRUITER_PROFILE_STATIC_STATS.avgTimeToHire,
+            value: jobStats.avgTimeToHire,
             color: "text-amber-600 bg-amber-50",
           },
         ].map(({ icon: Icon, label, value, color }) => (
@@ -203,7 +218,11 @@ export function RecruiterProfilePage() {
             >
               <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
             </div>
-            <p className="text-xl font-bold text-gray-900 sm:text-2xl">{value}</p>
+            {isJobsPending ? (
+              <Skeleton className="mx-auto mb-1 h-7 w-16 sm:h-8" />
+            ) : (
+              <p className="text-xl font-bold text-gray-900 sm:text-2xl">{value}</p>
+            )}
             <p className="mt-1 text-[11px] leading-tight text-gray-500 sm:text-xs">
               {label}
             </p>
@@ -251,7 +270,13 @@ export function RecruiterProfilePage() {
                   <p className="leading-relaxed text-gray-600">{profile.bio}</p>
                 ) : (
                   <p className="text-sm text-gray-400">
-                    No bio added yet. Profile editing is coming soon.
+                    No bio added yet.{" "}
+                    <Link
+                      href={RECRUITER_PROFILE_EDIT_PATH}
+                      className="text-blue-600 hover:underline"
+                    >
+                      Add your bio
+                    </Link>
                   </p>
                 )}
               </div>
@@ -261,14 +286,26 @@ export function RecruiterProfilePage() {
                   Specialisations
                 </h2>
                 <div className="flex flex-wrap gap-2">
-                  {RECRUITER_PROFILE_STATIC_SPECIALISATIONS.map((item) => (
-                    <span
-                      key={item}
-                      className="rounded-xl border border-blue-100 bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700"
-                    >
-                      {item}
-                    </span>
-                  ))}
+                  {profile.specialisations.length > 0 ? (
+                    profile.specialisations.map((item) => (
+                      <span
+                        key={item}
+                        className="rounded-xl border border-blue-100 bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700"
+                      >
+                        {item}
+                      </span>
+                    ))
+                  ) : (
+                    <p className="text-sm text-gray-400">
+                      No specialisations added yet.{" "}
+                      <Link
+                        href={RECRUITER_PROFILE_EDIT_PATH}
+                        className="text-blue-600 hover:underline"
+                      >
+                        Add specialisations
+                      </Link>
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -277,14 +314,26 @@ export function RecruiterProfilePage() {
                   Industries
                 </h2>
                 <div className="flex flex-wrap gap-2">
-                  {RECRUITER_PROFILE_STATIC_INDUSTRIES.map((item) => (
-                    <span
-                      key={item}
-                      className="rounded-xl bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700"
-                    >
-                      {item}
-                    </span>
-                  ))}
+                  {profile.industries.length > 0 ? (
+                    profile.industries.map((item) => (
+                      <span
+                        key={item}
+                        className="rounded-xl bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700"
+                      >
+                        {item}
+                      </span>
+                    ))
+                  ) : (
+                    <p className="text-sm text-gray-400">
+                      No industries added yet.{" "}
+                      <Link
+                        href={RECRUITER_PROFILE_EDIT_PATH}
+                        className="text-blue-600 hover:underline"
+                      >
+                        Add industries
+                      </Link>
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -320,84 +369,9 @@ export function RecruiterProfilePage() {
           ) : null}
 
           {activeTab === "roles" ? (
-            <div>
-              <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <h2 className="text-lg font-semibold text-gray-900">
-                  Active Job Postings
-                </h2>
-                <button
-                  type="button"
-                  disabled
-                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white opacity-60 sm:w-auto sm:justify-start"
-                >
-                  <Plus className="h-4 w-4 shrink-0" />
-                  Post New Role
-                </button>
-              </div>
-              <div className="space-y-4">
-                {RECRUITER_PROFILE_STATIC_ACTIVE_ROLES.map((role) => (
-                  <div
-                    key={role.id}
-                    className="rounded-2xl border border-gray-200 p-4 transition-shadow hover:shadow-md sm:p-6"
-                  >
-                    <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                      <div className="min-w-0 flex-1">
-                        <div className="mb-1 flex flex-wrap items-center gap-2">
-                          <h3 className="text-base font-semibold text-gray-900 sm:text-lg">
-                            {role.title}
-                          </h3>
-                          {role.urgent ? (
-                            <span className="rounded-full border border-red-200 bg-red-50 px-2 py-0.5 text-xs font-medium text-red-600">
-                              Urgent
-                            </span>
-                          ) : null}
-                        </div>
-                        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-500">
-                          <span className="flex items-center gap-1">
-                            <Briefcase className="h-3.5 w-3.5 shrink-0" />
-                            {role.type}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <MapPin className="h-3.5 w-3.5 shrink-0" />
-                            {role.location}
-                          </span>
-                          <span className="font-medium text-gray-700">
-                            {role.salary}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="flex items-center justify-between gap-4 border-t border-gray-100 pt-3 sm:block sm:border-0 sm:pt-0 sm:text-right">
-                        <div>
-                          <p className="text-2xl font-bold text-gray-900">
-                            {role.applicants}
-                          </p>
-                          <p className="text-xs text-gray-500">applicants</p>
-                        </div>
-                        <p className="text-xs text-gray-400 sm:mt-1">
-                          Posted {role.posted}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:gap-3">
-                      <button
-                        type="button"
-                        disabled
-                        className="rounded-xl border border-blue-200 px-4 py-2 text-sm font-medium text-blue-600 opacity-60 sm:w-auto"
-                      >
-                        View Applicants
-                      </button>
-                      <button
-                        type="button"
-                        disabled
-                        className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 opacity-60 sm:w-auto"
-                      >
-                        Edit Role
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <RecruiterActiveRolesTab
+              defaultCompanyName={profile.company ?? ""}
+            />
           ) : null}
 
           {activeTab === "collect" ? (

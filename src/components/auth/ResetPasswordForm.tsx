@@ -1,10 +1,12 @@
 "use client";
 
 import { Lock } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
 
 import { AuthInput } from "@/components/auth/shared/AuthInput";
 import { useFieldErrors } from "@/hooks/useFieldErrors";
+import { showPasswordUpdatedSuccessToast } from "@/lib/auth-toast";
 import type {
   ChangePasswordApiResponse,
   ResetPasswordApiResponse,
@@ -25,6 +27,7 @@ export function ResetPasswordForm({
   onSuccess,
   showHeading = true,
 }: ResetPasswordFormProps) {
+  const router = useRouter();
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const { errors, setErrors, clearField } = useFieldErrors<
@@ -32,7 +35,6 @@ export function ResetPasswordForm({
   >();
   const [formError, setFormError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -82,29 +84,18 @@ export function ResetPasswordForm({
         return;
       }
 
-      setIsSuccess(true);
+      showPasswordUpdatedSuccessToast();
       onSuccess?.();
 
-      if (mode === "token" && "redirectTo" in result && result.redirectTo) {
-        window.setTimeout(() => {
-          window.location.href = result.redirectTo!;
-        }, 1500);
+      if ("redirectTo" in result && result.redirectTo) {
+        router.push(result.redirectTo);
+        router.refresh();
       }
     } catch {
       setFormError("Something went wrong. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
-  }
-
-  if (isSuccess) {
-    return (
-      <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
-        {mode === "token"
-          ? "Password updated successfully. Redirecting to login..."
-          : "Password updated successfully."}
-      </div>
-    );
   }
 
   return (

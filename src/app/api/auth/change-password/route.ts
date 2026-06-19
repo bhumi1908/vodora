@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 
+import { getAccountType } from "@/lib/auth/account-type";
 import { getAuthErrorMessage } from "@/lib/auth/errors";
+import { getDashboardPath } from "@/lib/auth/routes";
 import type { ChangePasswordApiResponse } from "@/lib/auth/types";
 import { validateResetPassword } from "@/lib/auth/validation";
 import {
@@ -75,7 +77,10 @@ export async function POST(request: Request) {
     );
   }
 
+  const accountType = await getAccountType(supabase, user);
+
   return NextResponse.json({
     success: true,
+    redirectTo: getDashboardPath(accountType),
   } satisfies ChangePasswordApiResponse);
 }

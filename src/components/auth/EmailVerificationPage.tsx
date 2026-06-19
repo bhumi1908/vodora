@@ -1,10 +1,10 @@
 "use client";
 
-import { Briefcase, Mail } from "lucide-react";
-import Link from "next/link";
+import { Mail } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-import { Suspense, useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
 
+import { AuthBrandLogo } from "@/components/auth/shared/AuthBrandLogo";
 import type { ResendVerificationApiResponse } from "@/lib/auth/types";
 
 const RESEND_COOLDOWN_SECONDS = 60;
@@ -12,12 +12,40 @@ const RESEND_COOLDOWN_SECONDS = 60;
 function EmailVerificationContent() {
   const searchParams = useSearchParams();
   const email = searchParams.get("email")?.trim() ?? "";
+  const justRegistered = searchParams.get("pending") === "1";
+  const isRecruiterLogin = searchParams.get("type") === "recruiter";
+  const loginHref = isRecruiterLogin ? "/login?type=recruiter" : "/login";
   const [formError, setFormError] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [successMessage, setSuccessMessage] = useState(
+    justRegistered ? "Verification email sent. Please check your inbox." : "",
+  );
   const [cooldownSeconds, setCooldownSeconds] = useState(0);
 
-  async function handleResend() {
+  const startCooldown = useCallback((seconds: number) => {
+    setCooldownSeconds(seconds);
+  }, []);
+
+  useEffect(() => {
+    if (justRegistered) {
+      startCooldown(RESEND_COOLDOWN_SECONDS);
+    }
+  }, [justRegistered, startCooldown]);
+
+  useEffect(() => {
+    if (cooldownSeconds <= 0) {
+      return;
+    }
+
+    const interval = window.setInterval(() => {
+      setCooldownSeconds((seconds) => (seconds <= 1 ? 0 : seconds - 1));
+    }, 1000);
+
+    return () => {
+      window.clearInterval(interval);
+    };
+  }, [cooldownSeconds > 0]);
+
+  function handleResend() {
     if (!email) {
       setFormError("No email address found. Please register again.");
       return;
@@ -28,52 +56,42 @@ function EmailVerificationContent() {
     }
 
     setFormError("");
-    setSuccessMessage("");
-    setIsSubmitting(true);
+    setSuccessMessage("Verification email sent. Please check your inbox.");
+    startCooldown(RESEND_COOLDOWN_SECONDS);
 
-    try {
-      const response = await fetch("/api/auth/resend-verification", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
+    void fetch("/api/auth/resend-verification", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    })
+      .then(async (response) => {
+        if (response.ok) {
+          return;
+        }
 
-      const result = (await response.json()) as ResendVerificationApiResponse;
+        const result = (await response.json()) as ResendVerificationApiResponse;
+        setSuccessMessage("");
 
-      if (!response.ok || !result.success) {
+        if (response.status === 429) {
+          const retryAfter = Number(response.headers.get("Retry-After"));
+          startCooldown(
+            Number.isFinite(retryAfter) && retryAfter > 0
+              ? retryAfter
+              : RESEND_COOLDOWN_SECONDS,
+          );
+        }
+
         setFormError(result.error ?? "Unable to resend verification email.");
-        return;
-      }
-
-      setSuccessMessage("Verification email sent. Please check your inbox.");
-      setCooldownSeconds(RESEND_COOLDOWN_SECONDS);
-
-      const interval = window.setInterval(() => {
-        setCooldownSeconds((seconds) => {
-          if (seconds <= 1) {
-            window.clearInterval(interval);
-            return 0;
-          }
-
-          return seconds - 1;
-        });
-      }, 1000);
-    } catch {
-      setFormError("Something went wrong. Please try again.");
-    } finally {
-      setIsSubmitting(false);
-    }
+      })
+      .catch(() => {
+        // Email may still be sending in the background.
+      });
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-50 to-white p-8">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-50 to-white px-4 py-6 sm:px-6">
       <div className="w-full max-w-md text-center">
-        <Link href="/" className="mb-8 inline-flex items-center gap-2">
-          <div className="flex h-10 w-10 items-center justify-center rounded bg-blue-600">
-            <Briefcase className="h-5 w-5 text-white" />
-          </div>
-          <span className="text-2xl font-semibold text-gray-900">Vodora</span>
-        </Link>
+        <AuthBrandLogo className="mb-6" />
 
         <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
           <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-blue-100">
@@ -115,14 +133,12 @@ function EmailVerificationContent() {
           <button
             type="button"
             onClick={handleResend}
-            disabled={isSubmitting || cooldownSeconds > 0 || !email}
+            disabled={cooldownSeconds > 0 || !email}
             className="mb-4 w-full rounded-lg bg-blue-600 py-3 text-base font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
           >
-            {isSubmitting
-              ? "Sending..."
-              : cooldownSeconds > 0
-                ? `Resend in ${cooldownSeconds}s`
-                : "Resend Verification Email"}
+            {cooldownSeconds > 0
+              ? `Resend in ${cooldownSeconds}s`
+              : "Resend Verification Email"}
           </button>
 
           <button
@@ -134,7 +150,7 @@ function EmailVerificationContent() {
                 // Continue to login even if sign-out fails.
               }
 
-              window.location.href = "/login";
+              window.location.href = loginHref;
             }}
             className="text-sm font-medium text-blue-600 hover:text-blue-700"
           >

@@ -1,3 +1,5 @@
+import { buildEmailBrandHeaderHtml } from "@/lib/email/templates/email-brand-header";
+
 type ResetPasswordEmailParams = {
   resetUrl: string;
   recipientName?: string;
@@ -25,8 +27,7 @@ export function buildResetPasswordEmailHtml({
         <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:480px;background-color:#ffffff;border:1px solid #e5e7eb;border-radius:16px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.06);">
           <tr>
             <td style="padding:32px 32px 24px;text-align:center;">
-              <div style="display:inline-block;width:40px;height:40px;background-color:#2563eb;border-radius:8px;line-height:40px;font-size:20px;color:#ffffff;">&#128188;</div>
-              <div style="margin-top:12px;font-size:24px;font-weight:600;color:#111827;">Vodora</div>
+              ${buildEmailBrandHeaderHtml()}
             </td>
           </tr>
           <tr>

@@ -17,3 +17,20 @@ export const profileKeys = {
   all: ["profile"] as const,
   own: () => [...profileKeys.all, "own"] as const,
 };
+
+export type PublishedJobsQueryParams = {
+  category: string;
+  workTypes: string[];
+  location: string;
+  query: string;
+  page: number;
+  limit?: number;
+};
+
+export const jobKeys = {
+  all: ["jobs"] as const,
+  published: (params: PublishedJobsQueryParams) =>
+    [...jobKeys.all, "published", params] as const,
+  detail: (jobId: string) => [...jobKeys.all, "detail", jobId] as const,
+  recruiter: () => [...jobKeys.all, "recruiter"] as const,
+};

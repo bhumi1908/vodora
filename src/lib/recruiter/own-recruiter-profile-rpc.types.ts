@@ -14,6 +14,12 @@ export type OwnRecruiterProfileRecruiter = {
   job_title: string | null;
   bio: string | null;
   recruiter_type: string | null;
+  specialisations: string[];
+  industries: string[];
+  preferred_work_type_codes: string[];
+  preferred_experience_levels: string[];
+  remote_preference: string | null;
+  profile_picture_url: string | null;
 };
 
 export type OwnRecruiterProfileCompany = {
@@ -23,6 +29,8 @@ export type OwnRecruiterProfileCompany = {
   city: string | null;
   country: string | null;
   is_verified: boolean;
+  employee_count_range: string | null;
+  hires_per_year_range: string | null;
 };
 
 export type OwnRecruiterProfileRpcResult = {

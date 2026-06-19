@@ -73,6 +73,6 @@ export async function POST(request: Request) {
 
   return NextResponse.json({
     success: true,
-    redirectTo: "/login?reset=1",
+    redirectTo: "/login",
   } satisfies ResetPasswordApiResponse);
 }

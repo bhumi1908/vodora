@@ -279,6 +279,45 @@ export type Database = {
         };
         Relationships: [];
       };
+      company_invitations: {
+        Row: {
+          accepted_at: string | null;
+          company_id: string;
+          created_at: string;
+          email: string;
+          expires_at: string;
+          id: string;
+          invited_by: string;
+          status: string;
+          team_role: string;
+          token: string;
+        };
+        Insert: {
+          accepted_at?: string | null;
+          company_id: string;
+          created_at?: string;
+          email: string;
+          expires_at?: string;
+          id?: string;
+          invited_by: string;
+          status?: string;
+          team_role?: string;
+          token?: string;
+        };
+        Update: {
+          accepted_at?: string | null;
+          company_id?: string;
+          created_at?: string;
+          email?: string;
+          expires_at?: string;
+          id?: string;
+          invited_by?: string;
+          status?: string;
+          team_role?: string;
+          token?: string;
+        };
+        Relationships: [];
+      };
       company_members: {
         Row: {
           company_id: string;
@@ -381,6 +420,108 @@ export type Database = {
         };
         Relationships: [];
       };
+      job_applications: {
+        Row: {
+          applied_at: string;
+          candidate_id: string;
+          cover_letter: string | null;
+          cover_letter_document_id: string | null;
+          id: string;
+          job_posting_id: string;
+          references_attached: boolean;
+          resume_document_id: string | null;
+          status: string;
+          updated_at: string;
+        };
+        Insert: {
+          applied_at?: string;
+          candidate_id: string;
+          cover_letter?: string | null;
+          cover_letter_document_id?: string | null;
+          id?: string;
+          job_posting_id: string;
+          references_attached?: boolean;
+          resume_document_id?: string | null;
+          status?: string;
+          updated_at?: string;
+        };
+        Update: {
+          applied_at?: string;
+          candidate_id?: string;
+          cover_letter?: string | null;
+          cover_letter_document_id?: string | null;
+          id?: string;
+          job_posting_id?: string;
+          references_attached?: boolean;
+          resume_document_id?: string | null;
+          status?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      job_postings: {
+        Row: {
+          category: string;
+          closes_at: string | null;
+          company_display_name: string;
+          company_id: string | null;
+          created_at: string;
+          description: string;
+          id: string;
+          is_urgent: boolean;
+          location: string;
+          published_at: string | null;
+          recruiter_id: string;
+          requirements: string[];
+          responsibilities: string[];
+          salary_display: string | null;
+          status: string;
+          title: string;
+          updated_at: string;
+          work_type_id: string;
+        };
+        Insert: {
+          category: string;
+          closes_at?: string | null;
+          company_display_name: string;
+          company_id?: string | null;
+          created_at?: string;
+          description: string;
+          id?: string;
+          is_urgent?: boolean;
+          location: string;
+          published_at?: string | null;
+          recruiter_id: string;
+          requirements?: string[];
+          responsibilities?: string[];
+          salary_display?: string | null;
+          status?: string;
+          title: string;
+          updated_at?: string;
+          work_type_id: string;
+        };
+        Update: {
+          category?: string;
+          closes_at?: string | null;
+          company_display_name?: string;
+          company_id?: string | null;
+          created_at?: string;
+          description?: string;
+          id?: string;
+          is_urgent?: boolean;
+          location?: string;
+          published_at?: string | null;
+          recruiter_id?: string;
+          requirements?: string[];
+          responsibilities?: string[];
+          salary_display?: string | null;
+          status?: string;
+          title?: string;
+          updated_at?: string;
+          work_type_id?: string;
+        };
+        Relationships: [];
+      };
       recruiters: {
         Row: {
           bio: string | null;
@@ -388,8 +529,14 @@ export type Database = {
           company_id: string | null;
           created_at: string;
           id: string;
+          industries: string[];
           job_title: string | null;
+          preferred_experience_levels: string[];
+          preferred_work_type_codes: string[];
+          profile_picture_url: string | null;
           recruiter_type: string | null;
+          remote_preference: string | null;
+          specialisations: string[];
           updated_at: string;
           user_id: string;
         };
@@ -399,8 +546,14 @@ export type Database = {
           company_id?: string | null;
           created_at?: string;
           id?: string;
+          industries?: string[];
           job_title?: string | null;
+          preferred_experience_levels?: string[];
+          preferred_work_type_codes?: string[];
+          profile_picture_url?: string | null;
           recruiter_type?: string | null;
+          remote_preference?: string | null;
+          specialisations?: string[];
           updated_at?: string;
           user_id: string;
         };
@@ -410,8 +563,14 @@ export type Database = {
           company_id?: string | null;
           created_at?: string;
           id?: string;
+          industries?: string[];
           job_title?: string | null;
+          preferred_experience_levels?: string[];
+          preferred_work_type_codes?: string[];
+          profile_picture_url?: string | null;
           recruiter_type?: string | null;
+          remote_preference?: string | null;
+          specialisations?: string[];
           updated_at?: string;
           user_id?: string;
         };

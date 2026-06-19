@@ -1,7 +1,7 @@
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 
 import { EMAIL_FEATURES_ENABLED } from "@/lib/auth/email-features";
-import { sendVerificationEmail } from "@/lib/auth/email-verification";
+import { queueVerificationEmail } from "@/lib/auth/email-verification";
 import { getAuthErrorMessage } from "@/lib/auth/errors";
 import { env } from "@/lib/env";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -63,25 +63,24 @@ export async function runSignupFlow(
       .update({ email_verified_at: null })
       .eq("id", data.user.id);
 
-    try {
-      await sendVerificationEmail(data.user.id, params.origin, {
-        email: params.email.trim(),
-        recipientName: `${params.firstName.trim()} ${params.lastName.trim()}`.trim(),
-      });
-    } catch (sendError) {
-      console.error("Verification email failed:", sendError);
-      return {
-        success: false,
-        error:
-          "Account created but we could not send the verification email. Please try again or contact support.",
-      };
-    }
+    void queueVerificationEmail(data.user.id, params.origin, {
+      email: params.email.trim(),
+      recipientName: `${params.firstName.trim()} ${params.lastName.trim()}`.trim(),
+    }).catch((sendError) => {
+      console.error("Verification email setup failed:", sendError);
+    });
+
+    const email = params.email.trim();
+    const verifyParams = new URLSearchParams({
+      email,
+      pending: "1",
+    });
 
     return {
       success: true,
       needsEmailConfirmation: true,
-      email: params.email.trim(),
-      redirectTo: `/verify-email?email=${encodeURIComponent(params.email.trim())}`,
+      email,
+      redirectTo: `/verify-email?${verifyParams.toString()}`,
     };
   }
 
@@ -95,12 +94,6 @@ export async function runSignupFlow(
     .from("users")
     .update({ email_verified_at: verifiedAt })
     .eq("id", data.user.id);
-
-  // Verification email disabled until SendGrid is ready — see email-features.ts.
-  // await sendVerificationEmail(data.user.id, params.origin, {
-  //   email: params.email.trim(),
-  //   recipientName: `${params.firstName.trim()} ${params.lastName.trim()}`.trim(),
-  // });
 
   return {
     success: true,

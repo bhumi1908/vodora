@@ -33,7 +33,9 @@ async function fetchOwnRecruiterProfileFallback(
         .maybeSingle(),
       supabase
         .from("recruiters")
-        .select("id, job_title, bio, recruiter_type, company_id")
+        .select(
+          "id, job_title, bio, recruiter_type, company_id, specialisations, industries, preferred_work_type_codes, preferred_experience_levels, remote_preference, profile_picture_url",
+        )
         .eq("user_id", user.id)
         .maybeSingle(),
     ]);
@@ -47,7 +49,9 @@ async function fetchOwnRecruiterProfileFallback(
   if (recruiter?.company_id) {
     const { data: companyRow } = await supabase
       .from("companies")
-      .select("id, name, website, city, country, is_verified")
+      .select(
+        "id, name, website, city, country, is_verified, employee_count_range, hires_per_year_range",
+      )
       .eq("id", recruiter.company_id)
       .maybeSingle();
 
@@ -59,6 +63,8 @@ async function fetchOwnRecruiterProfileFallback(
         city: companyRow.city,
         country: companyRow.country,
         is_verified: companyRow.is_verified,
+        employee_count_range: companyRow.employee_count_range,
+        hires_per_year_range: companyRow.hires_per_year_range,
       };
     }
   }
@@ -80,6 +86,12 @@ async function fetchOwnRecruiterProfileFallback(
           job_title: recruiter.job_title,
           bio: recruiter.bio,
           recruiter_type: recruiter.recruiter_type,
+          specialisations: recruiter.specialisations ?? [],
+          industries: recruiter.industries ?? [],
+          preferred_work_type_codes: recruiter.preferred_work_type_codes ?? [],
+          preferred_experience_levels: recruiter.preferred_experience_levels ?? [],
+          remote_preference: recruiter.remote_preference,
+          profile_picture_url: recruiter.profile_picture_url,
         }
       : null,
     company,

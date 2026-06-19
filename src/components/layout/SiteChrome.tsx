@@ -11,7 +11,13 @@ import { useAccountType } from "@/lib/auth/use-account-type";
 import { isRecruiterAppRoute } from "@/lib/auth/routes";
 import { createClient } from "@/lib/supabase/client";
 
-const AUTH_ROUTE_PREFIXES = ["/login", "/signup", "/welcome", "/forgot-password"];
+const AUTH_ROUTE_PREFIXES = [
+  "/login",
+  "/signup",
+  "/welcome",
+  "/forgot-password",
+  "/verify-email",
+];
 
 function isAuthRoute(pathname: string) {
   return AUTH_ROUTE_PREFIXES.some(

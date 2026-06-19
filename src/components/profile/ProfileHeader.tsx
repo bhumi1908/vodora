@@ -13,6 +13,7 @@ import {
 import Link from "next/link";
 
 import { formatCandidateAvailability } from "@/lib/profile/availability";
+import { CANDIDATE_JOBS_PATH } from "@/lib/auth/routes";
 import {
   formatWebsiteHref,
   formatWebsiteLabel,
@@ -62,7 +63,7 @@ export function ProfileHeader({
             {isOwnProfile ? (
               <>
                 <Link
-                  href="/jobs"
+                  href={CANDIDATE_JOBS_PATH}
                   className="flex items-center gap-2 rounded-full border border-green-200 bg-green-50 px-4 py-2 text-sm font-medium text-green-700 transition-colors hover:bg-green-100"
                 >
                   <Briefcase className="h-4 w-4" />

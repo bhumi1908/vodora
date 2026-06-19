@@ -12,11 +12,22 @@ import {
   validateProfileFile,
 } from "@/lib/profile/validation";
 
+type ProfilePhotoUploadResult =
+  | { success: true; profilePictureUrl: string }
+  | { success: false; error: string };
+
+type ProfilePhotoUpload = {
+  upload: (file: File) => Promise<ProfilePhotoUploadResult>;
+  isPending: boolean;
+};
+
 type ProfilePhotoSectionProps = {
   name: string;
   avatarInitials: string;
   profilePictureUrl: string | null;
   onPhotoSaved: (profilePictureUrl: string) => void;
+  description?: string;
+  photoUpload?: ProfilePhotoUpload;
 };
 
 export function ProfilePhotoSection({
@@ -24,8 +35,14 @@ export function ProfilePhotoSection({
   avatarInitials,
   profilePictureUrl,
   onPhotoSaved,
+  description = "Add a professional photo so recruiters can recognize you.",
+  photoUpload,
 }: ProfilePhotoSectionProps) {
-  const uploadMutation = useUploadProfilePhotoMutation();
+  const candidateUploadMutation = useUploadProfilePhotoMutation();
+  const uploadMutation = photoUpload ?? {
+    upload: candidateUploadMutation.mutateAsync.bind(candidateUploadMutation),
+    isPending: candidateUploadMutation.isPending,
+  };
   const inputRef = useRef<HTMLInputElement>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(profilePictureUrl);
   const [error, setError] = useState("");
@@ -49,7 +66,7 @@ export function ProfilePhotoSection({
     setPreviewUrl(URL.createObjectURL(file));
 
     try {
-      const result = await uploadMutation.mutateAsync(file);
+      const result = await uploadMutation.upload(file);
 
       if (!result.success) {
         setError(result.error);
@@ -70,7 +87,7 @@ export function ProfilePhotoSection({
     <ProfileEditSection
       id="profile-photo"
       title="Profile Photo"
-      description="Add a professional photo so recruiters can recognize you."
+      description={description}
       footer={
         <SectionSaveButton
           label="Choose photo"

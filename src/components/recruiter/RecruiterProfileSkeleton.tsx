@@ -20,29 +20,17 @@ export function RecruiterProfileSkeleton() {
             </div>
           </div>
 
-          <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
-            <div className="min-w-0 flex-1 space-y-3">
-              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                <Skeleton className="h-8 w-56 sm:w-64" />
-                <Skeleton className="h-6 w-32 rounded-full" />
-              </div>
-              <Skeleton className="h-5 w-48" />
-              <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:gap-4">
-                <Skeleton className="h-4 w-36" />
-                <Skeleton className="h-4 w-32" />
-                <Skeleton className="h-4 w-44" />
-                <Skeleton className="h-4 w-28" />
-              </div>
+          <div className="min-w-0 space-y-3">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+              <Skeleton className="h-8 w-56 sm:w-64" />
+              <Skeleton className="h-6 w-32 rounded-full" />
             </div>
-
-            <div className="flex shrink-0 items-center gap-3 sm:block sm:text-right">
-              <div className="flex items-center gap-1 sm:mb-1 sm:justify-end">
-                {Array.from({ length: 5 }).map((_, index) => (
-                  <Skeleton key={index} className="h-4 w-4 rounded-sm sm:h-5 sm:w-5" />
-                ))}
-              </div>
-              <Skeleton className="h-8 w-12 sm:ml-auto" />
-              <Skeleton className="mt-1 h-3 w-24 sm:ml-auto" />
+            <Skeleton className="h-5 w-48" />
+            <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:gap-4">
+              <Skeleton className="h-4 w-36" />
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-4 w-44" />
+              <Skeleton className="h-4 w-28" />
             </div>
           </div>
         </div>

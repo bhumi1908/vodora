@@ -1,7 +1,7 @@
 import { createHash, randomBytes } from "crypto";
 
 import { EMAIL_FEATURES_ENABLED } from "@/lib/auth/email-features";
-import { sendEmail } from "@/lib/email/sendgrid";
+import { sendEmail } from "@/lib/email/smtp";
 import {
   buildResetPasswordEmailHtml,
   buildResetPasswordEmailText,
@@ -81,39 +81,85 @@ async function storeResetToken(userId: string, tokenHash: string): Promise<void>
   }
 }
 
-export async function sendPasswordResetEmail(
+type PasswordResetEmailPayload = {
+  email: string;
+  recipientName: string;
+  resetUrl: string;
+};
+
+async function buildPasswordResetEmailPayload(
   email: string,
   origin: string,
-): Promise<{ sent: boolean }> {
+): Promise<PasswordResetEmailPayload | null> {
   const user = await findUserByEmail(email);
 
   if (!user) {
-    return { sent: false };
+    return null;
   }
 
   if (!EMAIL_FEATURES_ENABLED) {
-    return { sent: false };
+    return null;
   }
 
   const { token, tokenHash } = generateResetToken();
   await storeResetToken(user.id, tokenHash);
 
-  const resetUrl = buildResetPasswordUrl(origin, token);
-  const recipientName = `${user.first_name} ${user.last_name}`.trim();
+  return {
+    email: user.email,
+    recipientName: `${user.first_name} ${user.last_name}`.trim(),
+    resetUrl: buildResetPasswordUrl(origin, token),
+  };
+}
 
-  // Email sending disabled until SendGrid is ready — see email-features.ts.
+async function deliverPasswordResetEmail(
+  payload: PasswordResetEmailPayload,
+): Promise<void> {
   const emailResult = await sendEmail({
-    to: user.email,
+    to: payload.email,
     subject: "Reset your Vodora password",
-    html: buildResetPasswordEmailHtml({ resetUrl, recipientName }),
-    text: buildResetPasswordEmailText({ resetUrl, recipientName }),
+    html: buildResetPasswordEmailHtml({
+      resetUrl: payload.resetUrl,
+      recipientName: payload.recipientName,
+    }),
+    text: buildResetPasswordEmailText({
+      resetUrl: payload.resetUrl,
+      recipientName: payload.recipientName,
+    }),
   });
 
   if (!emailResult.success) {
     throw new Error(emailResult.error);
   }
+}
+
+export async function sendPasswordResetEmail(
+  email: string,
+  origin: string,
+): Promise<{ sent: boolean }> {
+  const payload = await buildPasswordResetEmailPayload(email, origin);
+
+  if (!payload) {
+    return { sent: false };
+  }
+
+  await deliverPasswordResetEmail(payload);
 
   return { sent: true };
+}
+
+export async function queuePasswordResetEmail(
+  email: string,
+  origin: string,
+): Promise<void> {
+  const payload = await buildPasswordResetEmailPayload(email, origin);
+
+  if (!payload) {
+    return;
+  }
+
+  void deliverPasswordResetEmail(payload).catch((error) => {
+    console.error("Background password reset email failed:", error);
+  });
 }
 
 export async function validateResetToken(

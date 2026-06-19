@@ -30,6 +30,10 @@ export function showPasswordResetSuccessToast() {
   toast.success("Your password has been reset. You can sign in now.");
 }
 
+export function showPasswordUpdatedSuccessToast() {
+  toast.success("Password updated successfully.");
+}
+
 export function showAccessDeniedToast(reason: AccessDeniedReason) {
   if (reason === ACCESS_DENIED_CANDIDATE_ONLY) {
     toast.error("You don't have permission to access candidate pages.");

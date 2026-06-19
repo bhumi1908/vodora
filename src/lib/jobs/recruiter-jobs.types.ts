@@ -1,0 +1,52 @@
+export type RecruiterJobStats = {
+  totalPlacements: number;
+  activeRoles: number;
+  candidatesWorkedWith: number;
+  avgTimeToHireDays: number | null;
+  hiringFasterPercent: number | null;
+  hoursSavedThisMonth: number;
+};
+
+export type RecruiterJobListItem = {
+  id: string;
+  title: string;
+  type: string;
+  location: string;
+  salary: string;
+  applicants: number;
+  posted: string;
+  urgent: boolean;
+  status: string;
+};
+
+export type WorkTypeOption = {
+  id: string;
+  code: string;
+  name: string;
+};
+
+export type CreateJobPostingPayload = {
+  title: string;
+  companyDisplayName: string;
+  category: string;
+  location: string;
+  workTypeId: string;
+  salaryDisplay: string;
+  description: string;
+  responsibilities: string[];
+  requirements: string[];
+  isUrgent: boolean;
+  publish: boolean;
+};
+
+export type CreateJobPostingFieldErrors = Partial<
+  Record<
+    | "title"
+    | "companyDisplayName"
+    | "category"
+    | "location"
+    | "workTypeId"
+    | "description",
+    string
+  >
+>;

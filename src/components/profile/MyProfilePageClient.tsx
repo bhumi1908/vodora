@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 
+import { ProfileViewSkeleton } from "@/components/profile/ProfileViewSkeleton";
 import { ProfilePage } from "@/components/profile/ProfilePage";
 import { useRequiredMyProfileData } from "@/components/profile/MyProfileDataProvider";
 import { transformOwnCandidateProfileToView } from "@/lib/profile/transform-own-candidate-profile";
@@ -14,8 +15,9 @@ export function MyProfilePageClient() {
   );
 
   if (!profile) {
-    return null;
+    return <ProfileViewSkeleton />;
   }
 
   return <ProfilePage profile={profile} isOwnProfile />;
 }
+ 

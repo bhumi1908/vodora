@@ -2,10 +2,13 @@ export const CANDIDATE_WELCOME_PATH = "/welcome/candidate";
 export const RECRUITER_WELCOME_PATH = "/welcome/recruiter";
 
 export const CANDIDATE_DASHBOARD_PATH = "/dashboard";
+export const CANDIDATE_JOBS_PATH = "/jobs";
 export const RECRUITER_DASHBOARD_PATH = "/recruiter/dashboard";
 export const RECRUITER_SEARCH_PATH = "/recruiter/search";
 export const RECRUITER_SAVED_PATH = "/recruiter/saved";
 export const RECRUITER_PROFILE_PATH = "/recruiter/profile";
+export const RECRUITER_PROFILE_ROLES_PATH = "/recruiter/profile?tab=roles";
+export const RECRUITER_PROFILE_EDIT_PATH = "/recruiter/profile/edit";
 
 export function isRecruiterAppRoute(pathname: string): boolean {
   return pathname === "/recruiter" || pathname.startsWith("/recruiter/");

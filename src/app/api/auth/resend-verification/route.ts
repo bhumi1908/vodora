@@ -54,18 +54,9 @@ export async function POST(request: Request) {
 
   const origin = getRequestOrigin(request);
 
-  try {
-    await resendVerificationEmail(normalizedEmail, origin);
-  } catch (error) {
+  void resendVerificationEmail(normalizedEmail, origin).catch((error) => {
     console.error("Resend verification email failed:", error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: "Unable to send verification email. Please try again later.",
-      } satisfies ResendVerificationApiResponse,
-      { status: 500 },
-    );
-  }
+  });
 
   // Always return success to avoid revealing whether the email exists or is verified.
   return NextResponse.json({

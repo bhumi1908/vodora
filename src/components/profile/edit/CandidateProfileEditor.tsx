@@ -1,12 +1,12 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 import { DocumentsEditSection } from "@/components/profile/edit/DocumentsEditSection";
 import { EducationEditSection } from "@/components/profile/edit/EducationEditSection";
 import { ExperienceEditSection } from "@/components/profile/edit/ExperienceEditSection";
 import { OverviewEditSection } from "@/components/profile/edit/OverviewEditSection";
+import { ProfileEditBackButton } from "@/components/profile/edit/ProfileEditBackButton";
 import { ProfilePhotoSection } from "@/components/profile/edit/ProfilePhotoSection";
 import {
   cloneProfileEditData,
@@ -46,7 +46,6 @@ export function CandidateProfileEditor({
   title = "Edit Profile",
   description = "Update your professional details. Each section saves independently.",
 }: CandidateProfileEditorProps) {
-  const router = useRouter();
   const [profile, setProfile] = useState(() =>
     cloneProfileEditData(initialProfile),
   );
@@ -146,15 +145,7 @@ export function CandidateProfileEditor({
   return (
     <div className="mx-auto max-w-3xl px-4 py-6 sm:px-6">
       <div className="mb-6">
-        {backHref ? (
-          <button
-            type="button"
-            onClick={() => router.push(backHref)}
-            className="mb-4 text-sm font-medium text-blue-600 hover:text-blue-700"
-          >
-            ← Back to profile
-          </button>
-        ) : null}
+        {backHref ? <ProfileEditBackButton href={backHref} /> : null}
 
         <h1 className="text-2xl font-semibold text-gray-900">{title}</h1>
         <p className="mt-1 text-sm text-gray-600">{description}</p>

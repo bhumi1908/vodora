@@ -1,10 +1,10 @@
 "use client";
 
-import { Briefcase } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 
+import { AuthBrandLogo } from "@/components/auth/shared/AuthBrandLogo";
 import { ResetPasswordForm } from "@/components/auth/ResetPasswordForm";
 import { EMAIL_FEATURES_ENABLED } from "@/lib/auth/email-features";
 
@@ -41,12 +41,7 @@ export function ResetPasswordPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-50 to-white p-8">
       <div className="w-full max-w-md">
-        <Link href="/" className="mb-8 inline-flex items-center gap-2">
-          <div className="flex h-10 w-10 items-center justify-center rounded bg-blue-600">
-            <Briefcase className="h-5 w-5 text-white" />
-          </div>
-          <span className="text-2xl font-semibold text-gray-900">Vodora</span>
-        </Link>
+        <AuthBrandLogo className="mb-8" />
 
         <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
           <Suspense fallback={null}>

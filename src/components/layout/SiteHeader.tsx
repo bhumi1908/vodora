@@ -6,13 +6,14 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { UserProfileMenu } from "@/components/layout/UserProfileMenu";
+import { CANDIDATE_JOBS_PATH } from "@/lib/auth/routes";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
 
 const appNavItems = [
-  { label: "Connect", href: "/marketplace" },
+  { label: "Connect", href: "/marketplace", prefetch: false },
   { label: "My Profile", href: "/my-profile" },
-  { label: "Search for Jobs", href: "/jobs", prefetch: false },
+  { label: "Search for Jobs", href: CANDIDATE_JOBS_PATH, prefetch: false },
 ];
 
 function AuthButtons({ onNavigate }: { onNavigate?: () => void }) {

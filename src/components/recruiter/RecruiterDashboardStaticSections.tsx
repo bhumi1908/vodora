@@ -5,66 +5,42 @@ import {
   Building2,
   Clock,
   Eye,
-  Star,
   TrendingUp,
 } from "lucide-react";
 import Link from "next/link";
 
+import { Skeleton } from "@/components/ui/Skeleton";
+import type { RecruiterJobListItem } from "@/lib/jobs/recruiter-jobs.types";
 import type { RecruiterDashboardContext } from "@/lib/recruiter/dashboard.types";
-import { RECRUITER_PROFILE_PATH, RECRUITER_SAVED_PATH, RECRUITER_SEARCH_PATH } from "@/lib/auth/routes";
+import {
+  RECRUITER_PROFILE_PATH,
+  RECRUITER_PROFILE_ROLES_PATH,
+  RECRUITER_SAVED_PATH,
+  RECRUITER_SEARCH_PATH,
+} from "@/lib/auth/routes";
 import { getInitials } from "@/lib/profile/format";
 
-const staticStats = [
-  {
-    label: "Active Job Posts",
-    value: "3",
-    icon: Briefcase,
-    color: "bg-blue-50 text-blue-600",
-  },
-  {
-    label: "Candidates Viewed",
-    value: "148",
-    icon: Eye,
-    color: "bg-purple-50 text-purple-600",
-  },
-  {
-    label: "Avg. Time to Hire",
-    value: "11 days",
-    icon: Clock,
-    color: "bg-green-50 text-green-600",
-  },
-] as const;
-
-const activeJobs = [
-  {
-    id: "1",
-    title: "Senior Software Engineer",
-    applicants: 24,
-    new: 5,
-    posted: "3 days ago",
-  },
-  {
-    id: "2",
-    title: "Product Manager",
-    applicants: 18,
-    new: 3,
-    posted: "1 week ago",
-  },
-  {
-    id: "3",
-    title: "UX Designer",
-    applicants: 31,
-    new: 8,
-    posted: "5 days ago",
-  },
-] as const;
+const CANDIDATES_VIEWED_STAT = {
+  label: "Candidates Viewed",
+  value: "148",
+  icon: Eye,
+  color: "bg-purple-50 text-purple-600",
+} as const;
 
 type RecruiterDashboardSidebarProps = {
   context: RecruiterDashboardContext;
+  activeJobs: RecruiterJobListItem[];
+  isJobsPending: boolean;
+  hiringFasterPercent: string;
+  hoursSavedThisMonth: string;
+  onAddJob: () => void;
 };
 
 type RecruiterDashboardStatsProps = {
   savedCount: number;
+  activeJobPosts: string;
+  avgTimeToHire: string;
+  isJobsPending: boolean;
 };
 
 type DashboardStatItem = {
@@ -73,11 +49,24 @@ type DashboardStatItem = {
   icon: typeof Briefcase;
   color: string;
   href?: string;
+  isLoading?: boolean;
 };
 
-export function RecruiterDashboardStats({ savedCount }: RecruiterDashboardStatsProps) {
+export function RecruiterDashboardStats({
+  savedCount,
+  activeJobPosts,
+  avgTimeToHire,
+  isJobsPending,
+}: RecruiterDashboardStatsProps) {
   const stats: DashboardStatItem[] = [
-    ...staticStats.slice(0, 2).map((stat) => ({ ...stat })),
+    {
+      label: "Active Job Posts",
+      value: activeJobPosts,
+      icon: Briefcase,
+      color: "bg-blue-50 text-blue-600",
+      isLoading: isJobsPending,
+    },
+    { ...CANDIDATES_VIEWED_STAT },
     {
       label: "Saved Profiles",
       value: String(savedCount),
@@ -85,12 +74,18 @@ export function RecruiterDashboardStats({ savedCount }: RecruiterDashboardStatsP
       color: "bg-amber-50 text-amber-600",
       href: RECRUITER_SAVED_PATH,
     },
-    ...staticStats.slice(2).map((stat) => ({ ...stat })),
+    {
+      label: "Avg. Time to Hire",
+      value: avgTimeToHire,
+      icon: Clock,
+      color: "bg-green-50 text-green-600",
+      isLoading: isJobsPending,
+    },
   ];
 
   return (
     <div className="mb-8 grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
-      {stats.map(({ label, value, icon: Icon, color, href }) => {
+      {stats.map(({ label, value, icon: Icon, color, href, isLoading }) => {
         const content = (
           <>
             <div
@@ -98,7 +93,11 @@ export function RecruiterDashboardStats({ savedCount }: RecruiterDashboardStatsP
             >
               <Icon className="h-5 w-5" />
             </div>
-            <p className="text-3xl font-bold text-gray-900">{value}</p>
+            {isLoading ? (
+              <Skeleton className="mb-1 h-9 w-16" />
+            ) : (
+              <p className="text-3xl font-bold text-gray-900">{value}</p>
+            )}
             <p className="mt-1 text-sm text-gray-500">{label}</p>
           </>
         );
@@ -130,23 +129,36 @@ export function RecruiterDashboardStats({ savedCount }: RecruiterDashboardStatsP
 
 export function RecruiterDashboardSidebar({
   context,
+  activeJobs,
+  isJobsPending,
+  hiringFasterPercent,
+  hoursSavedThisMonth,
+  onAddJob,
 }: RecruiterDashboardSidebarProps) {
   const recruiterInitials = getInitials(context.firstName, context.lastName);
   const recruiterName = `${context.firstName} ${context.lastName}`.trim();
 
   return (
     <div className="space-y-5">
-        <div className="rounded-2xl border border-gray-200 bg-white p-6">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="font-semibold text-gray-900">Active Job Posts</h2>
-            <button
-              type="button"
-              disabled
-              className="text-xs font-medium text-blue-600 opacity-60"
-            >
-              + Add
-            </button>
+      <div className="rounded-2xl border border-gray-200 bg-white p-6">
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="font-semibold text-gray-900">Active Job Posts</h2>
+          <button
+            type="button"
+            onClick={onAddJob}
+            className="text-xs font-medium text-blue-600 transition-colors hover:text-blue-700"
+          >
+            + Add
+          </button>
+        </div>
+
+        {isJobsPending ? (
+          <div className="space-y-3">
+            {Array.from({ length: 2 }).map((_, index) => (
+              <Skeleton key={index} className="h-16 w-full rounded-xl" />
+            ))}
           </div>
+        ) : activeJobs.length > 0 ? (
           <div className="space-y-3">
             {activeJobs.map((job) => (
               <div
@@ -162,80 +174,90 @@ export function RecruiterDashboardSidebar({
                       {job.title}
                     </p>
                     <p className="text-xs text-gray-500">
-                      {job.applicants} applicants · {job.posted}
+                      {job.applicants} applicant{job.applicants === 1 ? "" : "s"}{" "}
+                      · {job.posted}
                     </p>
                   </div>
-                  {job.new > 0 ? (
-                    <span className="rounded-full bg-blue-600 px-2 py-0.5 text-xs font-semibold text-white">
-                      {job.new} new
+                  {job.urgent ? (
+                    <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700">
+                      Urgent
                     </span>
                   ) : null}
                 </div>
               </div>
             ))}
           </div>
-          <button
-            type="button"
-            disabled
-            className="mt-4 w-full rounded-xl border border-blue-200 py-2.5 text-sm font-medium text-blue-600 opacity-60"
-          >
-            Manage Jobs
-          </button>
-        </div>
-
-        <div className="rounded-2xl border border-gray-200 bg-white p-6">
-          <div className="mb-4 flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100">
-              <span className="font-semibold text-blue-700">
-                {recruiterInitials}
-              </span>
-            </div>
-            <div>
-              <p className="font-semibold text-gray-900">{recruiterName}</p>
-              <p className="text-xs text-gray-500">
-                {context.jobTitle ?? "Recruiter"}
-              </p>
-            </div>
-          </div>
-          {context.companyName ? (
-            <div className="mb-3 flex items-center gap-2">
-              <Building2 className="h-4 w-4 text-gray-400" />
-              <span className="text-sm text-gray-600">{context.companyName}</span>
-            </div>
-          ) : null}
-          <div className="mb-4 flex gap-1">
-            {[...Array(5)].map((_, index) => (
-              <Star
-                key={index}
-                className={`h-4 w-4 ${
-                  index < 4 ? "fill-amber-400 text-amber-400" : "text-gray-200"
-                }`}
-              />
-            ))}
-            <span className="ml-1 text-xs text-gray-500">4.8 rating</span>
-          </div>
-          <Link
-            href={RECRUITER_PROFILE_PATH}
-            className="block w-full rounded-xl border border-gray-300 py-2.5 text-center text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
-          >
-            View My Profile
-          </Link>
-        </div>
-
-        <div className="rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 p-6 text-white">
-          <TrendingUp className="mb-3 h-8 w-8 text-blue-200" />
-          <p className="mb-1 font-semibold">Your hiring is</p>
-          <p className="text-4xl font-bold">82% faster</p>
-          <p className="mt-1 text-sm text-blue-100">
-            than traditional reference checking
+        ) : (
+          <p className="rounded-xl border border-dashed border-gray-200 bg-gray-50 px-4 py-6 text-center text-sm text-gray-500">
+            No active job posts yet. Post your first role to start receiving
+            applications.
           </p>
-          <div className="mt-4 border-t border-blue-500 pt-4">
-            <p className="text-xs text-blue-200">
-              Estimated time saved this month
+        )}
+
+        <Link
+          href={RECRUITER_PROFILE_ROLES_PATH}
+          className="mt-4 block w-full rounded-xl border border-blue-200 py-2.5 text-center text-sm font-medium text-blue-600 transition-colors hover:bg-blue-50"
+        >
+          Manage Jobs
+        </Link>
+      </div>
+
+      <div className="rounded-2xl border border-gray-200 bg-white p-6">
+        <div className="mb-4 flex items-center gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100">
+            <span className="font-semibold text-blue-700">
+              {recruiterInitials}
+            </span>
+          </div>
+          <div>
+            <p className="font-semibold text-gray-900">{recruiterName}</p>
+            <p className="text-xs text-gray-500">
+              {context.jobTitle ?? "Recruiter"}
             </p>
-            <p className="mt-1 text-2xl font-bold">24 hours</p>
           </div>
         </div>
+        {context.companyName ? (
+          <div className="mb-4 flex items-center gap-2">
+            <Building2 className="h-4 w-4 text-gray-400" />
+            <span className="text-sm text-gray-600">{context.companyName}</span>
+          </div>
+        ) : null}
+        <Link
+          href={RECRUITER_PROFILE_PATH}
+          className="block w-full rounded-xl border border-gray-300 py-2.5 text-center text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+        >
+          View My Profile
+        </Link>
+      </div>
+
+      <div className="rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 p-6 text-white">
+        <TrendingUp className="mb-3 h-8 w-8 text-blue-200" />
+        <p className="mb-1 font-semibold">Your hiring is</p>
+        {isJobsPending ? (
+          <Skeleton className="mb-1 h-10 w-28 bg-blue-500" />
+        ) : (
+          <p className="text-4xl font-bold">
+            {hiringFasterPercent === "—"
+              ? "—"
+              : `${hiringFasterPercent} faster`}
+          </p>
+        )}
+        <p className="mt-1 text-sm text-blue-100">
+          {hiringFasterPercent === "—"
+            ? "Complete a hire to measure your speed"
+            : "than traditional reference checking"}
+        </p>
+        <div className="mt-4 border-t border-blue-500 pt-4">
+          <p className="text-xs text-blue-200">
+            Estimated time saved this month
+          </p>
+          {isJobsPending ? (
+            <Skeleton className="mt-1 h-8 w-24 bg-blue-500" />
+          ) : (
+            <p className="mt-1 text-2xl font-bold">{hoursSavedThisMonth}</p>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

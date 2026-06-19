@@ -1,6 +1,8 @@
 import { Briefcase } from "lucide-react";
 import Link from "next/link";
 
+import { CANDIDATE_JOBS_PATH } from "@/lib/auth/routes";
+
 interface FooterLink {
   label: string;
   href: string;
@@ -19,7 +21,7 @@ const footerColumns: FooterColumn[] = [
     links: [
       { label: "Create Profile", href: "/signup/candidate" },
       { label: "My Profile", href: "/my-profile" },
-      { label: "Browse Jobs", href: "/jobs", prefetch: false },
+      { label: "Browse Jobs", href: CANDIDATE_JOBS_PATH, prefetch: false },
       { label: "Find Recruiters", href: "/recruiters" },
     ],
   },

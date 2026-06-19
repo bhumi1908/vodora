@@ -5,6 +5,7 @@ import {
   getWelcomeLoginRedirect,
   getWelcomePageRedirect,
 } from "@/lib/auth/welcome-guard";
+import { getRecruiterWelcomeData } from "@/lib/recruiter/get-recruiter-welcome-data";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata = {
@@ -28,5 +29,17 @@ export default async function RecruiterWelcomePage() {
     redirect(redirectTo);
   }
 
-  return <RecruiterWelcome />;
+  const welcomeData = await getRecruiterWelcomeData(supabase);
+
+  if (!welcomeData) {
+    redirect(getWelcomeLoginRedirect("recruiter"));
+  }
+
+  return (
+    <RecruiterWelcome
+      profile={welcomeData.profile}
+      emailVerified={welcomeData.emailVerified}
+      invitations={welcomeData.invitations}
+    />
+  );
 }

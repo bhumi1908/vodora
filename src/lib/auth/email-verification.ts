@@ -1,7 +1,7 @@
 import { createHash, randomBytes } from "crypto";
 
 import { EMAIL_FEATURES_ENABLED } from "@/lib/auth/email-features";
-import { sendEmail } from "@/lib/email/sendgrid";
+import { sendEmail } from "@/lib/email/smtp";
 import {
   buildVerifyEmailHtml,
   buildVerifyEmailText,
@@ -176,11 +176,17 @@ async function storeVerificationToken(
   }
 }
 
-export async function sendVerificationEmail(
+type VerificationEmailPayload = {
+  email: string;
+  recipientName: string;
+  verifyUrl: string;
+};
+
+async function buildVerificationEmailPayload(
   userId: string,
   origin: string,
   overrides?: { email?: string; recipientName?: string },
-): Promise<void> {
+): Promise<VerificationEmailPayload | null> {
   const recipient = await resolveVerificationRecipient(userId, overrides);
 
   if (recipient.alreadyVerified) {
@@ -188,31 +194,68 @@ export async function sendVerificationEmail(
   }
 
   if (!EMAIL_FEATURES_ENABLED) {
-    return;
+    return null;
   }
 
   const { token, tokenHash } = generateVerificationToken();
   await storeVerificationToken(userId, tokenHash);
 
-  const verifyUrl = buildVerifyEmailUrl(origin, token);
+  return {
+    email: recipient.email,
+    recipientName: recipient.recipientName,
+    verifyUrl: buildVerifyEmailUrl(origin, token),
+  };
+}
 
-  // Email sending disabled until SendGrid is ready — see email-features.ts.
+async function deliverVerificationEmail(
+  payload: VerificationEmailPayload,
+): Promise<void> {
   const emailResult = await sendEmail({
-    to: recipient.email,
+    to: payload.email,
     subject: "Verify your Vodora account",
     html: buildVerifyEmailHtml({
-      verifyUrl,
-      recipientName: recipient.recipientName,
+      verifyUrl: payload.verifyUrl,
+      recipientName: payload.recipientName,
     }),
     text: buildVerifyEmailText({
-      verifyUrl,
-      recipientName: recipient.recipientName,
+      verifyUrl: payload.verifyUrl,
+      recipientName: payload.recipientName,
     }),
   });
 
   if (!emailResult.success) {
     throw new Error(emailResult.error);
   }
+}
+
+export async function sendVerificationEmail(
+  userId: string,
+  origin: string,
+  overrides?: { email?: string; recipientName?: string },
+): Promise<void> {
+  const payload = await buildVerificationEmailPayload(userId, origin, overrides);
+
+  if (!payload) {
+    return;
+  }
+
+  await deliverVerificationEmail(payload);
+}
+
+export async function queueVerificationEmail(
+  userId: string,
+  origin: string,
+  overrides?: { email?: string; recipientName?: string },
+): Promise<void> {
+  const payload = await buildVerificationEmailPayload(userId, origin, overrides);
+
+  if (!payload) {
+    return;
+  }
+
+  void deliverVerificationEmail(payload).catch((error) => {
+    console.error("Background verification email failed:", error);
+  });
 }
 
 export async function resendVerificationEmail(
@@ -229,9 +272,11 @@ export async function resendVerificationEmail(
     return;
   }
 
-  await sendVerificationEmail(user.id, origin, {
+  void queueVerificationEmail(user.id, origin, {
     email: user.email,
     recipientName: `${user.first_name} ${user.last_name}`.trim(),
+  }).catch((error) => {
+    console.error("Background resend verification email failed:", error);
   });
 }
 

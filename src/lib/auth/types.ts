@@ -68,6 +68,7 @@ export type ResendVerificationApiResponse = {
 export type LoginApiResponse = {
   success: boolean;
   redirectTo?: string;
+  needsEmailVerification?: boolean;
   error?: string;
 };
 
@@ -84,6 +85,7 @@ export type ResetPasswordApiResponse = {
 
 export type ChangePasswordApiResponse = {
   success: boolean;
+  redirectTo?: string;
   error?: string;
 };
 

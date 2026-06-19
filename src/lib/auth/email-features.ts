@@ -1,5 +1,7 @@
+import { isSmtpConfigured } from "@/lib/email/smtp-config";
+
 /**
- * SendGrid email delivery and email-verification gates.
- * Set to true when SendGrid is configured and tested.
+ * SMTP email delivery and email-verification gates.
+ * Enabled automatically when SMTP env vars are configured.
  */
-export const EMAIL_FEATURES_ENABLED = false;
+export const EMAIL_FEATURES_ENABLED = isSmtpConfigured();

@@ -32,7 +32,7 @@ jwt_expiry = 7200
 [auth.email]
 enable_signup = true
 double_confirm_changes = false
-# Verification emails are sent via SendGrid (see src/lib/auth/email-verification.ts).
+# Verification emails are sent via SMTP (see src/lib/auth/email-verification.ts).
 # Disable Supabase confirmation emails to avoid duplicates.
 enable_confirmations = false
 
