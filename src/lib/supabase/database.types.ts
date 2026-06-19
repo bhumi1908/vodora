@@ -622,6 +622,10 @@ export type Database = {
         Args: Record<PropertyKey, never>;
         Returns: Json;
       };
+      get_own_recruiter_profile: {
+        Args: Record<PropertyKey, never>;
+        Returns: Json;
+      };
       get_recruiter_dashboard_candidates: {
         Args: {
           p_limit?: number;

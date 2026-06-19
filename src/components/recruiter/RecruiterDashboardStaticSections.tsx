@@ -11,7 +11,7 @@ import {
 import Link from "next/link";
 
 import type { RecruiterDashboardContext } from "@/lib/recruiter/dashboard.types";
-import { RECRUITER_SAVED_PATH, RECRUITER_SEARCH_PATH } from "@/lib/auth/routes";
+import { RECRUITER_PROFILE_PATH, RECRUITER_SAVED_PATH, RECRUITER_SEARCH_PATH } from "@/lib/auth/routes";
 import { getInitials } from "@/lib/profile/format";
 
 const staticStats = [
@@ -214,13 +214,12 @@ export function RecruiterDashboardSidebar({
             ))}
             <span className="ml-1 text-xs text-gray-500">4.8 rating</span>
           </div>
-          <button
-            type="button"
-            disabled
-            className="block w-full rounded-xl border border-gray-300 py-2.5 text-center text-sm font-medium text-gray-700 opacity-60"
+          <Link
+            href={RECRUITER_PROFILE_PATH}
+            className="block w-full rounded-xl border border-gray-300 py-2.5 text-center text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
           >
             View My Profile
-          </button>
+          </Link>
         </div>
 
         <div className="rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 p-6 text-white">

@@ -2,6 +2,7 @@ import type { RecruiterSearchQueryParams } from "@/lib/query/recruiter-fetchers"
 
 export const recruiterKeys = {
   all: ["recruiter"] as const,
+  ownProfile: () => [...recruiterKeys.all, "own-profile"] as const,
   dashboard: () => [...recruiterKeys.all, "dashboard"] as const,
   search: (params: RecruiterSearchQueryParams) =>
     [...recruiterKeys.all, "search", params] as const,

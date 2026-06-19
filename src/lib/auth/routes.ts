@@ -5,6 +5,7 @@ export const CANDIDATE_DASHBOARD_PATH = "/dashboard";
 export const RECRUITER_DASHBOARD_PATH = "/recruiter/dashboard";
 export const RECRUITER_SEARCH_PATH = "/recruiter/search";
 export const RECRUITER_SAVED_PATH = "/recruiter/saved";
+export const RECRUITER_PROFILE_PATH = "/recruiter/profile";
 
 export function isRecruiterAppRoute(pathname: string): boolean {
   return pathname === "/recruiter" || pathname.startsWith("/recruiter/");

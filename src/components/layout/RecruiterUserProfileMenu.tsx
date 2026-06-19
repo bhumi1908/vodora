@@ -8,6 +8,7 @@ import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { showLogoutSuccessToast } from "@/lib/auth-toast";
+import { RECRUITER_PROFILE_PATH } from "@/lib/auth/routes";
 import { clearQueryCacheOnLogout } from "@/lib/query/logout";
 
 function getDisplayName(user: User): string {
@@ -124,7 +125,7 @@ export function RecruiterUserProfileMenu({
         </div>
 
         <Link
-          href="/settings"
+          href={RECRUITER_PROFILE_PATH}
           className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100"
           onClick={onNavigate}
         >
@@ -194,7 +195,7 @@ export function RecruiterUserProfileMenu({
           </div>
 
           <Link
-            href="/settings"
+            href={RECRUITER_PROFILE_PATH}
             role="menuitem"
             className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 transition-colors hover:bg-gray-50"
             onClick={() => {

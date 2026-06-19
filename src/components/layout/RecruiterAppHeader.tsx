@@ -19,6 +19,7 @@ import { useEffect, useState } from "react";
 import { RecruiterUserProfileMenu } from "@/components/layout/RecruiterUserProfileMenu";
 import {
   RECRUITER_DASHBOARD_PATH,
+  RECRUITER_PROFILE_PATH,
   RECRUITER_SAVED_PATH,
   RECRUITER_SEARCH_PATH,
 } from "@/lib/auth/routes";
@@ -48,9 +49,9 @@ const recruiterNavItems = [
   },
   {
     label: "My Profile",
-    href: "/settings",
+    href: RECRUITER_PROFILE_PATH,
     icon: UserRound,
-    isActive: (pathname: string) => pathname.startsWith("/settings"),
+    isActive: (pathname: string) => pathname.startsWith(RECRUITER_PROFILE_PATH),
   },
 ] as const;
 

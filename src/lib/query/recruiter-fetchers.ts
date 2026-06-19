@@ -1,4 +1,5 @@
 import type { RecruiterDashboardData } from "@/lib/recruiter/dashboard.types";
+import type { OwnRecruiterProfileRpcResult } from "@/lib/recruiter/own-recruiter-profile-rpc.types";
 import type {
   RecruiterSearchFilters,
   RecruiterSearchResult,
@@ -115,6 +116,21 @@ export async function fetchRecruiterSavedCandidates(
     limit: payload.limit ?? limit,
     totalPages: payload.totalPages ?? 0,
   };
+}
+
+export async function fetchRecruiterOwnProfile(): Promise<OwnRecruiterProfileRpcResult> {
+  const response = await fetch("/api/recruiter/profile/own");
+  const payload = await parseJson<
+    { profile: OwnRecruiterProfileRpcResult } & ApiSuccess<{
+      profile: OwnRecruiterProfileRpcResult;
+    }>
+  >(response);
+
+  if (!response.ok || !payload.success || !payload.profile) {
+    throw new Error(payload.error ?? "Could not load recruiter profile.");
+  }
+
+  return payload.profile;
 }
 
 export async function fetchRecruiterDashboardData(): Promise<RecruiterDashboardData> {
