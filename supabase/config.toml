@@ -25,11 +25,16 @@ enabled = false
 enabled = true
 site_url = "http://localhost:3000"
 additional_redirect_urls = ["http://localhost:3000/auth/callback"]
+# Access token (JWT) lifetime in seconds. Production: set the same value in
+# Supabase Dashboard → Authentication → Settings → JWT expiry (7200 = 2 hours).
+jwt_expiry = 7200
 
 [auth.email]
 enable_signup = true
 double_confirm_changes = false
-enable_confirmations = true
+# Verification emails are sent via SendGrid (see src/lib/auth/email-verification.ts).
+# Disable Supabase confirmation emails to avoid duplicates.
+enable_confirmations = false
 
 [auth.email.template.confirmation]
 subject = "Verify your Vodora account"

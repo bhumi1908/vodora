@@ -3,11 +3,23 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
 import { completePendingSignupForUser } from "@/lib/auth/signup-flow";
+import { verifyEmailWithToken } from "@/lib/auth/email-verification";
 import { env } from "@/lib/env";
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
+  const token = searchParams.get("token")?.trim();
+
+  if (token) {
+    const result = await verifyEmailWithToken(token);
+
+    if (result.success) {
+      return NextResponse.redirect(`${origin}/login?verified=1`);
+    }
+
+    return NextResponse.redirect(`${origin}/login?error=auth_callback_failed`);
+  }
 
   if (code) {
     const cookieStore = await cookies();

@@ -8,6 +8,10 @@ export const env = {
   NEXT_PUBLIC_SUPABASE_ANON_KEY:
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "",
   NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL ?? "",
+  SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY ?? "",
+  SENDGRID_API_KEY: process.env.SENDGRID_API_KEY ?? "",
+  SENDGRID_FROM_EMAIL: process.env.SENDGRID_FROM_EMAIL ?? "",
+  SENDGRID_FROM_NAME: process.env.SENDGRID_FROM_NAME ?? "Vodora",
 } as const;
 
 export function validateEnv(): void {

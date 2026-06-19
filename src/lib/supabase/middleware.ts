@@ -2,6 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 import { getRouteProtectionRedirect } from "@/lib/auth/route-protection";
+import { prepareAuthCookiesForPersistence } from "@/lib/auth/session-cookies";
 import { env } from "@/lib/env";
 
 function copyCookies(from: NextResponse, to: NextResponse) {
@@ -22,13 +23,17 @@ export async function updateSession(request: NextRequest) {
           return request.cookies.getAll();
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) => {
+          const prepared = prepareAuthCookiesForPersistence(cookiesToSet, {
+            getAll: () => request.cookies.getAll(),
+          });
+
+          prepared.forEach(({ name, value }) => {
             request.cookies.set(name, value);
           });
 
           supabaseResponse = NextResponse.next({ request });
 
-          cookiesToSet.forEach(({ name, value, options }) => {
+          prepared.forEach(({ name, value, options }) => {
             supabaseResponse.cookies.set(name, value, options);
           });
         },

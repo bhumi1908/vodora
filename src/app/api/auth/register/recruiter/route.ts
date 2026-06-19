@@ -50,7 +50,7 @@ export async function POST(request: Request) {
     firstName: body.firstName!,
     lastName: body.lastName!,
     signupProfile,
-    emailRedirectTo: `${origin}/auth/callback`,
+    origin,
   });
 
   return NextResponse.json(result, { status: result.success ? 200 : 400 });

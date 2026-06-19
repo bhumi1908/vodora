@@ -7,7 +7,7 @@ import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { isRecruiterAppRoute } from "@/lib/auth/routes";
 
-const AUTH_ROUTE_PREFIXES = ["/login", "/signup", "/welcome"];
+const AUTH_ROUTE_PREFIXES = ["/login", "/signup", "/welcome", "/forgot-password"];
 
 function isAuthRoute(pathname: string) {
   return AUTH_ROUTE_PREFIXES.some(

@@ -13,7 +13,13 @@ import {
 import { isOverviewDirty, type OverviewFields } from "@/components/profile/edit/profile-edit-dirty";
 import { ProfileEditSection } from "@/components/profile/edit/ProfileEditSection";
 import { SectionSaveButton } from "@/components/profile/edit/SectionSaveButton";
-import { PROFILE_FIELD_LIMITS, validateOverview } from "@/lib/profile/validation";
+import { useFieldErrors } from "@/hooks/useFieldErrors";
+import { hasFieldErrors } from "@/lib/form/field-errors";
+import {
+  getOverviewFieldErrors,
+  PROFILE_FIELD_LIMITS,
+  type OverviewFieldErrors,
+} from "@/lib/profile/validation";
 import { useSaveOverviewMutation } from "@/lib/query/use-profile-mutations";
 import {
   AVAILABILITY_START_OPTIONS,
@@ -35,6 +41,8 @@ export function OverviewEditSection({
   onSaved,
 }: OverviewEditSectionProps) {
   const saveMutation = useSaveOverviewMutation();
+  const { errors, setErrors, clearField } =
+    useFieldErrors<keyof OverviewFieldErrors>();
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const isDirty = useMemo(
@@ -47,19 +55,21 @@ export function OverviewEditSection({
     fieldValue: (typeof value)[K],
   ) {
     onChange({ ...value, [field]: fieldValue });
+    clearField(field);
     setError("");
     setSuccess("");
   }
 
   async function handleSave() {
-    const validationError = validateOverview(value);
+    const fieldErrors = getOverviewFieldErrors(value);
 
-    if (validationError) {
-      setError(validationError);
+    if (hasFieldErrors(fieldErrors)) {
+      setErrors(fieldErrors);
       setSuccess("");
       return;
     }
 
+    setErrors({});
     setError("");
     setSuccess("");
 
@@ -98,6 +108,7 @@ export function OverviewEditSection({
           value={value.title}
           onChange={(event) => updateField("title", event.target.value)}
           placeholder="Senior Software Engineer"
+          error={errors.title}
         />
         <FormField
           id="profile-company"
@@ -105,6 +116,7 @@ export function OverviewEditSection({
           value={value.company}
           onChange={(event) => updateField("company", event.target.value)}
           placeholder="Acme Corp"
+          error={errors.company}
         />
       </AuthFormGrid>
 
@@ -119,6 +131,7 @@ export function OverviewEditSection({
           }
           options={[...AVAILABILITY_STATUS_OPTIONS]}
           placeholder="Select status"
+          error={errors.availabilityStatus}
         />
         <FormSelect
           id="profile-availability-start"
@@ -129,6 +142,7 @@ export function OverviewEditSection({
           }
           options={[...AVAILABILITY_START_OPTIONS]}
           placeholder="Select timing"
+          error={errors.availabilityStart}
         />
       </AuthFormGrid>
 
@@ -143,6 +157,7 @@ export function OverviewEditSection({
           }
           placeholder="8"
           hint={`Optional. Used in recruiter search filters. Maximum ${PROFILE_FIELD_LIMITS.maxTotalYearsExperience} years.`}
+          error={errors.totalYearsExperience}
         />
         <FormSelect
           id="profile-experience-level"
@@ -153,6 +168,7 @@ export function OverviewEditSection({
           }
           options={[...EXPERIENCE_LEVEL_OPTIONS]}
           placeholder="Select level"
+          error={errors.experienceLevel}
         />
       </AuthFormGrid>
 
@@ -163,6 +179,7 @@ export function OverviewEditSection({
           value={value.city}
           onChange={(event) => updateField("city", event.target.value)}
           placeholder="Melbourne"
+          error={errors.city}
         />
         <FormField
           id="profile-country"
@@ -170,6 +187,7 @@ export function OverviewEditSection({
           value={value.country}
           onChange={(event) => updateField("country", event.target.value)}
           placeholder="Australia"
+          error={errors.country}
         />
       </AuthFormGrid>
 
@@ -181,6 +199,7 @@ export function OverviewEditSection({
           value={value.phone}
           onChange={(event) => updateField("phone", event.target.value)}
           placeholder="+61 400 000 000"
+          error={errors.phone}
         />
         <FormField
           id="profile-website"
@@ -188,6 +207,7 @@ export function OverviewEditSection({
           value={value.website}
           onChange={(event) => updateField("website", event.target.value)}
           placeholder="linkedin.com/in/you"
+          error={errors.website}
         />
       </AuthFormGrid>
 
@@ -198,6 +218,7 @@ export function OverviewEditSection({
         onChange={(event) => updateField("about", event.target.value)}
         placeholder="Write a short professional summary..."
         rows={5}
+        error={errors.about}
       />
       <p className="text-xs text-gray-500">
         {value.about.length}/{PROFILE_FIELD_LIMITS.about} characters

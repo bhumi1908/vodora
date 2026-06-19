@@ -5,6 +5,26 @@ import Link from "next/link";
 const fieldClassName =
   "w-full rounded-lg border border-gray-300 px-4 py-3 text-base outline-none transition-colors focus:border-transparent focus:ring-2 focus:ring-blue-500 sm:text-sm";
 
+function getFieldClassName(error?: string) {
+  if (error) {
+    return `${fieldClassName} border-red-500 focus:ring-red-500`;
+  }
+
+  return fieldClassName;
+}
+
+interface FieldErrorProps {
+  message?: string;
+}
+
+export function FieldError({ message }: FieldErrorProps) {
+  if (!message) {
+    return null;
+  }
+
+  return <p className="mt-1.5 text-sm text-red-600">{message}</p>;
+}
+
 interface FormFieldProps {
   id: string;
   label: string;
@@ -14,6 +34,7 @@ interface FormFieldProps {
   placeholder?: string;
   required?: boolean;
   hint?: string;
+  error?: string;
 }
 
 export function FormField({
@@ -25,6 +46,7 @@ export function FormField({
   placeholder,
   required = false,
   hint,
+  error,
 }: FormFieldProps) {
   return (
     <div>
@@ -39,9 +61,12 @@ export function FormField({
         value={value}
         onChange={onChange}
         placeholder={placeholder}
-        className={fieldClassName}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={error ? `${id}-error` : undefined}
+        className={getFieldClassName(error)}
       />
-      {hint ? <p className="mt-1 text-xs text-gray-500">{hint}</p> : null}
+      {hint && !error ? <p className="mt-1 text-xs text-gray-500">{hint}</p> : null}
+      <FieldError message={error} />
     </div>
   );
 }
@@ -59,6 +84,7 @@ interface FormSelectProps {
   options: FormSelectOption[];
   placeholder?: string;
   required?: boolean;
+  error?: string;
 }
 
 export function FormSelect({
@@ -69,6 +95,7 @@ export function FormSelect({
   options,
   placeholder = "Select",
   required = false,
+  error,
 }: FormSelectProps) {
   return (
     <div>
@@ -81,7 +108,8 @@ export function FormSelect({
         required={required}
         value={value}
         onChange={onChange}
-        className={fieldClassName}
+        aria-invalid={error ? true : undefined}
+        className={getFieldClassName(error)}
       >
         <option value="">{placeholder}</option>
         {options.map((option) => (
@@ -90,6 +118,7 @@ export function FormSelect({
           </option>
         ))}
       </select>
+      <FieldError message={error} />
     </div>
   );
 }
@@ -101,6 +130,7 @@ interface FormRadioGroupProps {
   onChange: (value: string) => void;
   options: FormSelectOption[];
   required?: boolean;
+  error?: string;
 }
 
 export function FormRadioGroup({
@@ -110,6 +140,7 @@ export function FormRadioGroup({
   onChange,
   options,
   required = false,
+  error,
 }: FormRadioGroupProps) {
   return (
     <div>
@@ -121,7 +152,9 @@ export function FormRadioGroup({
         {options.map((option, index) => (
           <label
             key={option.value}
-            className="flex cursor-pointer items-center gap-3 rounded-lg border-2 border-gray-200 p-3 transition-colors hover:border-blue-500 has-[:checked]:border-blue-500"
+            className={`flex cursor-pointer items-center gap-3 rounded-lg border-2 p-3 transition-colors hover:border-blue-500 has-[:checked]:border-blue-500 ${
+              error ? "border-red-300" : "border-gray-200"
+            }`}
           >
             <input
               type="radio"
@@ -136,6 +169,7 @@ export function FormRadioGroup({
           </label>
         ))}
       </div>
+      <FieldError message={error} />
     </div>
   );
 }
@@ -187,7 +221,7 @@ export function FormCheckboxGrid({
           </label>
         ))}
       </div>
-      {error ? <p className="mt-2 text-sm text-red-600">{error}</p> : null}
+      <FieldError message={error} />
     </div>
   );
 }
@@ -200,6 +234,7 @@ interface FormTextareaProps {
   placeholder?: string;
   required?: boolean;
   rows?: number;
+  error?: string;
 }
 
 export function FormTextarea({
@@ -210,6 +245,7 @@ export function FormTextarea({
   placeholder,
   required = false,
   rows = 4,
+  error,
 }: FormTextareaProps) {
   return (
     <div>
@@ -224,8 +260,10 @@ export function FormTextarea({
         value={value}
         onChange={onChange}
         placeholder={placeholder}
-        className={`${fieldClassName} resize-none`}
+        aria-invalid={error ? true : undefined}
+        className={`${getFieldClassName(error)} resize-none`}
       />
+      <FieldError message={error} />
     </div>
   );
 }
@@ -257,36 +295,42 @@ interface TermsAgreementProps {
   checked: boolean;
   onChange: (checked: boolean) => void;
   required?: boolean;
+  error?: string;
 }
 
 export function TermsAgreement({
   checked,
   onChange,
   required = true,
+  error,
 }: TermsAgreementProps) {
   return (
-    <label className="flex cursor-pointer items-start gap-3">
-      <input
-        type="checkbox"
-        checked={checked}
-        onChange={(e) => onChange(e.target.checked)}
-        required={required}
-        className="mt-0.5 h-4 w-4 rounded text-blue-600"
-      />
-      <span className="text-sm text-gray-600">
-        I agree to the{" "}
-        <Link
-          href="/terms-and-conditions"
-          className="font-medium text-blue-600 hover:text-blue-700"
-        >
-          Terms of Service
-        </Link>{" "}
-        and{" "}
-        <Link href="/privacy" className="font-medium text-blue-600 hover:text-blue-700">
-          Privacy Policy
-        </Link>
-      </span>
-    </label>
+    <div>
+      <label className="flex cursor-pointer items-start gap-3">
+        <input
+          type="checkbox"
+          checked={checked}
+          onChange={(e) => onChange(e.target.checked)}
+          required={required}
+          aria-invalid={error ? true : undefined}
+          className="mt-0.5 h-4 w-4 rounded text-blue-600"
+        />
+        <span className="text-sm text-gray-600">
+          I agree to the{" "}
+          <Link
+            href="/terms-and-conditions"
+            className="font-medium text-blue-600 hover:text-blue-700"
+          >
+            Terms of Service
+          </Link>{" "}
+          and{" "}
+          <Link href="/privacy" className="font-medium text-blue-600 hover:text-blue-700">
+            Privacy Policy
+          </Link>
+        </span>
+      </label>
+      <FieldError message={error} />
+    </div>
   );
 }
 

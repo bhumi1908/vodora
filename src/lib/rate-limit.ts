@@ -78,6 +78,18 @@ export const AUTH_RESEND_EMAIL_RATE_LIMIT: RateLimitConfig = {
   windowMs: 60 * 60 * 1000,
 };
 
+export const AUTH_FORGOT_PASSWORD_IP_RATE_LIMIT: RateLimitConfig = {
+  name: "auth-forgot-password-ip",
+  limit: 10,
+  windowMs: 60 * 60 * 1000,
+};
+
+export const AUTH_FORGOT_PASSWORD_EMAIL_RATE_LIMIT: RateLimitConfig = {
+  name: "auth-forgot-password-email",
+  limit: 3,
+  windowMs: 60 * 60 * 1000,
+};
+
 export function createRateLimitResponse(retryAfterSeconds: number): Response {
   return Response.json(
     {

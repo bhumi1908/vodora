@@ -7,23 +7,30 @@ import { FormEvent, Suspense, useEffect, useState } from "react";
 
 import { CandidateBrandPanel } from "@/components/auth/CandidateBrandPanel";
 import { AuthInput } from "@/components/auth/shared/AuthInput";
+import { useFieldErrors } from "@/hooks/useFieldErrors";
 import {
   showEmailVerifiedToast,
   showLoginSuccessToast,
+  showPasswordResetSuccessToast,
   showRegistrationSuccessToast,
 } from "@/lib/auth-toast";
 import type { LoginApiResponse } from "@/lib/auth/types";
+import { getLoginFieldErrors } from "@/lib/auth/validation";
+import { hasFieldErrors } from "@/lib/form/field-errors";
 
 function LoginFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const justRegistered = searchParams.get("registered") === "1";
   const justVerified = searchParams.get("verified") === "1";
+  const passwordReset = searchParams.get("reset") === "1";
   const authCallbackFailed = searchParams.get("error") === "auth_callback_failed";
   const isRecruiterLogin = searchParams.get("type") === "recruiter";
   const redirectAfterLogin = searchParams.get("redirect");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(true);
+  const { errors, setErrors, clearField } = useFieldErrors<"email" | "password">();
   const [formError, setFormError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -34,6 +41,12 @@ function LoginFormContent() {
   }, [justVerified]);
 
   useEffect(() => {
+    if (passwordReset) {
+      showPasswordResetSuccessToast();
+    }
+  }, [passwordReset]);
+
+  useEffect(() => {
     if (justRegistered) {
       showRegistrationSuccessToast();
     }
@@ -42,6 +55,19 @@ function LoginFormContent() {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setFormError("");
+
+    const fieldErrors = getLoginFieldErrors({
+      email,
+      password,
+      isRecruiterLogin,
+    });
+
+    if (hasFieldErrors(fieldErrors)) {
+      setErrors(fieldErrors);
+      return;
+    }
+
+    setErrors({});
     setIsSubmitting(true);
 
     try {
@@ -51,6 +77,7 @@ function LoginFormContent() {
         body: JSON.stringify({
           email,
           password,
+          rememberMe,
           ...(isRecruiterLogin ? { accountType: "recruiter" as const } : {}),
           ...(redirectAfterLogin ? { redirect: redirectAfterLogin } : {}),
         }),
@@ -125,14 +152,18 @@ function LoginFormContent() {
             </div>
           ) : null}
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} noValidate className="space-y-5">
             <AuthInput
               id="email"
               label="Email Address"
               type="email"
               required
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                clearField("email");
+                setFormError("");
+              }}
               placeholder={isRecruiterLogin ? "you@company.com" : "you@example.com"}
               hint={
                 isRecruiterLogin
@@ -140,6 +171,7 @@ function LoginFormContent() {
                   : undefined
               }
               icon={<Mail className="h-5 w-5" />}
+              error={errors.email}
             />
 
             <AuthInput
@@ -148,25 +180,27 @@ function LoginFormContent() {
               type="password"
               required
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                clearField("password");
+                setFormError("");
+              }}
               placeholder="••••••••"
               icon={<Lock className="h-5 w-5" />}
+              error={errors.password}
             />
 
             <div className="flex flex-wrap items-center justify-between gap-3">
               <label className="flex cursor-pointer items-center gap-2">
                 <input
                   type="checkbox"
+                  checked={rememberMe}
+                  onChange={(event) => setRememberMe(event.target.checked)}
                   className="h-4 w-4 rounded text-blue-600"
                 />
                 <span className="text-sm text-gray-600">Remember me</span>
               </label>
-              <Link
-                href="/forgot-password"
-                className="text-sm font-medium text-blue-600 hover:text-blue-700"
-              >
-                Forgot Password?
-              </Link>
+              {/* Forgot password hidden until email service is ready — see email-features.ts */}
             </div>
 
             <button

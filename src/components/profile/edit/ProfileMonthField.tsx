@@ -2,10 +2,19 @@
 
 import type { ChangeEvent } from "react";
 
+import { FieldError } from "@/components/auth/shared/FormFields";
 import { getMaxMonthInput } from "@/lib/profile/validation";
 
 const fieldClassName =
   "w-full rounded-lg border border-gray-300 px-4 py-3 text-base outline-none transition-colors focus:border-transparent focus:ring-2 focus:ring-blue-500 disabled:cursor-not-allowed disabled:bg-gray-100 sm:text-sm";
+
+function getFieldClassName(error?: string) {
+  if (error) {
+    return `${fieldClassName} border-red-500 focus:ring-red-500`;
+  }
+
+  return fieldClassName;
+}
 
 type ProfileMonthFieldProps = {
   id: string;
@@ -15,6 +24,7 @@ type ProfileMonthFieldProps = {
   required?: boolean;
   disabled?: boolean;
   hint?: string;
+  error?: string;
 };
 
 export function ProfileMonthField({
@@ -25,6 +35,7 @@ export function ProfileMonthField({
   required = false,
   disabled = false,
   hint,
+  error,
 }: ProfileMonthFieldProps) {
   return (
     <div>
@@ -40,9 +51,11 @@ export function ProfileMonthField({
         value={value}
         max={getMaxMonthInput()}
         onChange={onChange}
-        className={fieldClassName}
+        aria-invalid={error ? true : undefined}
+        className={getFieldClassName(error)}
       />
-      {hint ? <p className="mt-1 text-xs text-gray-500">{hint}</p> : null}
+      {hint && !error ? <p className="mt-1 text-xs text-gray-500">{hint}</p> : null}
+      <FieldError message={error} />
     </div>
   );
 }

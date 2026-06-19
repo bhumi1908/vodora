@@ -4,6 +4,11 @@ import type {
   EditableSkill,
 } from "@/components/profile/edit/types";
 import {
+  entryFieldKey,
+  type FieldErrors,
+  firstFieldError,
+} from "@/lib/form/field-errors";
+import {
   validateAvailabilityStart,
   validateAvailabilityStatus,
 } from "@/lib/profile/availability";
@@ -136,7 +141,21 @@ export function validateProfileFile(
   return null;
 }
 
-export function validateOverview(input: {
+export type OverviewFieldErrors = FieldErrors<
+  | "about"
+  | "title"
+  | "company"
+  | "phone"
+  | "website"
+  | "city"
+  | "country"
+  | "availabilityStatus"
+  | "availabilityStart"
+  | "totalYearsExperience"
+  | "experienceLevel"
+>;
+
+export function getOverviewFieldErrors(input: {
   about?: string;
   title?: string;
   company?: string;
@@ -148,7 +167,8 @@ export function validateOverview(input: {
   availabilityStart?: string;
   totalYearsExperience?: string;
   experienceLevel?: string;
-}): string | null {
+}): OverviewFieldErrors {
+  const errors: OverviewFieldErrors = {};
   const title = input.title?.trim() ?? "";
   const company = input.company?.trim() ?? "";
   const phone = input.phone?.trim() ?? "";
@@ -162,7 +182,7 @@ export function validateOverview(input: {
   );
 
   if (availabilityStatusError) {
-    return availabilityStatusError;
+    errors.availabilityStatus = availabilityStatusError;
   }
 
   const availabilityStartError = validateAvailabilityStart(
@@ -170,13 +190,13 @@ export function validateOverview(input: {
   );
 
   if (availabilityStartError) {
-    return availabilityStartError;
+    errors.availabilityStart = availabilityStartError;
   }
 
   const experienceLevelError = validateExperienceLevel(input.experienceLevel);
 
   if (experienceLevelError) {
-    return experienceLevelError;
+    errors.experienceLevel = experienceLevelError;
   }
 
   const totalYearsError = validateTotalYearsExperience(
@@ -185,201 +205,233 @@ export function validateOverview(input: {
   );
 
   if (totalYearsError) {
-    return totalYearsError;
+    errors.totalYearsExperience = totalYearsError;
   }
 
   if (exceedsMaxLength(title, PROFILE_FIELD_LIMITS.title)) {
-    return `Headline must be ${PROFILE_FIELD_LIMITS.title} characters or fewer.`;
+    errors.title = `Headline must be ${PROFILE_FIELD_LIMITS.title} characters or fewer.`;
   }
 
   if (exceedsMaxLength(company, PROFILE_FIELD_LIMITS.company)) {
-    return `Company must be ${PROFILE_FIELD_LIMITS.company} characters or fewer.`;
+    errors.company = `Company must be ${PROFILE_FIELD_LIMITS.company} characters or fewer.`;
   }
 
   if (exceedsMaxLength(city, PROFILE_FIELD_LIMITS.city)) {
-    return `City must be ${PROFILE_FIELD_LIMITS.city} characters or fewer.`;
+    errors.city = `City must be ${PROFILE_FIELD_LIMITS.city} characters or fewer.`;
   }
 
   if (exceedsMaxLength(country, PROFILE_FIELD_LIMITS.country)) {
-    return `Country must be ${PROFILE_FIELD_LIMITS.country} characters or fewer.`;
+    errors.country = `Country must be ${PROFILE_FIELD_LIMITS.country} characters or fewer.`;
   }
 
   if (exceedsMaxLength(about, PROFILE_FIELD_LIMITS.about)) {
-    return `About section must be ${PROFILE_FIELD_LIMITS.about} characters or fewer.`;
+    errors.about = `About section must be ${PROFILE_FIELD_LIMITS.about} characters or fewer.`;
   }
 
   if (phone && !PHONE_PATTERN.test(phone)) {
-    return "Please enter a valid phone number.";
-  }
-
-  if (phone && exceedsMaxLength(phone, PROFILE_FIELD_LIMITS.phone)) {
-    return `Phone number must be ${PROFILE_FIELD_LIMITS.phone} characters or fewer.`;
+    errors.phone = "Please enter a valid phone number.";
+  } else if (phone && exceedsMaxLength(phone, PROFILE_FIELD_LIMITS.phone)) {
+    errors.phone = `Phone number must be ${PROFILE_FIELD_LIMITS.phone} characters or fewer.`;
   }
 
   if (website) {
     if (exceedsMaxLength(website, PROFILE_FIELD_LIMITS.website)) {
-      return `Website or LinkedIn URL must be ${PROFILE_FIELD_LIMITS.website} characters or fewer.`;
-    }
-
-    if (!WEBSITE_PATTERN.test(website)) {
-      return "Please enter a valid website or LinkedIn URL.";
+      errors.website = `Website or LinkedIn URL must be ${PROFILE_FIELD_LIMITS.website} characters or fewer.`;
+    } else if (!WEBSITE_PATTERN.test(website)) {
+      errors.website = "Please enter a valid website or LinkedIn URL.";
     }
   }
 
-  return null;
+  return errors;
 }
 
-export function validateExperienceEntries(
+export function validateOverview(input: {
+  about?: string;
+  title?: string;
+  company?: string;
+  phone?: string;
+  website?: string;
+  city?: string;
+  country?: string;
+  availabilityStatus?: string;
+  availabilityStart?: string;
+  totalYearsExperience?: string;
+  experienceLevel?: string;
+}): string | null {
+  return firstFieldError(getOverviewFieldErrors(input));
+}
+
+export type ExperienceEntryFieldErrors = FieldErrors<string>;
+
+export function getExperienceFieldErrors(
   entries: EditableExperience[],
-): string | null {
+): ExperienceEntryFieldErrors {
+  const errors: ExperienceEntryFieldErrors = {};
+
   for (const [index, entry] of entries.entries()) {
-    const label = entries.length > 1 ? `Role ${index + 1}` : "This role";
     const title = entry.title?.trim() ?? "";
     const company = entry.company?.trim() ?? "";
     const location = entry.location?.trim() ?? "";
     const description = entry.description?.trim() ?? "";
 
     if (!isNonEmpty(title)) {
-      return `${label}: Job title is required.`;
+      errors[entryFieldKey(index, "title")] = "Job title is required.";
+    } else if (exceedsMaxLength(title, PROFILE_FIELD_LIMITS.title)) {
+      errors[entryFieldKey(index, "title")] =
+        `Job title must be ${PROFILE_FIELD_LIMITS.title} characters or fewer.`;
     }
 
     if (!isNonEmpty(company)) {
-      return `${label}: Company is required.`;
-    }
-
-    if (exceedsMaxLength(title, PROFILE_FIELD_LIMITS.title)) {
-      return `${label}: Job title must be ${PROFILE_FIELD_LIMITS.title} characters or fewer.`;
-    }
-
-    if (exceedsMaxLength(company, PROFILE_FIELD_LIMITS.company)) {
-      return `${label}: Company must be ${PROFILE_FIELD_LIMITS.company} characters or fewer.`;
+      errors[entryFieldKey(index, "company")] = "Company is required.";
+    } else if (exceedsMaxLength(company, PROFILE_FIELD_LIMITS.company)) {
+      errors[entryFieldKey(index, "company")] =
+        `Company must be ${PROFILE_FIELD_LIMITS.company} characters or fewer.`;
     }
 
     if (exceedsMaxLength(location, PROFILE_FIELD_LIMITS.location)) {
-      return `${label}: Location must be ${PROFILE_FIELD_LIMITS.location} characters or fewer.`;
+      errors[entryFieldKey(index, "location")] =
+        `Location must be ${PROFILE_FIELD_LIMITS.location} characters or fewer.`;
     }
 
     if (exceedsMaxLength(description, PROFILE_FIELD_LIMITS.description)) {
-      return `${label}: Description must be ${PROFILE_FIELD_LIMITS.description} characters or fewer.`;
+      errors[entryFieldKey(index, "description")] =
+        `Description must be ${PROFILE_FIELD_LIMITS.description} characters or fewer.`;
     }
 
-    const startDateError = validateMonthField(entry.startDate, `${label}: Start date`, {
+    const startDateError = validateMonthField(entry.startDate, "Start date", {
       required: true,
     });
 
     if (startDateError) {
-      return startDateError;
+      errors[entryFieldKey(index, "startDate")] = startDateError;
     }
 
     if (!entry.isCurrent) {
-      const endDateError = validateMonthField(entry.endDate, `${label}: End date`, {
+      const endDateError = validateMonthField(entry.endDate, "End date", {
         required: true,
       });
 
       if (endDateError) {
-        return endDateError;
-      }
-
-      if (isMonthRangeInvalid(entry.startDate, entry.endDate)) {
-        return `${label}: End date must be on or after the start date.`;
+        errors[entryFieldKey(index, "endDate")] = endDateError;
+      } else if (isMonthRangeInvalid(entry.startDate, entry.endDate)) {
+        errors[entryFieldKey(index, "endDate")] =
+          "End date must be on or after the start date.";
       }
     }
   }
 
-  return null;
+  return errors;
 }
 
-export function validateEducationEntries(
-  entries: EditableEducation[],
+export function validateExperienceEntries(
+  entries: EditableExperience[],
 ): string | null {
+  return firstFieldError(getExperienceFieldErrors(entries));
+}
+
+export type EducationEntryFieldErrors = FieldErrors<string>;
+
+export function getEducationFieldErrors(
+  entries: EditableEducation[],
+): EducationEntryFieldErrors {
+  const errors: EducationEntryFieldErrors = {};
+
   for (const [index, entry] of entries.entries()) {
-    const label =
-      entries.length > 1 ? `Qualification ${index + 1}` : "This qualification";
     const degree = entry.degree?.trim() ?? "";
     const school = entry.school?.trim() ?? "";
     const description = entry.description?.trim() ?? "";
 
     if (!isNonEmpty(degree)) {
-      return `${label}: Degree or qualification is required.`;
+      errors[entryFieldKey(index, "degree")] = "Degree or qualification is required.";
+    } else if (exceedsMaxLength(degree, PROFILE_FIELD_LIMITS.degree)) {
+      errors[entryFieldKey(index, "degree")] =
+        `Degree must be ${PROFILE_FIELD_LIMITS.degree} characters or fewer.`;
     }
 
     if (!isNonEmpty(school)) {
-      return `${label}: Institution is required.`;
-    }
-
-    if (exceedsMaxLength(degree, PROFILE_FIELD_LIMITS.degree)) {
-      return `${label}: Degree must be ${PROFILE_FIELD_LIMITS.degree} characters or fewer.`;
-    }
-
-    if (exceedsMaxLength(school, PROFILE_FIELD_LIMITS.school)) {
-      return `${label}: Institution must be ${PROFILE_FIELD_LIMITS.school} characters or fewer.`;
+      errors[entryFieldKey(index, "school")] = "Institution is required.";
+    } else if (exceedsMaxLength(school, PROFILE_FIELD_LIMITS.school)) {
+      errors[entryFieldKey(index, "school")] =
+        `Institution must be ${PROFILE_FIELD_LIMITS.school} characters or fewer.`;
     }
 
     if (exceedsMaxLength(description, PROFILE_FIELD_LIMITS.description)) {
-      return `${label}: Details must be ${PROFILE_FIELD_LIMITS.description} characters or fewer.`;
+      errors[entryFieldKey(index, "description")] =
+        `Details must be ${PROFILE_FIELD_LIMITS.description} characters or fewer.`;
     }
 
-    const startDateError = validateMonthField(
-      entry.startDate,
-      `${label}: Start date`,
-    );
+    const startDateError = validateMonthField(entry.startDate, "Start date");
 
     if (startDateError) {
-      return startDateError;
+      errors[entryFieldKey(index, "startDate")] = startDateError;
     }
 
-    const endDateError = validateMonthField(entry.endDate, `${label}: End date`);
+    const endDateError = validateMonthField(entry.endDate, "End date");
 
     if (endDateError) {
-      return endDateError;
-    }
-
-    if (isMonthRangeInvalid(entry.startDate, entry.endDate)) {
-      return `${label}: End date must be on or after the start date.`;
+      errors[entryFieldKey(index, "endDate")] = endDateError;
+    } else if (isMonthRangeInvalid(entry.startDate, entry.endDate)) {
+      errors[entryFieldKey(index, "endDate")] =
+        "End date must be on or after the start date.";
     }
   }
 
-  return null;
+  return errors;
 }
 
-export function validateSkillsEntries(entries: EditableSkill[]): string | null {
+export function validateEducationEntries(
+  entries: EditableEducation[],
+): string | null {
+  return firstFieldError(getEducationFieldErrors(entries));
+}
+
+export type SkillsEntryFieldErrors = FieldErrors<string>;
+
+export function getSkillsFieldErrors(
+  entries: EditableSkill[],
+): SkillsEntryFieldErrors {
+  const errors: SkillsEntryFieldErrors = {};
   const seenNames = new Set<string>();
 
   for (const [index, entry] of entries.entries()) {
-    const label = entries.length > 1 ? `Skill ${index + 1}` : "This skill";
     const name = entry.name?.trim() ?? "";
     const years = entry.yearsExperience?.trim() ?? "";
 
     if (!isNonEmpty(name)) {
-      return `${label}: Skill name is required.`;
+      errors[entryFieldKey(index, "name")] = "Skill name is required.";
+    } else {
+      if (exceedsMaxLength(name, PROFILE_FIELD_LIMITS.skillName)) {
+        errors[entryFieldKey(index, "name")] =
+          `Skill name must be ${PROFILE_FIELD_LIMITS.skillName} characters or fewer.`;
+      }
+
+      const normalized = name.toLowerCase();
+
+      if (seenNames.has(normalized)) {
+        errors[entryFieldKey(index, "name")] = `Duplicate skill: ${name}`;
+      }
+
+      seenNames.add(normalized);
     }
-
-    if (exceedsMaxLength(name, PROFILE_FIELD_LIMITS.skillName)) {
-      return `${label}: Skill name must be ${PROFILE_FIELD_LIMITS.skillName} characters or fewer.`;
-    }
-
-    const normalized = name.toLowerCase();
-
-    if (seenNames.has(normalized)) {
-      return `Duplicate skill: ${name}`;
-    }
-
-    seenNames.add(normalized);
 
     if (years) {
       const parsedYears = Number.parseInt(years, 10);
 
       if (Number.isNaN(parsedYears) || parsedYears < 0) {
-        return `${label}: Years of experience must be a valid number.`;
-      }
-
-      if (parsedYears > PROFILE_FIELD_LIMITS.maxSkillYears) {
-        return `${label}: Years of experience cannot exceed ${PROFILE_FIELD_LIMITS.maxSkillYears}.`;
+        errors[entryFieldKey(index, "yearsExperience")] =
+          "Years of experience must be a valid number.";
+      } else if (parsedYears > PROFILE_FIELD_LIMITS.maxSkillYears) {
+        errors[entryFieldKey(index, "yearsExperience")] =
+          `Years of experience cannot exceed ${PROFILE_FIELD_LIMITS.maxSkillYears}.`;
       }
     }
   }
 
-  return null;
+  return errors;
+}
+
+export function validateSkillsEntries(entries: EditableSkill[]): string | null {
+  return firstFieldError(getSkillsFieldErrors(entries));
 }
 
 export type ExperienceEntryPayload = {

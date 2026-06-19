@@ -16,7 +16,9 @@ import { ProfileMonthField } from "@/components/profile/edit/ProfileMonthField";
 import { createEmptyExperience } from "@/components/profile/edit/profile-edit-utils";
 import { SectionSaveButton } from "@/components/profile/edit/SectionSaveButton";
 import type { EditableExperience } from "@/components/profile/edit/types";
-import { validateExperienceEntries } from "@/lib/profile/validation";
+import { useFieldErrors } from "@/hooks/useFieldErrors";
+import { entryFieldKey, hasFieldErrors } from "@/lib/form/field-errors";
+import { getExperienceFieldErrors } from "@/lib/profile/validation";
 import { useSaveExperienceMutation } from "@/lib/query/use-profile-mutations";
 
 type ExperienceEditSectionProps = {
@@ -33,6 +35,7 @@ export function ExperienceEditSection({
   onSaved,
 }: ExperienceEditSectionProps) {
   const saveMutation = useSaveExperienceMutation();
+  const { errors, setErrors, clearField } = useFieldErrors<string>();
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const isDirty = useMemo(
@@ -46,6 +49,11 @@ export function ExperienceEditSection({
         entryIndex === index ? { ...entry, ...patch } : entry,
       ),
     );
+
+    for (const field of Object.keys(patch)) {
+      clearField(entryFieldKey(index, field));
+    }
+
     setError("");
     setSuccess("");
   }
@@ -59,14 +67,15 @@ export function ExperienceEditSection({
   }
 
   async function handleSave() {
-    const validationError = validateExperienceEntries(entries);
+    const fieldErrors = getExperienceFieldErrors(entries);
 
-    if (validationError) {
-      setError(validationError);
+    if (hasFieldErrors(fieldErrors)) {
+      setErrors(fieldErrors);
       setSuccess("");
       return;
     }
 
+    setErrors({});
     setError("");
     setSuccess("");
 
@@ -135,6 +144,7 @@ export function ExperienceEditSection({
                     updateEntry(index, { title: event.target.value })
                   }
                   placeholder="Software Engineer"
+                  error={errors[entryFieldKey(index, "title")]}
                 />
                 <FormField
                   id={`experience-company-${index}`}
@@ -145,6 +155,7 @@ export function ExperienceEditSection({
                     updateEntry(index, { company: event.target.value })
                   }
                   placeholder="Acme Corp"
+                  error={errors[entryFieldKey(index, "company")]}
                 />
               </AuthFormGrid>
 
@@ -156,6 +167,7 @@ export function ExperienceEditSection({
                   updateEntry(index, { location: event.target.value })
                 }
                 placeholder="Melbourne, Australia"
+                error={errors[entryFieldKey(index, "location")]}
               />
 
               <AuthFormGrid>
@@ -167,6 +179,7 @@ export function ExperienceEditSection({
                   onChange={(event) =>
                     updateEntry(index, { startDate: event.target.value })
                   }
+                  error={errors[entryFieldKey(index, "startDate")]}
                 />
                 <ProfileMonthField
                   id={`experience-end-${index}`}
@@ -182,6 +195,7 @@ export function ExperienceEditSection({
                       ? "End date is not required for your current role."
                       : undefined
                   }
+                  error={errors[entryFieldKey(index, "endDate")]}
                 />
               </AuthFormGrid>
 
@@ -209,6 +223,7 @@ export function ExperienceEditSection({
                 }
                 placeholder="Describe your responsibilities and achievements..."
                 rows={4}
+                error={errors[entryFieldKey(index, "description")]}
               />
             </div>
           </div>

@@ -15,6 +15,12 @@ import {
   REFERENCE_RELATIONSHIP_OPTIONS,
   type RequestReferenceFormData,
 } from "@/components/profile/reference/types";
+import { useFieldErrors } from "@/hooks/useFieldErrors";
+import { hasFieldErrors } from "@/lib/form/field-errors";
+import {
+  getReferenceFieldErrors,
+  type ReferenceFieldErrors,
+} from "@/lib/profile/reference-validation";
 
 type RequestReferenceFormProps = {
   onCancel?: () => void;
@@ -22,46 +28,14 @@ type RequestReferenceFormProps = {
   showActions?: boolean;
 };
 
-function validateReferenceRequest(
-  data: RequestReferenceFormData,
-): string | null {
-  if (!data.name.trim()) {
-    return "Name is required.";
-  }
-
-  if (!data.title.trim()) {
-    return "Title is required.";
-  }
-
-  if (!data.company.trim()) {
-    return "Company is required.";
-  }
-
-  if (!data.email.trim()) {
-    return "Email is required.";
-  }
-
-  if (!/\S+@\S+\.\S+/.test(data.email.trim())) {
-    return "Enter a valid email address.";
-  }
-
-  if (!data.phone.trim()) {
-    return "Phone is required.";
-  }
-
-  if (!data.relationship) {
-    return "Relationship is required.";
-  }
-
-  return null;
-}
-
 export function RequestReferenceForm({
   onCancel,
   onSubmitted,
   showActions = true,
 }: RequestReferenceFormProps) {
   const [form, setForm] = useState(createEmptyReferenceRequest);
+  const { errors, setErrors, clearField } =
+    useFieldErrors<keyof ReferenceFieldErrors>();
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -70,18 +44,20 @@ export function RequestReferenceForm({
     value: RequestReferenceFormData[K],
   ) {
     setForm((current) => ({ ...current, [field]: value }));
+    clearField(field);
     setError("");
   }
 
   async function handleSubmit() {
-    const validationError = validateReferenceRequest(form);
+    const fieldErrors = getReferenceFieldErrors(form);
 
-    if (validationError) {
-      setError(validationError);
+    if (hasFieldErrors(fieldErrors)) {
+      setErrors(fieldErrors);
       return;
     }
 
     setIsSubmitting(true);
+    setErrors({});
     setError("");
 
     // Frontend-only for now — API integration will be added later.
@@ -97,6 +73,7 @@ export function RequestReferenceForm({
         event.preventDefault();
         void handleSubmit();
       }}
+      noValidate
       className="space-y-4"
     >
       <AuthFormGrid>
@@ -107,6 +84,7 @@ export function RequestReferenceForm({
           value={form.name}
           onChange={(event) => updateField("name", event.target.value)}
           placeholder="John Doe"
+          error={errors.name}
         />
         <FormField
           id="reference-title"
@@ -115,6 +93,7 @@ export function RequestReferenceForm({
           value={form.title}
           onChange={(event) => updateField("title", event.target.value)}
           placeholder="Engineering Manager"
+          error={errors.title}
         />
       </AuthFormGrid>
 
@@ -125,6 +104,7 @@ export function RequestReferenceForm({
         value={form.company}
         onChange={(event) => updateField("company", event.target.value)}
         placeholder="Company Name"
+        error={errors.company}
       />
 
       <AuthFormGrid>
@@ -136,6 +116,7 @@ export function RequestReferenceForm({
           value={form.email}
           onChange={(event) => updateField("email", event.target.value)}
           placeholder="john@example.com"
+          error={errors.email}
         />
         <FormField
           id="reference-phone"
@@ -145,6 +126,7 @@ export function RequestReferenceForm({
           value={form.phone}
           onChange={(event) => updateField("phone", event.target.value)}
           placeholder="+1 (555) 123-4567"
+          error={errors.phone}
         />
       </AuthFormGrid>
 
@@ -161,6 +143,7 @@ export function RequestReferenceForm({
         }
         placeholder="Select relationship"
         options={[...REFERENCE_RELATIONSHIP_OPTIONS]}
+        error={errors.relationship}
       />
 
       <FormTextarea

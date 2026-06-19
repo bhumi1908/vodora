@@ -15,6 +15,7 @@ import {
   TermsAgreement,
 } from "@/components/auth/shared/FormFields";
 import { SignupFormShell } from "@/components/auth/shared/SignupLayout";
+import { useFieldErrors } from "@/hooks/useFieldErrors";
 import { showRegistrationSuccessToast } from "@/lib/auth-toast";
 import {
   EMPLOYEE_COUNT_OPTIONS,
@@ -22,6 +23,11 @@ import {
   RECRUITER_TYPE_OPTIONS,
 } from "@/lib/auth/constants";
 import type { RecruiterSignupRequest, SignupApiResponse } from "@/lib/auth/types";
+import {
+  getRecruiterSignupFieldErrors,
+  type RecruiterSignupFieldErrors,
+} from "@/lib/auth/validation";
+import { hasFieldErrors } from "@/lib/form/field-errors";
 
 interface RecruiterFormData {
   firstName: string;
@@ -58,6 +64,8 @@ const initialData: RecruiterFormData = {
 export function RecruiterSignupPage() {
   const router = useRouter();
   const [formData, setFormData] = useState<RecruiterFormData>(initialData);
+  const { errors, setErrors, clearField } =
+    useFieldErrors<keyof RecruiterSignupFieldErrors>();
   const [formError, setFormError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -69,13 +77,13 @@ export function RecruiterSignupPage() {
     setFormData((prev) => ({ ...prev, [field]: value }));
     setFormError("");
     setSuccessMessage("");
+    clearField(field);
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setFormError("");
     setSuccessMessage("");
-    setIsSubmitting(true);
 
     const payload: RecruiterSignupRequest = {
       firstName: formData.firstName,
@@ -92,6 +100,16 @@ export function RecruiterSignupPage() {
       recruiterType: formData.recruiterType,
       agreedToTerms: formData.agreedToTerms,
     };
+
+    const fieldErrors = getRecruiterSignupFieldErrors(payload);
+
+    if (hasFieldErrors(fieldErrors)) {
+      setErrors(fieldErrors);
+      return;
+    }
+
+    setErrors({});
+    setIsSubmitting(true);
 
     try {
       const response = await fetch("/api/auth/register/recruiter", {
@@ -125,7 +143,7 @@ export function RecruiterSignupPage() {
 
   return (
     <SignupFormShell accountType="recruiter">
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} noValidate className="space-y-6">
         {formError ? <FormError message={formError} /> : null}
         {successMessage ? (
           <FormSuccess
@@ -142,6 +160,7 @@ export function RecruiterSignupPage() {
             value={formData.firstName}
             onChange={(e) => updateField("firstName", e.target.value)}
             placeholder="John"
+            error={errors.firstName}
           />
           <FormField
             id="recruiter-lastName"
@@ -150,6 +169,7 @@ export function RecruiterSignupPage() {
             value={formData.lastName}
             onChange={(e) => updateField("lastName", e.target.value)}
             placeholder="Doe"
+            error={errors.lastName}
           />
         </AuthFormGrid>
 
@@ -162,6 +182,7 @@ export function RecruiterSignupPage() {
           onChange={(e) => updateField("email", e.target.value)}
           placeholder="you@company.com"
           hint="Must be a company email address"
+          error={errors.email}
         />
 
         <FormField
@@ -173,6 +194,7 @@ export function RecruiterSignupPage() {
           onChange={(e) => updateField("password", e.target.value)}
           placeholder="••••••••"
           hint="Must be at least 8 characters"
+          error={errors.password}
         />
 
         <AuthFormGrid>
@@ -183,6 +205,7 @@ export function RecruiterSignupPage() {
             value={formData.companyName}
             onChange={(e) => updateField("companyName", e.target.value)}
             placeholder="Acme Corp"
+            error={errors.companyName}
           />
           <FormField
             id="recruiter-position"
@@ -191,6 +214,7 @@ export function RecruiterSignupPage() {
             value={formData.position}
             onChange={(e) => updateField("position", e.target.value)}
             placeholder="Talent Acquisition Manager"
+            error={errors.position}
           />
         </AuthFormGrid>
 
@@ -202,6 +226,7 @@ export function RecruiterSignupPage() {
             value={formData.country}
             onChange={(e) => updateField("country", e.target.value)}
             placeholder="Australia"
+            error={errors.country}
           />
           <FormField
             id="recruiter-city"
@@ -210,6 +235,7 @@ export function RecruiterSignupPage() {
             value={formData.city}
             onChange={(e) => updateField("city", e.target.value)}
             placeholder="Melbourne"
+            error={errors.city}
           />
         </AuthFormGrid>
 
@@ -221,6 +247,7 @@ export function RecruiterSignupPage() {
           value={formData.website}
           onChange={(e) => updateField("website", e.target.value)}
           placeholder="https://company.com"
+          error={errors.website}
         />
 
         <AuthFormGrid>
@@ -231,6 +258,7 @@ export function RecruiterSignupPage() {
             value={formData.employeeCount}
             onChange={(e) => updateField("employeeCount", e.target.value)}
             options={[...EMPLOYEE_COUNT_OPTIONS]}
+            error={errors.employeeCount}
           />
           <FormSelect
             id="recruiter-hiresPerYear"
@@ -239,6 +267,7 @@ export function RecruiterSignupPage() {
             value={formData.hiresPerYear}
             onChange={(e) => updateField("hiresPerYear", e.target.value)}
             options={[...HIRES_PER_YEAR_OPTIONS]}
+            error={errors.hiresPerYear}
           />
         </AuthFormGrid>
 
@@ -249,11 +278,13 @@ export function RecruiterSignupPage() {
           value={formData.recruiterType}
           onChange={(value) => updateField("recruiterType", value)}
           options={[...RECRUITER_TYPE_OPTIONS]}
+          error={errors.recruiterType}
         />
 
         <TermsAgreement
           checked={formData.agreedToTerms}
           onChange={(checked) => updateField("agreedToTerms", checked)}
+          error={errors.agreedToTerms}
         />
 
         <InfoAlert title="Verification Required">

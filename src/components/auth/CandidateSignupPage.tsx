@@ -13,9 +13,15 @@ import {
   TermsAgreement,
 } from "@/components/auth/shared/FormFields";
 import { SignupFormShell } from "@/components/auth/shared/SignupLayout";
+import { useFieldErrors } from "@/hooks/useFieldErrors";
 import { showRegistrationSuccessToast } from "@/lib/auth-toast";
 import { WORK_TYPE_OPTIONS } from "@/lib/auth/constants";
 import type { CandidateSignupRequest, SignupApiResponse } from "@/lib/auth/types";
+import {
+  getCandidateSignupFieldErrors,
+  type CandidateSignupFieldErrors,
+} from "@/lib/auth/validation";
+import { hasFieldErrors } from "@/lib/form/field-errors";
 
 interface CandidateFormData {
   firstName: string;
@@ -51,7 +57,8 @@ const workAvailabilityOptions = WORK_TYPE_OPTIONS.map((option) => ({
 export function CandidateSignupPage() {
   const router = useRouter();
   const [formData, setFormData] = useState<CandidateFormData>(initialData);
-  const [availabilityError, setAvailabilityError] = useState("");
+  const { errors, setErrors, clearField } =
+    useFieldErrors<keyof CandidateSignupFieldErrors>();
   const [formError, setFormError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -63,23 +70,13 @@ export function CandidateSignupPage() {
     setFormData((prev) => ({ ...prev, [field]: value }));
     setFormError("");
     setSuccessMessage("");
-
-    if (field === "workTypeCodes") {
-      setAvailabilityError("");
-    }
+    clearField(field);
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setFormError("");
     setSuccessMessage("");
-
-    if (formData.workTypeCodes.length === 0) {
-      setAvailabilityError("Please select at least one work availability option.");
-      return;
-    }
-
-    setIsSubmitting(true);
 
     const payload: CandidateSignupRequest = {
       firstName: formData.firstName,
@@ -93,6 +90,16 @@ export function CandidateSignupPage() {
       workTypeCodes: formData.workTypeCodes,
       agreedToTerms: formData.agreedToTerms,
     };
+
+    const fieldErrors = getCandidateSignupFieldErrors(payload);
+
+    if (hasFieldErrors(fieldErrors)) {
+      setErrors(fieldErrors);
+      return;
+    }
+
+    setErrors({});
+    setIsSubmitting(true);
 
     try {
       const response = await fetch("/api/auth/register/candidate", {
@@ -126,7 +133,7 @@ export function CandidateSignupPage() {
 
   return (
     <SignupFormShell accountType="candidate">
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} noValidate className="space-y-6">
         {formError ? <FormError message={formError} /> : null}
         {successMessage ? (
           <FormSuccess
@@ -143,6 +150,7 @@ export function CandidateSignupPage() {
             value={formData.firstName}
             onChange={(e) => updateField("firstName", e.target.value)}
             placeholder="John"
+            error={errors.firstName}
           />
           <FormField
             id="candidate-lastName"
@@ -151,6 +159,7 @@ export function CandidateSignupPage() {
             value={formData.lastName}
             onChange={(e) => updateField("lastName", e.target.value)}
             placeholder="Doe"
+            error={errors.lastName}
           />
         </AuthFormGrid>
 
@@ -162,6 +171,7 @@ export function CandidateSignupPage() {
           value={formData.email}
           onChange={(e) => updateField("email", e.target.value)}
           placeholder="you@email.com"
+          error={errors.email}
         />
 
         <FormField
@@ -173,6 +183,7 @@ export function CandidateSignupPage() {
           onChange={(e) => updateField("password", e.target.value)}
           placeholder="••••••••"
           hint="Must be at least 8 characters"
+          error={errors.password}
         />
 
         <AuthFormGrid>
@@ -183,6 +194,7 @@ export function CandidateSignupPage() {
             value={formData.country}
             onChange={(e) => updateField("country", e.target.value)}
             placeholder="Australia"
+            error={errors.country}
           />
           <FormField
             id="candidate-city"
@@ -191,6 +203,7 @@ export function CandidateSignupPage() {
             value={formData.city}
             onChange={(e) => updateField("city", e.target.value)}
             placeholder="Melbourne"
+            error={errors.city}
           />
         </AuthFormGrid>
 
@@ -202,6 +215,7 @@ export function CandidateSignupPage() {
             value={formData.profession}
             onChange={(e) => updateField("profession", e.target.value)}
             placeholder="Software Engineer"
+            error={errors.profession}
           />
           <FormField
             id="candidate-industry"
@@ -210,6 +224,7 @@ export function CandidateSignupPage() {
             value={formData.industry}
             onChange={(e) => updateField("industry", e.target.value)}
             placeholder="Technology"
+            error={errors.industry}
           />
         </AuthFormGrid>
 
@@ -219,12 +234,13 @@ export function CandidateSignupPage() {
           options={workAvailabilityOptions}
           value={formData.workTypeCodes}
           onChange={(value) => updateField("workTypeCodes", value)}
-          error={availabilityError}
+          error={errors.workTypeCodes}
         />
 
         <TermsAgreement
           checked={formData.agreedToTerms}
           onChange={(checked) => updateField("agreedToTerms", checked)}
+          error={errors.agreedToTerms}
         />
 
         <AuthSubmitButton loading={isSubmitting}>

@@ -1,7 +1,10 @@
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 
+import { EMAIL_FEATURES_ENABLED } from "@/lib/auth/email-features";
+import { sendVerificationEmail } from "@/lib/auth/email-verification";
 import { getAuthErrorMessage } from "@/lib/auth/errors";
 import { env } from "@/lib/env";
+import { createAdminClient } from "@/lib/supabase/admin";
 import {
   completeSignupProfile,
   getPostSignupRedirect,
@@ -15,7 +18,7 @@ type SignUpParams = {
   firstName: string;
   lastName: string;
   signupProfile: SignupProfile;
-  emailRedirectTo: string;
+  origin: string;
 };
 
 export async function runSignupFlow(
@@ -31,7 +34,6 @@ export async function runSignupFlow(
         last_name: params.lastName.trim(),
         signup_profile: params.signupProfile,
       },
-      emailRedirectTo: params.emailRedirectTo,
     },
   });
 
@@ -42,16 +44,69 @@ export async function runSignupFlow(
     };
   }
 
-  if (data.session) {
-    return finalizeSignupProfile(supabase, params.signupProfile);
+  if (!data.user) {
+    return {
+      success: false,
+      error: "Unable to create your account.",
+    };
   }
 
-  // Email confirmation enabled — no session until the user verifies.
+  if (data.session) {
+    await supabase.auth.signOut();
+  }
+
+  const admin = createAdminClient();
+
+  if (EMAIL_FEATURES_ENABLED) {
+    await admin
+      .from("users")
+      .update({ email_verified_at: null })
+      .eq("id", data.user.id);
+
+    try {
+      await sendVerificationEmail(data.user.id, params.origin, {
+        email: params.email.trim(),
+        recipientName: `${params.firstName.trim()} ${params.lastName.trim()}`.trim(),
+      });
+    } catch (sendError) {
+      console.error("Verification email failed:", sendError);
+      return {
+        success: false,
+        error:
+          "Account created but we could not send the verification email. Please try again or contact support.",
+      };
+    }
+
+    return {
+      success: true,
+      needsEmailConfirmation: true,
+      email: params.email.trim(),
+      redirectTo: `/verify-email?email=${encodeURIComponent(params.email.trim())}`,
+    };
+  }
+
+  const verifiedAt = new Date().toISOString();
+
+  await admin.auth.admin.updateUserById(data.user.id, {
+    email_confirm: true,
+  });
+
+  await admin
+    .from("users")
+    .update({ email_verified_at: verifiedAt })
+    .eq("id", data.user.id);
+
+  // Verification email disabled until SendGrid is ready — see email-features.ts.
+  // await sendVerificationEmail(data.user.id, params.origin, {
+  //   email: params.email.trim(),
+  //   recipientName: `${params.firstName.trim()} ${params.lastName.trim()}`.trim(),
+  // });
+
   return {
     success: true,
-    needsEmailConfirmation: true,
+    needsEmailConfirmation: false,
     email: params.email.trim(),
-    redirectTo: `/verify-email?email=${encodeURIComponent(params.email.trim())}`,
+    redirectTo: "/login?registered=1",
   };
 }
 

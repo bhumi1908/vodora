@@ -1,7 +1,7 @@
 "use client";
 
 import type { User } from "@supabase/supabase-js";
-import { ChevronDown, LogOut, Settings } from "lucide-react";
+import { ChevronDown, KeyRound, LogOut, Settings } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -131,6 +131,14 @@ export function RecruiterUserProfileMenu({
           <Settings className="h-4 w-4" />
           My Profile
         </Link>
+        <Link
+          href="/reset-password"
+          className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100"
+          onClick={onNavigate}
+        >
+          <KeyRound className="h-4 w-4" />
+          Reset Password
+        </Link>
         <button
           type="button"
           disabled={isSigningOut}
@@ -196,6 +204,18 @@ export function RecruiterUserProfileMenu({
           >
             <Settings className="h-4 w-4" />
             My Profile
+          </Link>
+          <Link
+            href="/reset-password"
+            role="menuitem"
+            className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 transition-colors hover:bg-gray-50"
+            onClick={() => {
+              setOpen(false);
+              onNavigate?.();
+            }}
+          >
+            <KeyRound className="h-4 w-4" />
+            Reset Password
           </Link>
           <button
             type="button"

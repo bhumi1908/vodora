@@ -71,3 +71,19 @@ export type LoginApiResponse = {
   error?: string;
 };
 
+export type ForgotPasswordApiResponse = {
+  success: boolean;
+  error?: string;
+};
+
+export type ResetPasswordApiResponse = {
+  success: boolean;
+  redirectTo?: string;
+  error?: string;
+};
+
+export type ChangePasswordApiResponse = {
+  success: boolean;
+  error?: string;
+};
+

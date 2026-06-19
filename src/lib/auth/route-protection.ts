@@ -5,9 +5,14 @@ import {
   getRecruiterDashboardAccessDeniedRedirect,
 } from "@/lib/auth/access-denied";
 import { getAccountType } from "@/lib/auth/account-type";
+import {
+  getUnverifiedSessionRedirect,
+} from "@/lib/auth/email-verification-status";
 import { getDashboardPath } from "@/lib/auth/routes";
 
-const GUEST_ONLY_PREFIXES = ["/login", "/signup"];
+const GUEST_ONLY_PREFIXES = ["/login", "/signup", "/forgot-password"];
+
+const UNVERIFIED_ALLOWED_PREFIXES = ["/verify-email"];
 
 const CANDIDATE_ONLY_PREFIXES = [
   "/dashboard",
@@ -35,6 +40,14 @@ export function isGuestOnlyRoute(pathname: string): boolean {
   return matchesPrefix(pathname, GUEST_ONLY_PREFIXES);
 }
 
+export function isUnverifiedAllowedRoute(pathname: string): boolean {
+  return matchesPrefix(pathname, UNVERIFIED_ALLOWED_PREFIXES);
+}
+
+function isApiRoute(pathname: string): boolean {
+  return pathname.startsWith("/api/");
+}
+
 export function isProtectedRoute(pathname: string): boolean {
   return matchesPrefix(pathname, PROTECTED_PREFIXES);
 }
@@ -57,6 +70,21 @@ export async function getRouteProtectionRedirect(
   user: User | null,
   pathname: string,
 ): Promise<string | null> {
+  if (user && !isApiRoute(pathname)) {
+    const unverifiedRedirect = await getUnverifiedSessionRedirect(
+      supabase,
+      user,
+    );
+
+    if (unverifiedRedirect) {
+      if (isUnverifiedAllowedRoute(pathname)) {
+        return null;
+      }
+
+      return unverifiedRedirect;
+    }
+  }
+
   if (user && isGuestOnlyRoute(pathname)) {
     const accountType = await getAccountType(supabase, user);
     return getDashboardPath(accountType);

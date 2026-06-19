@@ -7,6 +7,7 @@ import {
   AuthSubmitButton,
   FormField,
   FormSelect,
+  FormSuccess,
   FormTextarea,
 } from "@/components/auth/shared/FormFields";
 import { ContactInfoItem } from "@/components/static/ContactInfoItem";
@@ -14,6 +15,13 @@ import {
   StaticPageHeader,
   StaticPageShell,
 } from "@/components/static/StaticPageLayout";
+import { useFieldErrors } from "@/hooks/useFieldErrors";
+import {
+  getContactFieldErrors,
+  type ContactFieldErrors,
+  type ContactFormData,
+} from "@/lib/contact/validation";
+import { hasFieldErrors } from "@/lib/form/field-errors";
 
 const subjectOptions = [
   { value: "general", label: "General enquiry" },
@@ -22,13 +30,6 @@ const subjectOptions = [
   { value: "enterprise", label: "Enterprise sales" },
   { value: "press", label: "Press & media" },
 ];
-
-interface ContactFormData {
-  name: string;
-  email: string;
-  subject: string;
-  message: string;
-}
 
 const initialData: ContactFormData = {
   name: "",
@@ -39,16 +40,33 @@ const initialData: ContactFormData = {
 
 export function ContactPage() {
   const [formData, setFormData] = useState<ContactFormData>(initialData);
+  const { errors, setErrors, clearField } =
+    useFieldErrors<keyof ContactFieldErrors>();
+  const [successMessage, setSuccessMessage] = useState("");
 
   function updateField<K extends keyof ContactFormData>(
     field: K,
     value: ContactFormData[K],
   ) {
     setFormData((prev) => ({ ...prev, [field]: value }));
+    clearField(field);
+    setSuccessMessage("");
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setSuccessMessage("");
+
+    const fieldErrors = getContactFieldErrors(formData);
+
+    if (hasFieldErrors(fieldErrors)) {
+      setErrors(fieldErrors);
+      return;
+    }
+
+    setErrors({});
+    setSuccessMessage("Thanks for reaching out. We'll get back to you soon.");
+    setFormData(initialData);
   }
 
   return (
@@ -60,7 +78,11 @@ export function ContactPage() {
       />
 
       <div className="grid grid-cols-1 gap-12 lg:grid-cols-2 lg:gap-16">
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} noValidate className="space-y-6">
+          {successMessage ? (
+            <FormSuccess title="Message sent" message={successMessage} />
+          ) : null}
+
           <FormField
             id="contact-name"
             label="Name"
@@ -68,6 +90,7 @@ export function ContactPage() {
             value={formData.name}
             onChange={(e) => updateField("name", e.target.value)}
             placeholder="Your name"
+            error={errors.name}
           />
           <FormField
             id="contact-email"
@@ -77,6 +100,7 @@ export function ContactPage() {
             value={formData.email}
             onChange={(e) => updateField("email", e.target.value)}
             placeholder="you@example.com"
+            error={errors.email}
           />
           <FormSelect
             id="contact-subject"
@@ -85,6 +109,7 @@ export function ContactPage() {
             value={formData.subject}
             onChange={(e) => updateField("subject", e.target.value)}
             options={subjectOptions}
+            error={errors.subject}
           />
           <FormTextarea
             id="contact-message"
@@ -94,6 +119,7 @@ export function ContactPage() {
             value={formData.message}
             onChange={(e) => updateField("message", e.target.value)}
             placeholder="How can we help?"
+            error={errors.message}
           />
           <AuthSubmitButton>Send Message</AuthSubmitButton>
         </form>

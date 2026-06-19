@@ -12,10 +12,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
-import {
-  CandidateProfileEditor,
-  WELCOME_PROFILE_SECTIONS,
-} from "@/components/profile/edit/CandidateProfileEditor";
 import type { CandidateProfileEditData } from "@/components/profile/edit/types";
 import { RequestReferenceModal } from "@/components/profile/reference/RequestReferenceModal";
 import {
@@ -81,7 +77,6 @@ export function CandidateWelcome({ profile }: CandidateWelcomeProps) {
     useState<WelcomeProfileTaskId | null>(null);
   const [referenceModalOpen, setReferenceModalOpen] = useState(false);
   const [referenceRequested, setReferenceRequested] = useState(false);
-  const [editorKey, setEditorKey] = useState(0);
 
   const progress = useMemo(
     () => calculateProgress(profile, referenceRequested),
@@ -99,10 +94,6 @@ export function CandidateWelcome({ profile }: CandidateWelcomeProps) {
     }
 
     setActiveProfileTask(taskId);
-  }
-
-  function handleProfileTaskSaved() {
-    setEditorKey((current) => current + 1);
   }
 
   return (
@@ -155,9 +146,11 @@ export function CandidateWelcome({ profile }: CandidateWelcomeProps) {
               );
 
               return (
-                <div
+                <button
                   key={task.id}
-                  className="flex items-center justify-between rounded-lg border-2 border-gray-200 p-4 transition-colors hover:border-blue-500"
+                  type="button"
+                  onClick={() => openTask(task.id)}
+                  className="flex w-full cursor-pointer items-center justify-between rounded-lg border-2 border-gray-200 p-4 text-left transition-colors hover:border-blue-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
                 >
                   <div className="flex items-center gap-3">
                     {completed ? (
@@ -170,14 +163,10 @@ export function CandidateWelcome({ profile }: CandidateWelcomeProps) {
                       {task.label}
                     </span>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => openTask(task.id)}
-                    className="text-sm font-medium text-blue-600 hover:text-blue-700"
-                  >
+                  <span className="text-sm font-medium text-blue-600">
                     {completed ? "Edit" : "Start"}
-                  </button>
-                </div>
+                  </span>
+                </button>
               );
             })}
           </div>
@@ -199,20 +188,10 @@ export function CandidateWelcome({ profile }: CandidateWelcomeProps) {
           </div>
         </div>
 
-        <CandidateProfileEditor
-          key={editorKey}
-          initialProfile={profile}
-          sections={WELCOME_PROFILE_SECTIONS}
-          showSectionNav={false}
-          title="Build your profile"
-          description="Complete the sections below. You can always update them later from My Profile."
-        />
-
         <WelcomeTaskModal
           taskId={activeProfileTask}
           initialProfile={profile}
           onClose={() => setActiveProfileTask(null)}
-          onSaved={handleProfileTaskSaved}
         />
 
         <RequestReferenceModal

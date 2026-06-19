@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { getAuthErrorMessage } from "@/lib/auth/errors";
+import { resendVerificationEmail } from "@/lib/auth/email-verification";
 import { getRequestOrigin } from "@/lib/auth/signup-flow";
 import type { ResendVerificationApiResponse } from "@/lib/auth/types";
 import {
@@ -10,7 +10,6 @@ import {
   createRateLimitResponse,
   getClientIp,
 } from "@/lib/rate-limit";
-import { createClient } from "@/lib/supabase/server";
 
 type ResendVerificationRequest = {
   email?: string;
@@ -54,29 +53,21 @@ export async function POST(request: Request) {
   }
 
   const origin = getRequestOrigin(request);
-  const supabase = await createClient();
 
-  const { error } = await supabase.auth.resend({
-    type: "signup",
-    email,
-    options: {
-      emailRedirectTo: `${origin}/auth/callback`,
-    },
-  });
-
-  if (error) {
+  try {
+    await resendVerificationEmail(normalizedEmail, origin);
+  } catch (error) {
+    console.error("Resend verification email failed:", error);
     return NextResponse.json(
       {
         success: false,
-        error: getAuthErrorMessage(
-          error,
-          "Unable to resend verification email.",
-        ),
+        error: "Unable to send verification email. Please try again later.",
       } satisfies ResendVerificationApiResponse,
-      { status: 400 },
+      { status: 500 },
     );
   }
 
+  // Always return success to avoid revealing whether the email exists or is verified.
   return NextResponse.json({
     success: true,
   } satisfies ResendVerificationApiResponse);

@@ -16,7 +16,9 @@ import { ProfileMonthField } from "@/components/profile/edit/ProfileMonthField";
 import { createEmptyEducation } from "@/components/profile/edit/profile-edit-utils";
 import { SectionSaveButton } from "@/components/profile/edit/SectionSaveButton";
 import type { EditableEducation } from "@/components/profile/edit/types";
-import { validateEducationEntries } from "@/lib/profile/validation";
+import { useFieldErrors } from "@/hooks/useFieldErrors";
+import { entryFieldKey, hasFieldErrors } from "@/lib/form/field-errors";
+import { getEducationFieldErrors } from "@/lib/profile/validation";
 import { useSaveEducationMutation } from "@/lib/query/use-profile-mutations";
 
 type EducationEditSectionProps = {
@@ -33,6 +35,7 @@ export function EducationEditSection({
   onSaved,
 }: EducationEditSectionProps) {
   const saveMutation = useSaveEducationMutation();
+  const { errors, setErrors, clearField } = useFieldErrors<string>();
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const isDirty = useMemo(
@@ -46,6 +49,11 @@ export function EducationEditSection({
         entryIndex === index ? { ...entry, ...patch } : entry,
       ),
     );
+
+    for (const field of Object.keys(patch)) {
+      clearField(entryFieldKey(index, field));
+    }
+
     setError("");
     setSuccess("");
   }
@@ -59,14 +67,15 @@ export function EducationEditSection({
   }
 
   async function handleSave() {
-    const validationError = validateEducationEntries(entries);
+    const fieldErrors = getEducationFieldErrors(entries);
 
-    if (validationError) {
-      setError(validationError);
+    if (hasFieldErrors(fieldErrors)) {
+      setErrors(fieldErrors);
       setSuccess("");
       return;
     }
 
+    setErrors({});
     setError("");
     setSuccess("");
 
@@ -135,6 +144,7 @@ export function EducationEditSection({
                     updateEntry(index, { degree: event.target.value })
                   }
                   placeholder="Bachelor of Engineering"
+                  error={errors[entryFieldKey(index, "degree")]}
                 />
                 <FormField
                   id={`education-school-${index}`}
@@ -145,6 +155,7 @@ export function EducationEditSection({
                     updateEntry(index, { school: event.target.value })
                   }
                   placeholder="University of Melbourne"
+                  error={errors[entryFieldKey(index, "school")]}
                 />
               </AuthFormGrid>
 
@@ -156,6 +167,7 @@ export function EducationEditSection({
                   onChange={(event) =>
                     updateEntry(index, { startDate: event.target.value })
                   }
+                  error={errors[entryFieldKey(index, "startDate")]}
                 />
                 <ProfileMonthField
                   id={`education-end-${index}`}
@@ -164,6 +176,7 @@ export function EducationEditSection({
                   onChange={(event) =>
                     updateEntry(index, { endDate: event.target.value })
                   }
+                  error={errors[entryFieldKey(index, "endDate")]}
                 />
               </AuthFormGrid>
 
@@ -176,6 +189,7 @@ export function EducationEditSection({
                 }
                 placeholder="Honors, focus areas, or relevant coursework..."
                 rows={3}
+                error={errors[entryFieldKey(index, "description")]}
               />
             </div>
           </div>

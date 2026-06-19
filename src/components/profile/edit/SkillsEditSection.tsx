@@ -18,9 +18,11 @@ import {
   SKILL_PROFICIENCY_OPTIONS,
   type EditableSkill,
 } from "@/components/profile/edit/types";
+import { useFieldErrors } from "@/hooks/useFieldErrors";
+import { entryFieldKey, hasFieldErrors } from "@/lib/form/field-errors";
 import {
+  getSkillsFieldErrors,
   PROFILE_FIELD_LIMITS,
-  validateSkillsEntries,
 } from "@/lib/profile/validation";
 import { useSaveSkillsMutation } from "@/lib/query/use-profile-mutations";
 
@@ -38,6 +40,7 @@ export function SkillsEditSection({
   onSaved,
 }: SkillsEditSectionProps) {
   const saveMutation = useSaveSkillsMutation();
+  const { errors, setErrors, clearField } = useFieldErrors<string>();
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const isDirty = useMemo(
@@ -51,6 +54,11 @@ export function SkillsEditSection({
         entryIndex === index ? { ...entry, ...patch } : entry,
       ),
     );
+
+    for (const field of Object.keys(patch)) {
+      clearField(entryFieldKey(index, field));
+    }
+
     setError("");
     setSuccess("");
   }
@@ -64,14 +72,15 @@ export function SkillsEditSection({
   }
 
   async function handleSave() {
-    const validationError = validateSkillsEntries(entries);
+    const fieldErrors = getSkillsFieldErrors(entries);
 
-    if (validationError) {
-      setError(validationError);
+    if (hasFieldErrors(fieldErrors)) {
+      setErrors(fieldErrors);
       setSuccess("");
       return;
     }
 
+    setErrors({});
     setError("");
     setSuccess("");
 
@@ -139,6 +148,7 @@ export function SkillsEditSection({
                   updateEntry(index, { name: event.target.value })
                 }
                 placeholder="Project Management"
+                error={errors[entryFieldKey(index, "name")]}
               />
               <FormSelect
                 id={`skill-proficiency-${index}`}
@@ -161,6 +171,7 @@ export function SkillsEditSection({
               }
               placeholder="5"
               hint={`Optional. Maximum ${PROFILE_FIELD_LIMITS.maxSkillYears} years.`}
+              error={errors[entryFieldKey(index, "yearsExperience")]}
             />
           </div>
         ))}

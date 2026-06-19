@@ -125,12 +125,21 @@ function EmailVerificationContent() {
                 : "Resend Verification Email"}
           </button>
 
-          <Link
-            href="/login"
+          <button
+            type="button"
+            onClick={async () => {
+              try {
+                await fetch("/api/auth/logout", { method: "POST" });
+              } catch {
+                // Continue to login even if sign-out fails.
+              }
+
+              window.location.href = "/login";
+            }}
             className="text-sm font-medium text-blue-600 hover:text-blue-700"
           >
             Back to Login
-          </Link>
+          </button>
         </div>
       </div>
     </div>

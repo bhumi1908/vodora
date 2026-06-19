@@ -1,6 +1,7 @@
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 
 import { getAccountType } from "@/lib/auth/account-type";
+import { getUnverifiedSessionRedirect } from "@/lib/auth/email-verification-status";
 import {
   CANDIDATE_DASHBOARD_PATH,
   CANDIDATE_WELCOME_PATH,
@@ -16,6 +17,12 @@ export async function getWelcomePageRedirect(
   user: User,
   variant: WelcomeVariant,
 ): Promise<string | null> {
+  const unverifiedRedirect = await getUnverifiedSessionRedirect(supabase, user);
+
+  if (unverifiedRedirect) {
+    return unverifiedRedirect;
+  }
+
   const accountType = await getAccountType(supabase, user);
 
   if (accountType !== variant) {
