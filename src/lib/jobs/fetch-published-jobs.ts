@@ -266,3 +266,24 @@ export async function fetchPublishedJobById(
   const [row] = await enrichJobPostingRows(supabase, [data]);
   return transformJobPostingRowToCandidateJob(row);
 }
+
+export async function fetchJobPostingsByIds(
+  supabase: Supabase,
+  jobIds: string[],
+) {
+  if (jobIds.length === 0) {
+    return [];
+  }
+
+  const { data, error } = await supabase
+    .from("job_postings")
+    .select("*")
+    .in("id", jobIds);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  const enrichedRows = await enrichJobPostingRows(supabase, data ?? []);
+  return enrichedRows.map(transformJobPostingRowToCandidateJob);
+}

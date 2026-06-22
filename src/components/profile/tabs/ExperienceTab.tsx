@@ -1,15 +1,20 @@
 import { Briefcase } from "lucide-react";
+import type { ReactNode } from "react";
 
 import type { CandidateProfileExperience } from "@/lib/profile/types";
 
 type ExperienceTabProps = {
   experience: CandidateProfileExperience[];
+  editButton?: ReactNode;
 };
 
-export function ExperienceTab({ experience }: ExperienceTabProps) {
+export function ExperienceTab({ experience, editButton }: ExperienceTabProps) {
   return (
     <div>
-      <h2 className="mb-4 text-lg font-semibold text-gray-900">Experience</h2>
+      <div className="mb-4 flex items-center justify-between gap-4">
+        <h2 className="text-lg font-semibold text-gray-900">Experience</h2>
+        {editButton}
+      </div>
       {experience.length === 0 ? (
         <p className="text-sm text-gray-500">
           No work experience added yet.

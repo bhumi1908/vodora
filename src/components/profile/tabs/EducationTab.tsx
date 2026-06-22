@@ -1,15 +1,20 @@
 import { GraduationCap } from "lucide-react";
+import type { ReactNode } from "react";
 
 import type { CandidateProfileEducation } from "@/lib/profile/types";
 
 type EducationTabProps = {
   education: CandidateProfileEducation[];
+  editButton?: ReactNode;
 };
 
-export function EducationTab({ education }: EducationTabProps) {
+export function EducationTab({ education, editButton }: EducationTabProps) {
   return (
     <div>
-      <h2 className="mb-4 text-lg font-semibold text-gray-900">Education</h2>
+      <div className="mb-4 flex items-center justify-between gap-4">
+        <h2 className="text-lg font-semibold text-gray-900">Education</h2>
+        {editButton}
+      </div>
       {education.length === 0 ? (
         <p className="text-sm text-gray-500">No education records added yet.</p>
       ) : (

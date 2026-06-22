@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 
 import { getAccountType } from "@/lib/auth/account-type";
+import { fetchRecruiterCandidateConnectionStatus } from "@/lib/connections/fetch-recruiter-candidate-connection-status";
+import {
+  redactPrivateProfileFields,
+  resolveProfileVisibility,
+} from "@/lib/profile/profile-visibility";
 import { getCachedRecruiterCandidateProfile } from "@/lib/recruiter/fetch-recruiter-candidate-profile";
 import { createClient } from "@/lib/supabase/server";
 
@@ -40,8 +45,22 @@ export async function GET(_request: Request, context: RouteContext) {
     );
   }
 
+  const connection = profile.candidateId
+    ? await fetchRecruiterCandidateConnectionStatus(supabase, profile.candidateId)
+    : null;
+
+  const visibility = resolveProfileVisibility({
+    recruiterView: true,
+    connection,
+  });
+
+  const visibleProfile = redactPrivateProfileFields(
+    profile,
+    visibility.showContactDetails,
+  );
+
   return NextResponse.json({
     success: true,
-    profile,
+    profile: visibleProfile,
   });
 }

@@ -21,10 +21,7 @@ export function ProfileEditSkeleton() {
 
       <div className="space-y-6">
         {Array.from({ length: 4 }).map((_, index) => (
-          <div
-            key={index}
-            className="space-y-4 rounded-lg border border-gray-200 bg-white p-6"
-          >
+          <div key={index} className="space-y-4 rounded-lg border border-gray-200 bg-white p-6">
             <Skeleton className="h-6 w-40" />
             <Skeleton className="h-10 w-full rounded-lg" />
             <Skeleton className="h-10 w-full rounded-lg" />

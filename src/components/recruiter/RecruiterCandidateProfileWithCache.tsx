@@ -1,11 +1,14 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 
 import { ProfilePage } from "@/components/profile/ProfilePage";
 import type { CandidateProfileData } from "@/lib/profile/types";
+import { connectionKeys } from "@/lib/query/connection-keys";
 import { recruiterKeys } from "@/lib/query/keys";
 import { fetchRecruiterCandidateProfile } from "@/lib/query/recruiter-fetchers";
+import { useRecruiterCandidateConnectionStatusQuery } from "@/lib/query/use-connection-queries";
 
 type RecruiterCandidateProfileWithCacheProps = {
   vodoraId: string;
@@ -16,15 +19,49 @@ export function RecruiterCandidateProfileWithCache({
   vodoraId,
   initialProfile,
 }: RecruiterCandidateProfileWithCacheProps) {
+  const queryClient = useQueryClient();
+
   const { data: profile } = useQuery({
     queryKey: recruiterKeys.candidateProfile(vodoraId),
     queryFn: () => fetchRecruiterCandidateProfile(vodoraId),
     initialData: initialProfile,
   });
 
+  const { data: connection } = useRecruiterCandidateConnectionStatusQuery(
+    profile?.candidateId ?? null,
+  );
+
+  useEffect(() => {
+    if (connection?.status === "connected") {
+      void queryClient.invalidateQueries({
+        queryKey: recruiterKeys.candidateProfile(vodoraId),
+      });
+    }
+  }, [connection?.status, queryClient, vodoraId]);
+
   if (!profile) {
     return null;
   }
 
-  return <ProfilePage profile={profile} recruiterView />;
+  function handleConnectionChange() {
+    if (!profile?.candidateId) {
+      return;
+    }
+
+    void queryClient.invalidateQueries({
+      queryKey: connectionKeys.profileStatus(profile.candidateId),
+    });
+    void queryClient.invalidateQueries({
+      queryKey: recruiterKeys.candidateProfile(vodoraId),
+    });
+  }
+
+  return (
+    <ProfilePage
+      profile={profile}
+      recruiterView
+      connection={connection ?? null}
+      onConnectionChange={handleConnectionChange}
+    />
+  );
 }

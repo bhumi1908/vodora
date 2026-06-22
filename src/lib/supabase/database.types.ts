@@ -144,6 +144,7 @@ export type Database = {
           current_company_name: string | null;
           current_position: string | null;
           date_of_birth: string | null;
+          default_cover_letter: string | null;
           experience_level: string | null;
           headline: string | null;
           id: string;
@@ -172,6 +173,7 @@ export type Database = {
           current_company_name?: string | null;
           current_position?: string | null;
           date_of_birth?: string | null;
+          default_cover_letter?: string | null;
           experience_level?: string | null;
           headline?: string | null;
           id?: string;
@@ -200,6 +202,7 @@ export type Database = {
           current_company_name?: string | null;
           current_position?: string | null;
           date_of_birth?: string | null;
+          default_cover_letter?: string | null;
           experience_level?: string | null;
           headline?: string | null;
           id?: string;
@@ -597,6 +600,60 @@ export type Database = {
         };
         Relationships: [];
       };
+      connections: {
+        Row: {
+          connected_at: string | null;
+          id: string;
+          initiator_candidate_id: string | null;
+          initiator_recruiter_id: string | null;
+          initiator_type: string;
+          message: string | null;
+          participant_1_candidate_id: string | null;
+          participant_1_recruiter_id: string | null;
+          participant_1_type: string;
+          participant_2_candidate_id: string | null;
+          participant_2_recruiter_id: string | null;
+          participant_2_type: string;
+          requested_at: string;
+          status: string;
+          updated_at: string;
+        };
+        Insert: {
+          connected_at?: string | null;
+          id?: string;
+          initiator_candidate_id?: string | null;
+          initiator_recruiter_id?: string | null;
+          initiator_type: string;
+          message?: string | null;
+          participant_1_candidate_id?: string | null;
+          participant_1_recruiter_id?: string | null;
+          participant_1_type: string;
+          participant_2_candidate_id?: string | null;
+          participant_2_recruiter_id?: string | null;
+          participant_2_type: string;
+          requested_at?: string;
+          status?: string;
+          updated_at?: string;
+        };
+        Update: {
+          connected_at?: string | null;
+          id?: string;
+          initiator_candidate_id?: string | null;
+          initiator_recruiter_id?: string | null;
+          initiator_type?: string;
+          message?: string | null;
+          participant_1_candidate_id?: string | null;
+          participant_1_recruiter_id?: string | null;
+          participant_1_type?: string;
+          participant_2_candidate_id?: string | null;
+          participant_2_recruiter_id?: string | null;
+          participant_2_type?: string;
+          requested_at?: string;
+          status?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       password_reset_tokens: {
         Row: {
           created_at: string;
@@ -692,6 +749,51 @@ export type Database = {
           assigned_by?: string | null;
           id?: string;
           role_id?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
+      user_feedback: {
+        Row: {
+          can_contact: boolean;
+          contact_email: string | null;
+          created_at: string;
+          details: string;
+          feedback_type: string;
+          id: string;
+          new_feature_desc: string | null;
+          new_feature_title: string | null;
+          overall_rating: number;
+          role: string;
+          selected_feature: string | null;
+          user_id: string;
+        };
+        Insert: {
+          can_contact?: boolean;
+          contact_email?: string | null;
+          created_at?: string;
+          details: string;
+          feedback_type: string;
+          id?: string;
+          new_feature_desc?: string | null;
+          new_feature_title?: string | null;
+          overall_rating: number;
+          role: string;
+          selected_feature?: string | null;
+          user_id: string;
+        };
+        Update: {
+          can_contact?: boolean;
+          contact_email?: string | null;
+          created_at?: string;
+          details?: string;
+          feedback_type?: string;
+          id?: string;
+          new_feature_desc?: string | null;
+          new_feature_title?: string | null;
+          overall_rating?: number;
+          role?: string;
+          selected_feature?: string | null;
           user_id?: string;
         };
         Relationships: [];
@@ -808,6 +910,83 @@ export type Database = {
         Args: Record<PropertyKey, never>;
         Returns: number;
       };
+      send_candidate_connection_request: {
+        Args: {
+          p_recruiter_id: string;
+          p_message?: string;
+        };
+        Returns: Json;
+      };
+      send_candidate_peer_connection_request: {
+        Args: {
+          p_peer_candidate_id: string;
+          p_message?: string;
+        };
+        Returns: Json;
+      };
+      get_candidate_connection_counts: {
+        Args: Record<PropertyKey, never>;
+        Returns: Json;
+      };
+      get_recruiter_connection_counts: {
+        Args: Record<PropertyKey, never>;
+        Returns: Json;
+      };
+      send_recruiter_connection_request: {
+        Args: {
+          p_candidate_id: string;
+          p_message?: string;
+        };
+        Returns: Json;
+      };
+      send_recruiter_peer_connection_request: {
+        Args: {
+          p_peer_recruiter_id: string;
+          p_message?: string;
+        };
+        Returns: Json;
+      };
+      get_recruiter_peer_connection_status: {
+        Args: {
+          p_peer_recruiter_id: string;
+        };
+        Returns: Json;
+      };
+      get_recruiter_candidate_connection_status: {
+        Args: {
+          p_candidate_id: string;
+        };
+        Returns: Json;
+      };
+      get_candidate_peer_connection_status: {
+        Args: {
+          p_peer_candidate_id: string;
+        };
+        Returns: Json;
+      };
+      respond_to_connection_request: {
+        Args: {
+          p_connection_id: string;
+          p_action: string;
+        };
+        Returns: Json;
+      };
+      list_candidate_connections: {
+        Args: {
+          p_tab?: string;
+          p_offset?: number;
+          p_limit?: number;
+        };
+        Returns: Json;
+      };
+      list_recruiter_connections: {
+        Args: {
+          p_tab?: string;
+          p_offset?: number;
+          p_limit?: number;
+        };
+        Returns: Json;
+      };
       search_recruiter_candidates: {
         Args: {
           p_query?: string;
@@ -824,8 +1003,41 @@ export type Database = {
         };
         Returns: Json;
       };
+      get_recruiter_directory_filters: {
+        Args: Record<PropertyKey, never>;
+        Returns: Json;
+      };
+      search_recruiters_for_candidates: {
+        Args: {
+          p_query?: string;
+          p_category?: string;
+          p_offset?: number;
+          p_limit?: number;
+        };
+        Returns: Json;
+      };
       get_recruiter_search_metadata: {
         Args: Record<PropertyKey, never>;
+        Returns: Json;
+      };
+      get_candidate_search_metadata: {
+        Args: Record<PropertyKey, never>;
+        Returns: Json;
+      };
+      search_candidates_for_candidates: {
+        Args: {
+          p_query?: string;
+          p_category_id?: string;
+          p_availability_start?: string;
+          p_availability_status?: string;
+          p_work_type_codes?: string[];
+          p_country?: string;
+          p_experience_min?: number;
+          p_experience_max?: number;
+          p_min_references?: number;
+          p_offset?: number;
+          p_limit?: number;
+        };
         Returns: Json;
       };
       register_candidate: {

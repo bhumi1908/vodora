@@ -1,3 +1,4 @@
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -56,9 +57,10 @@ export default async function SupabaseStatusPage() {
 
         <Link
           href="/"
-          className="mt-6 inline-block text-sm font-medium text-blue-600 hover:text-blue-700"
+          className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-700"
         >
-          ← Back to home
+          <ArrowLeft className="h-4 w-4 shrink-0" aria-hidden="true" />
+          Back to home
         </Link>
       </div>
     </div>

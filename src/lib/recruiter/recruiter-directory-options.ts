@@ -1,0 +1,2 @@
+export const RECRUITER_DIRECTORY_PAGE_SIZE = 10;
+export const RECRUITER_DIRECTORY_ALL_FILTER = "All";

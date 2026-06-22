@@ -7,6 +7,8 @@ import { useEffect, useState } from "react";
 import { RecruiterAppHeader } from "@/components/layout/RecruiterAppHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
+import { ConnectionRealtimeSync } from "@/components/connections/ConnectionRealtimeSync";
+import { JobApplicationRealtimeSync } from "@/components/jobs/JobApplicationRealtimeSync";
 import { useAccountType } from "@/lib/auth/use-account-type";
 import { isRecruiterAppRoute } from "@/lib/auth/routes";
 import { createClient } from "@/lib/supabase/client";
@@ -29,8 +31,16 @@ function isRecruitersLanding(pathname: string) {
   return pathname === "/recruiters";
 }
 
-function isResetPasswordRoute(pathname: string) {
-  return pathname === "/reset-password";
+const ACCOUNT_AWARE_ROUTE_PREFIXES = [
+  "/reset-password",
+  "/feedback",
+  "/settings",
+];
+
+function isAccountAwareRoute(pathname: string) {
+  return ACCOUNT_AWARE_ROUTE_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+  );
 }
 
 function useAuthUser() {
@@ -83,14 +93,14 @@ function ChromeHeader() {
     return <RecruiterAppHeader />;
   }
 
-  if (isResetPasswordRoute(pathname)) {
-    return <ResetPasswordChromeHeader />;
+  if (isAccountAwareRoute(pathname)) {
+    return <AccountAwareChromeHeader />;
   }
 
   return <SiteHeader />;
 }
 
-function ResetPasswordChromeHeader() {
+function AccountAwareChromeHeader() {
   const { user, authLoading } = useAuthUser();
   const accountType = useAccountType(user);
 
@@ -109,6 +119,13 @@ function ResetPasswordChromeHeader() {
 
 export function SiteChrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const { user, authLoading } = useAuthUser();
+  const accountType = useAccountType(user);
+  const realtimeRole =
+    isRecruiterAppRoute(pathname) ||
+    (isAccountAwareRoute(pathname) && accountType === "recruiter")
+      ? "recruiter"
+      : "candidate";
 
   if (isAuthRoute(pathname)) {
     return <>{children}</>;
@@ -116,6 +133,12 @@ export function SiteChrome({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-screen flex-col">
+      {!authLoading && user ? (
+        <>
+          <ConnectionRealtimeSync role={realtimeRole} />
+          <JobApplicationRealtimeSync role={realtimeRole} />
+        </>
+      ) : null}
       <ChromeHeader />
       <main className="flex-1">{children}</main>
       <SiteFooter />

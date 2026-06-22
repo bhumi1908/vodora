@@ -1,7 +1,9 @@
 import type { CandidateProfileSkill } from "@/lib/profile/types";
+import type { ReactNode } from "react";
 
 type SkillsTabProps = {
   skills: CandidateProfileSkill[];
+  editButton?: ReactNode;
 };
 
 function formatProficiency(proficiency: string | null): string | null {
@@ -12,10 +14,13 @@ function formatProficiency(proficiency: string | null): string | null {
   return proficiency.charAt(0).toUpperCase() + proficiency.slice(1);
 }
 
-export function SkillsTab({ skills }: SkillsTabProps) {
+export function SkillsTab({ skills, editButton }: SkillsTabProps) {
   return (
     <div>
-      <h2 className="mb-4 text-lg font-semibold text-gray-900">Skills</h2>
+      <div className="mb-4 flex items-center justify-between gap-4">
+        <h2 className="text-lg font-semibold text-gray-900">Skills</h2>
+        {editButton}
+      </div>
       {skills.length === 0 ? (
         <p className="text-sm text-gray-500">No skills added yet.</p>
       ) : (

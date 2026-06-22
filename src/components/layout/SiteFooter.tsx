@@ -1,7 +1,11 @@
 import { Briefcase } from "lucide-react";
 import Link from "next/link";
 
-import { CANDIDATE_JOBS_PATH } from "@/lib/auth/routes";
+import {
+  CANDIDATE_FIND_CANDIDATES_PATH,
+  CANDIDATE_FIND_RECRUITERS_PATH,
+  CANDIDATE_JOBS_PATH,
+} from "@/lib/auth/routes";
 
 interface FooterLink {
   label: string;
@@ -22,7 +26,16 @@ const footerColumns: FooterColumn[] = [
       { label: "Create Profile", href: "/signup/candidate" },
       { label: "My Profile", href: "/my-profile" },
       { label: "Browse Jobs", href: CANDIDATE_JOBS_PATH, prefetch: false },
-      { label: "Find Recruiters", href: "/recruiters" },
+      {
+        label: "Find Candidates",
+        href: CANDIDATE_FIND_CANDIDATES_PATH,
+        prefetch: false,
+      },
+      {
+        label: "Find Recruiters",
+        href: CANDIDATE_FIND_RECRUITERS_PATH,
+        prefetch: false,
+      },
     ],
   },
   {
@@ -37,6 +50,7 @@ const footerColumns: FooterColumn[] = [
     title: "Company",
     links: [
       { label: "Contact", href: "/contact-us" },
+      { label: "Feedback", href: "/feedback" },
       { label: "Privacy", href: "/privacy" },
       { label: "Terms", href: "/terms-and-conditions" },
       {

@@ -18,6 +18,9 @@ const CANDIDATE_ONLY_PREFIXES = [
   "/dashboard",
   "/welcome/candidate",
   "/marketplace",
+  "/connections",
+  "/find-recruiters",
+  "/find-candidates",
   "/my-profile",
   "/jobs",
 ];
@@ -28,6 +31,7 @@ const PROTECTED_PREFIXES = [
   ...CANDIDATE_ONLY_PREFIXES,
   ...RECRUITER_ONLY_PREFIXES,
   "/settings",
+  "/feedback",
 ];
 
 function matchesPrefix(pathname: string, prefixes: string[]): boolean {

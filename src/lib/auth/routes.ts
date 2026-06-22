@@ -3,9 +3,17 @@ export const RECRUITER_WELCOME_PATH = "/welcome/recruiter";
 
 export const CANDIDATE_DASHBOARD_PATH = "/dashboard";
 export const CANDIDATE_JOBS_PATH = "/jobs";
+export const CANDIDATE_FIND_RECRUITERS_PATH = "/find-recruiters";
+export const CANDIDATE_FIND_CANDIDATES_PATH = "/find-candidates";
+export const CANDIDATE_CONNECTIONS_PATH = "/connections";
+
+export function getCandidateJobPath(jobId: string): string {
+  return `${CANDIDATE_JOBS_PATH}?job=${encodeURIComponent(jobId)}`;
+}
 export const RECRUITER_DASHBOARD_PATH = "/recruiter/dashboard";
 export const RECRUITER_SEARCH_PATH = "/recruiter/search";
 export const RECRUITER_SAVED_PATH = "/recruiter/saved";
+export const RECRUITER_CONNECTIONS_PATH = "/recruiter/connections";
 export const RECRUITER_PROFILE_PATH = "/recruiter/profile";
 export const RECRUITER_PROFILE_ROLES_PATH = "/recruiter/profile?tab=roles";
 export const RECRUITER_PROFILE_EDIT_PATH = "/recruiter/profile/edit";

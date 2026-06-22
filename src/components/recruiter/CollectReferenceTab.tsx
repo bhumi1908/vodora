@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  ArrowRight,
   Briefcase,
   CheckCircle,
   FileText,
@@ -166,8 +167,10 @@ export function CollectReferenceTab({
               need to provide this reference once. It will be securely stored and
               reused with {form.candidateName}&apos;s permission.
             </p>
-            <div className="mt-4 rounded-xl bg-blue-600 px-6 py-3 text-center font-semibold text-white">
-              Complete Reference → vodora.com/ref/secure-link
+            <div className="mt-4 flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-3 text-center font-semibold text-white">
+              Complete Reference
+              <ArrowRight className="h-4 w-4 shrink-0" aria-hidden="true" />
+              vodora.com/ref/secure-link
             </div>
             <p className="pt-2 text-xs text-gray-400">
               This link expires in 14 days. Completing this reference takes

@@ -29,7 +29,7 @@ function EmailVerificationContent() {
     if (justRegistered) {
       startCooldown(RESEND_COOLDOWN_SECONDS);
     }
-  }, [justRegistered, startCooldown]);
+  }, [justRegistered, startCooldown]); 
 
   useEffect(() => {
     if (cooldownSeconds <= 0) {

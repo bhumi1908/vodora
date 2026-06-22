@@ -6,14 +6,30 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { UserProfileMenu } from "@/components/layout/UserProfileMenu";
-import { CANDIDATE_JOBS_PATH } from "@/lib/auth/routes";
+import { ConnectionNotificationBell } from "@/components/connections/ConnectionNotificationBell";
+import {
+  CANDIDATE_CONNECTIONS_PATH,
+  CANDIDATE_FIND_CANDIDATES_PATH,
+  CANDIDATE_FIND_RECRUITERS_PATH,
+  CANDIDATE_JOBS_PATH,
+} from "@/lib/auth/routes";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
 
 const appNavItems = [
-  { label: "Connect", href: "/marketplace", prefetch: false },
+  { label: "Connect", href: CANDIDATE_CONNECTIONS_PATH, prefetch: false },
   { label: "My Profile", href: "/my-profile" },
   { label: "Search for Jobs", href: CANDIDATE_JOBS_PATH, prefetch: false },
+  {
+    label: "Find Candidates",
+    href: CANDIDATE_FIND_CANDIDATES_PATH,
+    prefetch: false,
+  },
+  {
+    label: "Find Recruiters",
+    href: CANDIDATE_FIND_RECRUITERS_PATH,
+    prefetch: false,
+  },
 ];
 
 function AuthButtons({ onNavigate }: { onNavigate?: () => void }) {
@@ -163,11 +179,14 @@ export function SiteHeader() {
             <div className="hidden items-center gap-2 sm:gap-3 md:flex">
               {showAuthActions ? (
                 isLoggedIn && user ? (
-                  <UserProfileMenu
-                    user={user}
-                    variant="desktop"
-                    onSignOut={() => setUser(null)}
-                  />
+                  <>
+                    <ConnectionNotificationBell role="candidate" />
+                    <UserProfileMenu
+                      user={user}
+                      variant="desktop"
+                      onSignOut={() => setUser(null)}
+                    />
+                  </>
                 ) : (
                   <AuthButtons />
                 )
@@ -226,12 +245,17 @@ export function SiteHeader() {
               >
                 {showAuthActions ? (
                   isLoggedIn && user ? (
-                    <UserProfileMenu
-                      user={user}
-                      variant="mobile"
-                      onNavigate={closeMobileMenu}
-                      onSignOut={() => setUser(null)}
-                    />
+                    <>
+                      <div className="mb-2 flex justify-end">
+                        <ConnectionNotificationBell role="candidate" />
+                      </div>
+                      <UserProfileMenu
+                        user={user}
+                        variant="mobile"
+                        onNavigate={closeMobileMenu}
+                        onSignOut={() => setUser(null)}
+                      />
+                    </>
                   ) : (
                     <MobileAuthButtons onNavigate={closeMobileMenu} />
                   )

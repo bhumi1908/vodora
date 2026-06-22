@@ -7,7 +7,8 @@ import {
   SlidersHorizontal,
   X,
 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import { JobApplyModal } from "@/components/jobs/JobApplyModal";
 import { JobBoardDetailPanel } from "@/components/jobs/JobBoardDetailPanel";
@@ -15,13 +16,26 @@ import { JobBoardListCard } from "@/components/jobs/JobBoardListCard";
 import { JobFiltersSidebar } from "@/components/jobs/JobFiltersSidebar";
 import { CandidateJobBoardSkeleton } from "@/components/jobs/CandidateJobBoardSkeleton";
 import { getTotalPages, Pagination } from "@/components/ui/Pagination";
+import { getCandidateJobPath, CANDIDATE_JOBS_PATH } from "@/lib/auth/routes";
 import { CANDIDATE_JOBS_PAGE_SIZE } from "@/lib/jobs/job-board-options";
 import {
+  useAppliedJobIdsQuery,
   usePublishedJobDetailQuery,
   usePublishedJobsQuery,
 } from "@/lib/query/use-job-queries";
 
 export function CandidateJobBoard() {
+  return (
+    <Suspense fallback={<CandidateJobBoardSkeleton />}>
+      <CandidateJobBoardContent />
+    </Suspense>
+  );
+}
+
+function CandidateJobBoardContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const jobFromUrl = searchParams.get("job");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [selectedLocation, setSelectedLocation] = useState("All Locations");
@@ -29,7 +43,6 @@ export function CandidateJobBoard() {
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
   const [applyingJobId, setApplyingJobId] = useState<string | null>(null);
-  const [appliedJobs, setAppliedJobs] = useState<Set<string>>(new Set());
   const [page, setPage] = useState(1);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [mobileView, setMobileView] = useState<"list" | "detail">("list");
@@ -74,6 +87,8 @@ export function CandidateJobBoard() {
   const categoryCounts = jobsResult?.categoryCounts ?? {};
 
   const { data: selectedJobDetail } = usePublishedJobDetailQuery(selectedJobId);
+  const { data: appliedJobIds = [] } = useAppliedJobIdsQuery();
+  const appliedJobs = useMemo(() => new Set(appliedJobIds), [appliedJobIds]);
 
   const selectedJob =
     jobs.find((job) => job.id === selectedJobId) ??
@@ -87,14 +102,34 @@ export function CandidateJobBoard() {
     : null;
 
   useEffect(() => {
-    if (jobs.length > 0 && !jobs.some((job) => job.id === selectedJobId)) {
-      setSelectedJobId(jobs[0].id);
+    if (jobFromUrl) {
+      setSelectedJobId(jobFromUrl);
+      setMobileView("detail");
+    }
+  }, [jobFromUrl]);
+
+  useEffect(() => {
+    if (jobs.length === 0) {
+      if (!jobFromUrl) {
+        setSelectedJobId(null);
+      }
+      return;
     }
 
-    if (jobs.length === 0) {
-      setSelectedJobId(null);
+    if (selectedJobId) {
+      const inList = jobs.some((job) => job.id === selectedJobId);
+      const matchesDetail = selectedJobDetail?.id === selectedJobId;
+      const matchesUrl = jobFromUrl === selectedJobId;
+
+      if (inList || matchesDetail || matchesUrl) {
+        return;
+      }
     }
-  }, [jobs, selectedJobId]);
+
+    if (!selectedJobId && !jobFromUrl) {
+      setSelectedJobId(jobs[0].id);
+    }
+  }, [jobs, selectedJobId, selectedJobDetail, jobFromUrl]);
 
   useEffect(() => {
     if (page > totalPages && totalPages > 0) {
@@ -132,10 +167,14 @@ export function CandidateJobBoard() {
     setPage(1);
   }, []);
 
-  const handleSelectJob = useCallback((jobId: string) => {
-    setSelectedJobId(jobId);
-    setMobileView("detail");
-  }, []);
+  const handleSelectJob = useCallback(
+    (jobId: string) => {
+      setSelectedJobId(jobId);
+      setMobileView("detail");
+      router.replace(getCandidateJobPath(jobId), { scroll: false });
+    },
+    [router],
+  );
 
   const activeFilterCount = [
     selectedCategory !== "All",
@@ -201,7 +240,10 @@ export function CandidateJobBoard() {
         {mobileView === "detail" ? (
           <button
             type="button"
-            onClick={() => setMobileView("list")}
+            onClick={() => {
+              setMobileView("list");
+              router.replace(CANDIDATE_JOBS_PATH, { scroll: false });
+            }}
             className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -342,9 +384,9 @@ export function CandidateJobBoard() {
           job={applyingJob}
           open={Boolean(applyingJob)}
           onClose={() => setApplyingJobId(null)}
-          onApplied={() =>
-            setAppliedJobs((previous) => new Set([...previous, applyingJob.id]))
-          }
+          onApplied={() => {
+            /* applied job ids query is invalidated by submit mutation */
+          }}
         />
       ) : null}
     </div>

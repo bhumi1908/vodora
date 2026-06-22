@@ -1,3 +1,4 @@
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
@@ -9,6 +10,11 @@ import {
   getRecruiterCandidateProfilePath,
   RECRUITER_DASHBOARD_PATH,
 } from "@/lib/auth/routes";
+import { fetchRecruiterCandidateConnectionStatus } from "@/lib/connections/fetch-recruiter-candidate-connection-status";
+import {
+  redactPrivateProfileFields,
+  resolveProfileVisibility,
+} from "@/lib/profile/profile-visibility";
 import { getCachedRecruiterCandidateProfile } from "@/lib/recruiter/fetch-recruiter-candidate-profile";
 import { createClient } from "@/lib/supabase/server";
 
@@ -65,19 +71,34 @@ export default async function RecruiterCandidateProfilePage({
     notFound();
   }
 
+  const connection = profile.candidateId
+    ? await fetchRecruiterCandidateConnectionStatus(supabase, profile.candidateId)
+    : null;
+
+  const visibility = resolveProfileVisibility({
+    recruiterView: true,
+    connection,
+  });
+
+  const visibleProfile = redactPrivateProfileFields(
+    profile,
+    visibility.showContactDetails,
+  );
+
   return (
     <>
-      <div className="mx-auto max-w-5xl px-4 pt-6 sm:px-6">
+      <div className="mx-auto max-w-5xl px-3 pt-4 sm:px-6 sm:pt-6">
         <Link
           href={RECRUITER_DASHBOARD_PATH}
-          className="inline-flex text-sm font-medium text-blue-600 hover:text-blue-700"
+          className="inline-flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-700"
         >
-          ← Back to dashboard
+          <ArrowLeft className="h-4 w-4 shrink-0" aria-hidden="true" />
+          Back to dashboard
         </Link>
       </div>
       <RecruiterCandidateProfileWithCache
         vodoraId={vodoraId}
-        initialProfile={profile}
+        initialProfile={visibleProfile}
       />
     </>
   );

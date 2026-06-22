@@ -2,13 +2,12 @@
 
 import type { User } from "@supabase/supabase-js";
 import {
-  ArrowLeft,
-  Bell,
   Bookmark,
   Briefcase,
   LayoutGrid,
   Menu,
   Search,
+  UserCheck,
   UserRound,
   X,
 } from "lucide-react";
@@ -17,7 +16,9 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { RecruiterUserProfileMenu } from "@/components/layout/RecruiterUserProfileMenu";
+import { ConnectionNotificationBell } from "@/components/connections/ConnectionNotificationBell";
 import {
+  RECRUITER_CONNECTIONS_PATH,
   RECRUITER_DASHBOARD_PATH,
   RECRUITER_PROFILE_PATH,
   RECRUITER_SAVED_PATH,
@@ -46,6 +47,12 @@ const recruiterNavItems = [
     href: RECRUITER_SAVED_PATH,
     icon: Bookmark,
     isActive: (pathname: string) => pathname === RECRUITER_SAVED_PATH,
+  },
+  {
+    label: "Connections",
+    href: RECRUITER_CONNECTIONS_PATH,
+    icon: UserCheck,
+    isActive: (pathname: string) => pathname === RECRUITER_CONNECTIONS_PATH,
   },
   {
     label: "My Profile",
@@ -232,23 +239,7 @@ export function RecruiterAppHeader() {
             <div className="hidden items-center gap-2 md:flex lg:gap-3">
               {showAuthActions && isLoggedIn ? (
                 <>
-                  <Link
-                    href="/"
-                    className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
-                  >
-                    <ArrowLeft className="h-4 w-4" />
-                    Switch to Candidate
-                  </Link>
-                  <button
-                    type="button"
-                    disabled
-                    title="Notifications — coming soon"
-                    className="relative rounded-lg p-2 text-gray-500 opacity-60"
-                    aria-label="Notifications — coming soon"
-                  >
-                    <Bell className="h-5 w-5" />
-                    <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500" />
-                  </button>
+                  <ConnectionNotificationBell role="recruiter" />
                   {user ? (
                     <RecruiterUserProfileMenu
                       user={user}
@@ -306,14 +297,11 @@ export function RecruiterAppHeader() {
               </div>
 
               <div className="mt-4 space-y-2 border-t border-gray-100 pt-4">
-                <Link
-                  href="/"
-                  className="flex items-center gap-2 rounded-lg border border-gray-300 px-3 py-2.5 text-sm font-medium text-gray-700"
-                  onClick={closeMobileMenu}
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                  Switch to Candidate
-                </Link>
+                {showAuthActions && isLoggedIn ? (
+                  <div className="flex justify-end px-1 pb-1">
+                    <ConnectionNotificationBell role="recruiter" />
+                  </div>
+                ) : null}
 
                 {showAuthActions ? (
                   isLoggedIn && user ? (

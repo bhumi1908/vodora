@@ -5,7 +5,10 @@ import { useMemo } from "react";
 import { ProfileViewSkeleton } from "@/components/profile/ProfileViewSkeleton";
 import { ProfilePage } from "@/components/profile/ProfilePage";
 import { useRequiredMyProfileData } from "@/components/profile/MyProfileDataProvider";
-import { transformOwnCandidateProfileToView } from "@/lib/profile/transform-own-candidate-profile";
+import {
+  transformOwnCandidateProfileToEdit,
+  transformOwnCandidateProfileToView,
+} from "@/lib/profile/transform-own-candidate-profile";
 
 export function MyProfilePageClient() {
   const rawProfile = useRequiredMyProfileData();
@@ -13,11 +16,16 @@ export function MyProfilePageClient() {
     () => transformOwnCandidateProfileToView(rawProfile),
     [rawProfile],
   );
+  const editProfile = useMemo(
+    () => transformOwnCandidateProfileToEdit(rawProfile),
+    [rawProfile],
+  );
 
-  if (!profile) {
+  if (!profile || !editProfile) {
     return <ProfileViewSkeleton />;
   }
 
-  return <ProfilePage profile={profile} isOwnProfile />;
+  return (
+    <ProfilePage profile={profile} isOwnProfile editProfile={editProfile} />
+  );
 }
- 

@@ -1,4 +1,5 @@
 import { ExternalLink, FileText } from "lucide-react";
+import type { ReactNode } from "react";
 
 import { formatDocumentType } from "@/lib/profile/format";
 import type { CandidateProfileDocument } from "@/lib/profile/types";
@@ -6,6 +7,7 @@ import type { CandidateProfileDocument } from "@/lib/profile/types";
 type DocumentsTabProps = {
   documents: CandidateProfileDocument[];
   isOwnProfile: boolean;
+  editButton?: ReactNode;
 };
 
 function formatUploadedDate(value: string): string {
@@ -22,16 +24,25 @@ function formatUploadedDate(value: string): string {
   });
 }
 
-export function DocumentsTab({ documents, isOwnProfile }: DocumentsTabProps) {
+export function DocumentsTab({
+  documents,
+  isOwnProfile,
+  editButton,
+}: DocumentsTabProps) {
   return (
-    <div>
-      <div className="mb-4 flex items-center justify-between gap-4">
-        <h2 className="text-lg font-semibold text-gray-900">Documents</h2>
-        {isOwnProfile ? (
-          <span className="text-sm text-gray-500">
-            {documents.length} uploaded
-          </span>
-        ) : null}
+    <div className="min-w-0">
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+        <div className="flex min-w-0 items-center justify-between gap-3 sm:justify-start">
+          <h2 className="text-base font-semibold text-gray-900 sm:text-lg">
+            Documents
+          </h2>
+          {isOwnProfile ? (
+            <span className="shrink-0 text-xs text-gray-500 sm:text-sm">
+              {documents.length} uploaded
+            </span>
+          ) : null}
+        </div>
+        {editButton ? <div className="shrink-0 self-start">{editButton}</div> : null}
       </div>
 
       {documents.length === 0 ? (
@@ -44,17 +55,17 @@ export function DocumentsTab({ documents, isOwnProfile }: DocumentsTabProps) {
           {documents.map((document) => (
             <div
               key={document.id}
-              className="flex items-center justify-between gap-4 rounded-lg border border-gray-200 p-4"
+              className="flex flex-col gap-3 rounded-lg border border-gray-200 p-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:p-4"
             >
               <div className="flex min-w-0 items-start gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded bg-gray-100">
-                  <FileText className="h-5 w-5 text-gray-600" />
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded bg-gray-100 sm:h-10 sm:w-10">
+                  <FileText className="h-4 w-4 text-gray-600 sm:h-5 sm:w-5" />
                 </div>
-                <div className="min-w-0">
-                  <p className="truncate font-medium text-gray-900">
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-gray-900 sm:text-base">
                     {document.name}
                   </p>
-                  <p className="text-sm text-gray-500">
+                  <p className="mt-0.5 text-xs leading-relaxed text-gray-500 sm:text-sm">
                     {formatDocumentType(document.type)}
                     {document.isPrimary ? " · Primary" : ""}
                     {" · "}
@@ -67,7 +78,7 @@ export function DocumentsTab({ documents, isOwnProfile }: DocumentsTabProps) {
                 href={document.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex shrink-0 items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-700"
+                className="inline-flex shrink-0 items-center gap-1 self-start text-sm font-medium text-blue-600 hover:text-blue-700 sm:self-auto"
               >
                 View
                 <ExternalLink className="h-4 w-4" />
