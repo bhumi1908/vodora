@@ -7,8 +7,22 @@ export const REFERENCE_RELATIONSHIP_OPTIONS = [
   { value: "other", label: "Other" },
 ] as const;
 
+export const REFERENCE_TYPE_OPTIONS = [
+  { value: "written", label: "Written reference" },
+  { value: "questionnaire", label: "Structured questionnaire" },
+] as const;
+
 export type ReferenceRelationship =
   (typeof REFERENCE_RELATIONSHIP_OPTIONS)[number]["value"];
+
+export type ReferenceType = (typeof REFERENCE_TYPE_OPTIONS)[number]["value"];
+
+/** Legacy DB values (e.g. rating) map to the written reference flow. */
+export function normalizeReferenceType(value: string): ReferenceType {
+  return value === "questionnaire" ? "questionnaire" : "written";
+}
+
+import { createEmptyQuestionnaireAnswers, type QuestionnaireAnswers } from "@/lib/references/reference-questionnaire";
 
 export type RequestReferenceFormData = {
   name: string;
@@ -17,8 +31,27 @@ export type RequestReferenceFormData = {
   email: string;
   phone: string;
   relationship: ReferenceRelationship | "";
+  employmentStart: string;
+  employmentEnd: string;
+  referenceType: ReferenceType;
   message: string;
-  allowProfileCreation: boolean;
+  /** When true (default), auto-verify requires a company email domain. */
+  requireCompanyEmail: boolean;
+  employmentHistoryId: string;
+};
+
+export type ReferenceResponseFormData = {
+  employmentConfirmed: boolean;
+  positionHeld: string;
+  employmentDatesConfirmed: boolean;
+  performanceRating: string;
+  reliabilityRating: string;
+  teamworkRating: string;
+  leadershipRating: string;
+  rehireRecommendation: "" | "yes" | "no";
+  writtenComments: string;
+  questionnaireAnswers: QuestionnaireAnswers;
+  attestationConfirmed: boolean;
 };
 
 export function createEmptyReferenceRequest(): RequestReferenceFormData {
@@ -29,7 +62,75 @@ export function createEmptyReferenceRequest(): RequestReferenceFormData {
     email: "",
     phone: "",
     relationship: "",
+    employmentStart: "",
+    employmentEnd: "",
+    referenceType: "written",
     message: "",
-    allowProfileCreation: false,
+    requireCompanyEmail: true,
+    employmentHistoryId: "",
   };
+}
+
+export function createEmptyReferenceResponse(): ReferenceResponseFormData {
+  return {
+    employmentConfirmed: false,
+    positionHeld: "",
+    employmentDatesConfirmed: false,
+    performanceRating: "",
+    reliabilityRating: "",
+    teamworkRating: "",
+    leadershipRating: "",
+    rehireRecommendation: "",
+    writtenComments: "",
+    questionnaireAnswers: createEmptyQuestionnaireAnswers(),
+    attestationConfirmed: false,
+  };
+}
+
+export function getRelationshipLabel(value: string): string {
+  return (
+    REFERENCE_RELATIONSHIP_OPTIONS.find((option) => option.value === value)
+      ?.label ?? value
+  );
+}
+
+export function getReferenceTypeLabel(value: string): string {
+  const normalized = normalizeReferenceType(value);
+  return (
+    REFERENCE_TYPE_OPTIONS.find((option) => option.value === normalized)?.label ??
+    value
+  );
+}
+
+export function getReferenceStatusLabel(status: string): string {
+  switch (status) {
+    case "verified":
+      return "Verified";
+    case "submitted":
+      return "Pending Review";
+    case "pending":
+      return "Awaiting Referee";
+    case "rejected":
+      return "Rejected";
+    case "expired":
+      return "Expired";
+    case "cancelled":
+      return "Cancelled";
+    default:
+      return status;
+  }
+}
+
+export function getRefereeInitials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+
+  if (parts.length === 0) {
+    return "?";
+  }
+
+  if (parts.length === 1) {
+    return parts[0].slice(0, 2).toUpperCase();
+  }
+
+  return `${parts[0][0] ?? ""}${parts[1][0] ?? ""}`.toUpperCase();
 }

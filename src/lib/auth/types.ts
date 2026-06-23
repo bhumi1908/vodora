@@ -3,7 +3,8 @@ export type CandidateSignupProfile = {
   country: string;
   city: string;
   profession: string;
-  industryCategoryId: string;
+  industryCategoryId: string | null;
+  jobTitleId: string;
   workTypeCodes: string[];
   termsAccepted: boolean;
 };
@@ -30,10 +31,10 @@ export type CandidateSignupRequest = {
   password: string;
   country: string;
   city: string;
-  profession: string;
-  industry: string;
+  jobTitleId: string;
   workTypeCodes: string[];
   agreedToTerms: boolean;
+  redirect?: string;
 };
 
 export type RecruiterSignupRequest = {

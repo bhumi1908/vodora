@@ -7,6 +7,7 @@ import {
   isGuestOnlyRoute,
   isProtectedRoute,
   isRecruiterOnlyRoute,
+  isReferenceRoute,
 } from "@/lib/auth/route-protection";
 import {
   CANDIDATE_WELCOME_PATH,
@@ -20,6 +21,14 @@ function isWelcomePath(pathname: string): boolean {
     pathname === RECRUITER_WELCOME_PATH ||
     pathname.startsWith(`${CANDIDATE_WELCOME_PATH}/`) ||
     pathname.startsWith(`${RECRUITER_WELCOME_PATH}/`)
+  );
+}
+
+function isAllowedRedirectPathname(pathname: string): boolean {
+  return (
+    isProtectedRoute(pathname) ||
+    isWelcomePath(pathname) ||
+    isReferenceRoute(pathname)
   );
 }
 
@@ -40,7 +49,13 @@ export function parseSafeRedirectPath(
     return null;
   }
 
-  const pathname = trimmed.split("?")[0]?.split("#")[0];
+  const pathWithSearch = trimmed.split("#")[0];
+
+  if (!pathWithSearch) {
+    return null;
+  }
+
+  const pathname = pathWithSearch.split("?")[0];
 
   if (!pathname) {
     return null;
@@ -50,11 +65,11 @@ export function parseSafeRedirectPath(
     return null;
   }
 
-  if (!isProtectedRoute(pathname) && !isWelcomePath(pathname)) {
+  if (!isAllowedRedirectPathname(pathname)) {
     return null;
   }
 
-  return pathname;
+  return pathWithSearch;
 }
 
 export function isRedirectAllowedForAccountType(
@@ -85,7 +100,9 @@ export async function resolvePostLoginRedirect(
     return defaultRedirect;
   }
 
-  if (!isRedirectAllowedForAccountType(safePath, accountType)) {
+  const redirectPathname = safePath.split("?")[0] ?? safePath;
+
+  if (!isRedirectAllowedForAccountType(redirectPathname, accountType)) {
     return getDashboardPath(accountType);
   }
 

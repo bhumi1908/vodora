@@ -3,16 +3,10 @@
 import { Mail } from "lucide-react";
 import { useState } from "react";
 
-import {
-  AuthFormGrid,
-  FormError,
-  FormField,
-  FormSelect,
-  FormTextarea,
-} from "@/components/auth/shared/FormFields";
+import { FormError } from "@/components/auth/shared/FormFields";
+import { ReferenceRequestFormFields } from "@/components/profile/reference/ReferenceRequestFormFields";
 import {
   createEmptyReferenceRequest,
-  REFERENCE_RELATIONSHIP_OPTIONS,
   type RequestReferenceFormData,
 } from "@/components/profile/reference/types";
 import { useFieldErrors } from "@/hooks/useFieldErrors";
@@ -21,23 +15,36 @@ import {
   getReferenceFieldErrors,
   type ReferenceFieldErrors,
 } from "@/lib/profile/reference-validation";
+import { useInvalidateCandidateReferences } from "@/lib/query/use-reference-queries";
+import {
+  showReferenceRequestErrorToast,
+  showReferenceRequestSentToast,
+} from "@/lib/references/reference-toast";
+
+type EmploymentHistoryOption = {
+  id: string;
+  label: string;
+};
 
 type RequestReferenceFormProps = {
   onCancel?: () => void;
   onSubmitted?: (data: RequestReferenceFormData) => void;
   showActions?: boolean;
+  employmentHistoryOptions?: EmploymentHistoryOption[];
 };
 
 export function RequestReferenceForm({
   onCancel,
   onSubmitted,
   showActions = true,
+  employmentHistoryOptions = [],
 }: RequestReferenceFormProps) {
   const [form, setForm] = useState(createEmptyReferenceRequest);
   const { errors, setErrors, clearField } =
     useFieldErrors<keyof ReferenceFieldErrors>();
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const invalidateReferences = useInvalidateCandidateReferences();
 
   function updateField<K extends keyof RequestReferenceFormData>(
     field: K,
@@ -60,11 +67,42 @@ export function RequestReferenceForm({
     setErrors({});
     setError("");
 
-    // Frontend-only for now — API integration will be added later.
-    await new Promise((resolve) => setTimeout(resolve, 400));
+    try {
+      const response = await fetch("/api/candidate/references", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
 
-    setIsSubmitting(false);
-    onSubmitted?.(form);
+      const result = (await response.json()) as {
+        success: boolean;
+        error?: string;
+        fieldErrors?: ReferenceFieldErrors;
+      };
+
+      if (!response.ok || !result.success) {
+        if (result.fieldErrors) {
+          setErrors(result.fieldErrors);
+        }
+
+        const message =
+          result.error ?? "Unable to send reference request.";
+        setError(message);
+        showReferenceRequestErrorToast(message);
+        return;
+      }
+
+      showReferenceRequestSentToast(form.name);
+      invalidateReferences();
+      onSubmitted?.(form);
+      setForm(createEmptyReferenceRequest());
+    } catch {
+      const message = "Unable to send reference request. Please try again.";
+      setError(message);
+      showReferenceRequestErrorToast(message);
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -76,104 +114,12 @@ export function RequestReferenceForm({
       noValidate
       className="space-y-4"
     >
-      <AuthFormGrid>
-        <FormField
-          id="reference-name"
-          label="Name"
-          required
-          value={form.name}
-          onChange={(event) => updateField("name", event.target.value)}
-          placeholder="John Doe"
-          error={errors.name}
-        />
-        <FormField
-          id="reference-title"
-          label="Title"
-          required
-          value={form.title}
-          onChange={(event) => updateField("title", event.target.value)}
-          placeholder="Engineering Manager"
-          error={errors.title}
-        />
-      </AuthFormGrid>
-
-      <FormField
-        id="reference-company"
-        label="Company"
-        required
-        value={form.company}
-        onChange={(event) => updateField("company", event.target.value)}
-        placeholder="Company Name"
-        error={errors.company}
+      <ReferenceRequestFormFields
+        form={form}
+        errors={errors}
+        employmentHistoryOptions={employmentHistoryOptions}
+        onFieldChange={updateField}
       />
-
-      <AuthFormGrid>
-        <FormField
-          id="reference-email"
-          label="Email"
-          type="email"
-          required
-          value={form.email}
-          onChange={(event) => updateField("email", event.target.value)}
-          placeholder="john@example.com"
-          error={errors.email}
-        />
-        <FormField
-          id="reference-phone"
-          label="Phone"
-          type="tel"
-          required
-          value={form.phone}
-          onChange={(event) => updateField("phone", event.target.value)}
-          placeholder="+1 (555) 123-4567"
-          error={errors.phone}
-        />
-      </AuthFormGrid>
-
-      <FormSelect
-        id="reference-relationship"
-        label="Relationship"
-        required
-        value={form.relationship}
-        onChange={(event) =>
-          updateField(
-            "relationship",
-            event.target.value as RequestReferenceFormData["relationship"],
-          )
-        }
-        placeholder="Select relationship"
-        options={[...REFERENCE_RELATIONSHIP_OPTIONS]}
-        error={errors.relationship}
-      />
-
-      <FormTextarea
-        id="reference-message"
-        label="Message (Optional)"
-        value={form.message}
-        onChange={(event) => updateField("message", event.target.value)}
-        placeholder="Add a personal message to include in the reference request email..."
-        rows={4}
-      />
-
-      <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-blue-100 bg-blue-50 p-4">
-        <input
-          type="checkbox"
-          checked={form.allowProfileCreation}
-          onChange={(event) =>
-            updateField("allowProfileCreation", event.target.checked)
-          }
-          className="mt-0.5 h-4 w-4 shrink-0 rounded text-blue-600"
-        />
-        <span className="text-sm text-gray-700">
-          <span className="font-medium text-gray-900">
-            Allow Vodora to create a profile for this reference
-          </span>
-          <span className="mt-1 block text-gray-600">
-            We will invite them to join Vodora and create a professional
-            profile. They can decline at any time.
-          </span>
-        </span>
-      </label>
 
       {error ? <FormError message={error} /> : null}
 

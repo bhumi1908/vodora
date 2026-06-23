@@ -18,6 +18,7 @@ export function buildCandidateSignupProfile(
     city: input.city.trim(),
     profession: input.profession.trim(),
     industryCategoryId: input.industryCategoryId,
+    jobTitleId: input.jobTitleId,
     workTypeCodes: input.workTypeCodes,
     termsAccepted: input.termsAccepted,
   };
@@ -58,6 +59,7 @@ export async function completeSignupProfile(
       p_city: profile.city,
       p_profession: profile.profession,
       p_industry_category_id: profile.industryCategoryId,
+      p_job_title_id: profile.jobTitleId,
       p_work_type_codes: profile.workTypeCodes,
       p_terms_accepted: profile.termsAccepted,
     });

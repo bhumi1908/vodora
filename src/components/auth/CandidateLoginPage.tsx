@@ -104,6 +104,9 @@ function LoginFormContent({ emailFeaturesEnabled }: LoginFormContentProps) {
           if (isRecruiterLogin) {
             verifyUrl.searchParams.set("type", "recruiter");
           }
+          if (redirectAfterLogin) {
+            verifyUrl.searchParams.set("redirect", redirectAfterLogin);
+          }
           router.push(`${verifyUrl.pathname}?${verifyUrl.searchParams.toString()}`);
           return;
         }

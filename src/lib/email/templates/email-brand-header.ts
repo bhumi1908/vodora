@@ -1,3 +1,4 @@
+import { Briefcase } from "lucide-react";
 const VODORA_LOGO_BOX_SIZE_PX = 36;
 const VODORA_LOGO_ICON_SIZE_PX = 16;
 const VODORA_BLUE = "#2563eb";
@@ -13,11 +14,11 @@ function buildVodoraLogoMarkHtml(): string {
   return `<table role="presentation" cellspacing="0" cellpadding="0" style="width:${VODORA_LOGO_BOX_SIZE_PX}px;height:${VODORA_LOGO_BOX_SIZE_PX}px;background-color:${VODORA_BLUE};border-radius:6px;">
   <tr>
     <td align="center" valign="middle" style="width:${VODORA_LOGO_BOX_SIZE_PX}px;height:${VODORA_LOGO_BOX_SIZE_PX}px;line-height:0;">
-      ${VODORA_BRIEFCASE_ICON_SVG}
+      <Briefcase className="h-4 w-4 bg-blue-600" />
     </td>
   </tr>
 </table>`;
-}
+} 
 
 /** Vodora logo mark + wordmark for transactional emails. */
 export function buildEmailBrandHeaderHtml(): string {

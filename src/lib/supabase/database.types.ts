@@ -150,6 +150,7 @@ export type Database = {
           id: string;
           industry_category_id: string | null;
           is_profile_complete: boolean;
+          job_title_id: string | null;
           linkedin_import_data: Json | null;
           linkedin_imported_at: string | null;
           linkedin_profile_url: string | null;
@@ -179,6 +180,7 @@ export type Database = {
           id?: string;
           industry_category_id?: string | null;
           is_profile_complete?: boolean;
+          job_title_id?: string | null;
           linkedin_import_data?: Json | null;
           linkedin_imported_at?: string | null;
           linkedin_profile_url?: string | null;
@@ -208,6 +210,7 @@ export type Database = {
           id?: string;
           industry_category_id?: string | null;
           is_profile_complete?: boolean;
+          job_title_id?: string | null;
           linkedin_import_data?: Json | null;
           linkedin_imported_at?: string | null;
           linkedin_profile_url?: string | null;
@@ -220,7 +223,15 @@ export type Database = {
           visibility?: string;
           vodora_id?: string;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "candidates_job_title_id_fkey";
+            columns: ["job_title_id"];
+            isOneToOne: false;
+            referencedRelation: "job_titles";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       companies: {
         Row: {
@@ -423,6 +434,117 @@ export type Database = {
         };
         Relationships: [];
       };
+      job_categories: {
+        Row: {
+          code: string;
+          created_at: string;
+          id: string;
+          industry_category_id: string | null;
+          is_active: boolean;
+          name: string;
+          sort_order: number;
+        };
+        Insert: {
+          code: string;
+          created_at?: string;
+          id?: string;
+          industry_category_id?: string | null;
+          is_active?: boolean;
+          name: string;
+          sort_order?: number;
+        };
+        Update: {
+          code?: string;
+          created_at?: string;
+          id?: string;
+          industry_category_id?: string | null;
+          is_active?: boolean;
+          name?: string;
+          sort_order?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "job_categories_industry_category_id_fkey";
+            columns: ["industry_category_id"];
+            isOneToOne: false;
+            referencedRelation: "industry_categories";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      job_subcategories: {
+        Row: {
+          category_id: string;
+          code: string;
+          created_at: string;
+          id: string;
+          is_active: boolean;
+          name: string;
+          sort_order: number;
+        };
+        Insert: {
+          category_id: string;
+          code: string;
+          created_at?: string;
+          id?: string;
+          is_active?: boolean;
+          name: string;
+          sort_order?: number;
+        };
+        Update: {
+          category_id?: string;
+          code?: string;
+          created_at?: string;
+          id?: string;
+          is_active?: boolean;
+          name?: string;
+          sort_order?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "job_subcategories_category_id_fkey";
+            columns: ["category_id"];
+            isOneToOne: false;
+            referencedRelation: "job_categories";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      job_titles: {
+        Row: {
+          created_at: string;
+          id: string;
+          is_active: boolean;
+          name: string;
+          sort_order: number;
+          subcategory_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          is_active?: boolean;
+          name: string;
+          sort_order?: number;
+          subcategory_id: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          is_active?: boolean;
+          name?: string;
+          sort_order?: number;
+          subcategory_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "job_titles_subcategory_id_fkey";
+            columns: ["subcategory_id"];
+            isOneToOne: false;
+            referencedRelation: "job_subcategories";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       job_applications: {
         Row: {
           applied_at: string;
@@ -597,6 +719,249 @@ export type Database = {
           id?: string;
           recruiter_id?: string;
           saved_at?: string;
+        };
+        Relationships: [];
+      };
+      reference_passport_shares: {
+        Row: {
+          candidate_id: string;
+          created_at: string;
+          expires_at: string | null;
+          id: string;
+          included_reference_ids: string[];
+          is_active: boolean;
+          permissions: Json;
+          share_token: string;
+          share_type: string;
+          updated_at: string;
+          view_count: number;
+        };
+        Insert: {
+          candidate_id: string;
+          created_at?: string;
+          expires_at?: string | null;
+          id?: string;
+          included_reference_ids?: string[];
+          is_active?: boolean;
+          permissions?: Json;
+          share_token?: string;
+          share_type: string;
+          updated_at?: string;
+          view_count?: number;
+        };
+        Update: {
+          candidate_id?: string;
+          created_at?: string;
+          expires_at?: string | null;
+          id?: string;
+          included_reference_ids?: string[];
+          is_active?: boolean;
+          permissions?: Json;
+          share_token?: string;
+          share_type?: string;
+          updated_at?: string;
+          view_count?: number;
+        };
+        Relationships: [];
+      };
+      reference_requests: {
+        Row: {
+          candidate_id: string;
+          candidate_message: string | null;
+          created_at: string;
+          employment_end: string | null;
+          employment_history_id: string | null;
+          employment_start: string | null;
+          id: string;
+          invitation_expires_at: string;
+          invitation_sent_at: string | null;
+          invitation_token: string;
+          referee_company: string;
+          referee_email: string;
+          referee_name: string;
+          referee_phone: string | null;
+          referee_title: string;
+          referee_user_id: string | null;
+          reference_type: string;
+          require_company_email: boolean;
+          rejection_reason: string | null;
+          relationship: string;
+          requested_by_recruiter_id: string | null;
+          requested_by_type: string;
+          requested_by_user_id: string;
+          status: string;
+          submitted_at: string | null;
+          updated_at: string;
+          verified_at: string | null;
+          verified_by_user_id: string | null;
+        };
+        Insert: {
+          candidate_id: string;
+          candidate_message?: string | null;
+          created_at?: string;
+          employment_end?: string | null;
+          employment_history_id?: string | null;
+          employment_start?: string | null;
+          id?: string;
+          invitation_expires_at?: string;
+          invitation_sent_at?: string | null;
+          invitation_token?: string;
+          referee_company: string;
+          referee_email: string;
+          referee_name: string;
+          referee_phone?: string | null;
+          referee_title: string;
+          referee_user_id?: string | null;
+          reference_type?: string;
+          require_company_email?: boolean;
+          rejection_reason?: string | null;
+          relationship: string;
+          requested_by_recruiter_id?: string | null;
+          requested_by_type: string;
+          requested_by_user_id: string;
+          status?: string;
+          submitted_at?: string | null;
+          updated_at?: string;
+          verified_at?: string | null;
+          verified_by_user_id?: string | null;
+        };
+        Update: {
+          candidate_id?: string;
+          candidate_message?: string | null;
+          created_at?: string;
+          employment_end?: string | null;
+          employment_history_id?: string | null;
+          employment_start?: string | null;
+          id?: string;
+          invitation_expires_at?: string;
+          invitation_sent_at?: string | null;
+          invitation_token?: string;
+          referee_company?: string;
+          referee_email?: string;
+          referee_name?: string;
+          referee_phone?: string | null;
+          referee_title?: string;
+          referee_user_id?: string | null;
+          reference_type?: string;
+          require_company_email?: boolean;
+          rejection_reason?: string | null;
+          relationship?: string;
+          requested_by_recruiter_id?: string | null;
+          requested_by_type?: string;
+          requested_by_user_id?: string;
+          status?: string;
+          submitted_at?: string | null;
+          updated_at?: string;
+          verified_at?: string | null;
+          verified_by_user_id?: string | null;
+        };
+        Relationships: [];
+      };
+      reference_responses: {
+        Row: {
+          attestation_confirmed: boolean;
+          employment_confirmed: boolean;
+          employment_dates_confirmed: boolean;
+          id: string;
+          leadership_rating: number | null;
+          performance_rating: number | null;
+          position_held: string | null;
+          questionnaire_responses: Json | null;
+          reference_request_id: string;
+          rehire_recommendation: boolean | null;
+          reliability_rating: number | null;
+          submitted_at: string;
+          submitted_by_user_id: string;
+          teamwork_rating: number | null;
+          written_comments: string | null;
+        };
+        Insert: {
+          attestation_confirmed?: boolean;
+          employment_confirmed?: boolean;
+          employment_dates_confirmed?: boolean;
+          id?: string;
+          leadership_rating?: number | null;
+          performance_rating?: number | null;
+          position_held?: string | null;
+          questionnaire_responses?: Json | null;
+          reference_request_id: string;
+          rehire_recommendation?: boolean | null;
+          reliability_rating?: number | null;
+          submitted_at?: string;
+          submitted_by_user_id: string;
+          teamwork_rating?: number | null;
+          written_comments?: string | null;
+        };
+        Update: {
+          attestation_confirmed?: boolean;
+          employment_confirmed?: boolean;
+          employment_dates_confirmed?: boolean;
+          id?: string;
+          leadership_rating?: number | null;
+          performance_rating?: number | null;
+          position_held?: string | null;
+          questionnaire_responses?: Json | null;
+          reference_request_id?: string;
+          rehire_recommendation?: boolean | null;
+          reliability_rating?: number | null;
+          submitted_at?: string;
+          submitted_by_user_id?: string;
+          teamwork_rating?: number | null;
+          written_comments?: string | null;
+        };
+        Relationships: [];
+      };
+      reference_share_views: {
+        Row: {
+          id: string;
+          share_id: string;
+          viewed_at: string;
+          viewer_user_id: string;
+        };
+        Insert: {
+          id?: string;
+          share_id: string;
+          viewed_at?: string;
+          viewer_user_id: string;
+        };
+        Update: {
+          id?: string;
+          share_id?: string;
+          viewed_at?: string;
+          viewer_user_id?: string;
+        };
+        Relationships: [];
+      };
+      reference_verifications: {
+        Row: {
+          created_at: string;
+          id: string;
+          metadata: Json | null;
+          method: string;
+          notes: string | null;
+          reference_request_id: string;
+          status: string;
+          verified_by_user_id: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          metadata?: Json | null;
+          method: string;
+          notes?: string | null;
+          reference_request_id: string;
+          status?: string;
+          verified_by_user_id?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          metadata?: Json | null;
+          method?: string;
+          notes?: string | null;
+          reference_request_id?: string;
+          status?: string;
+          verified_by_user_id?: string | null;
         };
         Relationships: [];
       };
@@ -1045,6 +1410,7 @@ export type Database = {
           p_city: string;
           p_country: string;
           p_industry_category_id: string;
+          p_job_title_id?: string;
           p_profession: string;
           p_terms_accepted?: boolean;
           p_work_type_codes: string[];
@@ -1063,6 +1429,20 @@ export type Database = {
           p_terms_accepted?: boolean;
           p_website: string;
         };
+        Returns: string;
+      };
+      count_verified_references: {
+        Args: {
+          p_candidate_id: string;
+        };
+        Returns: number;
+      };
+      is_platform_admin: {
+        Args: Record<PropertyKey, never>;
+        Returns: boolean;
+      };
+      auth_user_email: {
+        Args: Record<PropertyKey, never>;
         Returns: string;
       };
       record_user_login: {

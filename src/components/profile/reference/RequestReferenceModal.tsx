@@ -7,16 +7,23 @@ import { RequestReferenceForm } from "@/components/profile/reference/RequestRefe
 import type { RequestReferenceFormData } from "@/components/profile/reference/types";
 import { Modal } from "@/components/ui/Modal";
 
+type EmploymentHistoryOption = {
+  id: string;
+  label: string;
+};
+
 type RequestReferenceModalProps = {
   open: boolean;
   onClose: () => void;
   onSubmitted?: (data: RequestReferenceFormData) => void;
+  employmentHistoryOptions?: EmploymentHistoryOption[];
 };
 
 export function RequestReferenceModal({
   open,
   onClose,
   onSubmitted,
+  employmentHistoryOptions = [],
 }: RequestReferenceModalProps) {
   const [submitted, setSubmitted] = useState(false);
 
@@ -38,7 +45,7 @@ export function RequestReferenceModal({
       description={
         submitted
           ? undefined
-          : "An email will be sent to request their reference"
+          : "An email will be sent to your referee with a secure link"
       }
       maxWidthClassName="max-w-2xl"
     >
@@ -48,8 +55,8 @@ export function RequestReferenceModal({
             <CheckCircle className="h-7 w-7 text-green-600" />
           </div>
           <p className="text-sm text-gray-600">
-            Your reference request has been prepared. Email delivery will be
-            enabled once the backend is connected.
+            Your reference request has been sent. The referee will receive an
+            email with a secure link shortly.
           </p>
           <button
             type="button"
@@ -60,7 +67,11 @@ export function RequestReferenceModal({
           </button>
         </div>
       ) : (
-        <RequestReferenceForm onCancel={handleClose} onSubmitted={handleSubmitted} />
+        <RequestReferenceForm
+          onCancel={handleClose}
+          onSubmitted={handleSubmitted}
+          employmentHistoryOptions={employmentHistoryOptions}
+        />
       )}
     </Modal>
   );

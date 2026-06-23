@@ -19,6 +19,7 @@ import {
   type WelcomeProfileTaskId,
 } from "@/components/welcome/WelcomeTaskModal";
 import { CANDIDATE_DASHBOARD_PATH } from "@/lib/auth/routes";
+import { useCandidateReferencesQuery } from "@/lib/query/use-reference-queries";
 
 type CandidateWelcomeProps = {
   profile: CandidateProfileEditData;
@@ -76,7 +77,21 @@ export function CandidateWelcome({ profile }: CandidateWelcomeProps) {
   const [activeProfileTask, setActiveProfileTask] =
     useState<WelcomeProfileTaskId | null>(null);
   const [referenceModalOpen, setReferenceModalOpen] = useState(false);
-  const [referenceRequested, setReferenceRequested] = useState(false);
+  const { data: references = [] } = useCandidateReferencesQuery();
+  const referenceRequested = references.length > 0;
+
+  const employmentHistoryOptions = useMemo(
+    () =>
+      profile.experience
+        .filter((entry): entry is typeof entry & { id: string } =>
+          Boolean(entry.id),
+        )
+        .map((entry) => ({
+          id: entry.id,
+          label: `${entry.title} at ${entry.company}`,
+        })),
+    [profile.experience],
+  );
 
   const progress = useMemo(
     () => calculateProgress(profile, referenceRequested),
@@ -197,7 +212,7 @@ export function CandidateWelcome({ profile }: CandidateWelcomeProps) {
         <RequestReferenceModal
           open={referenceModalOpen}
           onClose={() => setReferenceModalOpen(false)}
-          onSubmitted={() => setReferenceRequested(true)}
+          employmentHistoryOptions={employmentHistoryOptions}
         />
       </div>
     </div>

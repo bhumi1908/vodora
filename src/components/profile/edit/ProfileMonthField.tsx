@@ -23,6 +23,8 @@ type ProfileMonthFieldProps = {
   onChange: (event: ChangeEvent<HTMLInputElement>) => void;
   required?: boolean;
   disabled?: boolean;
+  min?: string;
+  max?: string;
   hint?: string;
   error?: string;
 };
@@ -34,6 +36,8 @@ export function ProfileMonthField({
   onChange,
   required = false,
   disabled = false,
+  min,
+  max,
   hint,
   error,
 }: ProfileMonthFieldProps) {
@@ -49,7 +53,8 @@ export function ProfileMonthField({
         required={required}
         disabled={disabled}
         value={value}
-        max={getMaxMonthInput()}
+        min={min}
+        max={max ?? getMaxMonthInput()}
         onChange={onChange}
         aria-invalid={error ? true : undefined}
         className={getFieldClassName(error)}

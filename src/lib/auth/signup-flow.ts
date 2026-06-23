@@ -3,6 +3,7 @@ import type { SupabaseClient, User } from "@supabase/supabase-js";
 import { EMAIL_FEATURES_ENABLED } from "@/lib/auth/email-features";
 import { queueVerificationEmail } from "@/lib/auth/email-verification";
 import { getAuthErrorMessage } from "@/lib/auth/errors";
+import { parseSafeRedirectPath } from "@/lib/auth/safe-redirect";
 import { env } from "@/lib/env";
 import { createAdminClient } from "@/lib/supabase/admin";
 import {
@@ -19,6 +20,7 @@ type SignUpParams = {
   lastName: string;
   signupProfile: SignupProfile;
   origin: string;
+  redirect?: string;
 };
 
 export async function runSignupFlow(
@@ -57,6 +59,8 @@ export async function runSignupFlow(
 
   const admin = createAdminClient();
 
+  const safeRedirect = parseSafeRedirectPath(params.redirect);
+
   if (EMAIL_FEATURES_ENABLED) {
     await admin
       .from("users")
@@ -66,6 +70,7 @@ export async function runSignupFlow(
     void queueVerificationEmail(data.user.id, params.origin, {
       email: params.email.trim(),
       recipientName: `${params.firstName.trim()} ${params.lastName.trim()}`.trim(),
+      redirect: safeRedirect,
     }).catch((sendError) => {
       console.error("Verification email setup failed:", sendError);
     });
@@ -75,6 +80,10 @@ export async function runSignupFlow(
       email,
       pending: "1",
     });
+
+    if (safeRedirect) {
+      verifyParams.set("redirect", safeRedirect);
+    }
 
     return {
       success: true,
@@ -95,11 +104,17 @@ export async function runSignupFlow(
     .update({ email_verified_at: verifiedAt })
     .eq("id", data.user.id);
 
+  const loginParams = new URLSearchParams({ registered: "1" });
+
+  if (safeRedirect) {
+    loginParams.set("redirect", safeRedirect);
+  }
+
   return {
     success: true,
     needsEmailConfirmation: false,
     email: params.email.trim(),
-    redirectTo: "/login?registered=1",
+    redirectTo: `/login?${loginParams.toString()}`,
   };
 }
 

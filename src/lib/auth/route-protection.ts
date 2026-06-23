@@ -9,10 +9,16 @@ import {
   getUnverifiedSessionRedirect,
 } from "@/lib/auth/email-verification-status";
 import { getDashboardPath } from "@/lib/auth/routes";
+import {
+  isRedirectAllowedForAccountType,
+  parseSafeRedirectPath,
+} from "@/lib/auth/safe-redirect";
 
 const GUEST_ONLY_PREFIXES = ["/login", "/signup", "/forgot-password"];
 
-const UNVERIFIED_ALLOWED_PREFIXES = ["/verify-email"];
+const UNVERIFIED_ALLOWED_PREFIXES = ["/verify-email", "/reference"];
+
+const REFERENCE_PREFIXES = ["/reference"];
 
 const CANDIDATE_ONLY_PREFIXES = [
   "/dashboard",
@@ -48,6 +54,10 @@ export function isUnverifiedAllowedRoute(pathname: string): boolean {
   return matchesPrefix(pathname, UNVERIFIED_ALLOWED_PREFIXES);
 }
 
+export function isReferenceRoute(pathname: string): boolean {
+  return matchesPrefix(pathname, REFERENCE_PREFIXES);
+}
+
 function isApiRoute(pathname: string): boolean {
   return pathname.startsWith("/api/");
 }
@@ -73,6 +83,7 @@ export async function getRouteProtectionRedirect(
   supabase: SupabaseClient,
   user: User | null,
   pathname: string,
+  requestedRedirect?: string | null,
 ): Promise<string | null> {
   if (user && !isApiRoute(pathname)) {
     const unverifiedRedirect = await getUnverifiedSessionRedirect(
@@ -90,6 +101,17 @@ export async function getRouteProtectionRedirect(
   }
 
   if (user && isGuestOnlyRoute(pathname)) {
+    const safeRedirect = parseSafeRedirectPath(requestedRedirect);
+
+    if (safeRedirect) {
+      const redirectPathname = safeRedirect.split("?")[0] ?? safeRedirect;
+      const accountType = await getAccountType(supabase, user);
+
+      if (isRedirectAllowedForAccountType(redirectPathname, accountType)) {
+        return safeRedirect;
+      }
+    }
+
     const accountType = await getAccountType(supabase, user);
     return getDashboardPath(accountType);
   }

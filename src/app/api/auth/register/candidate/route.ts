@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 
-import { resolveIndustryCategoryId } from "@/lib/auth/industry";
 import { buildCandidateSignupProfile } from "@/lib/auth/registration";
 import {
   getRequestOrigin,
@@ -8,6 +7,8 @@ import {
 } from "@/lib/auth/signup-flow";
 import type { CandidateSignupRequest } from "@/lib/auth/types";
 import { validateCandidateSignup } from "@/lib/auth/validation";
+import { resolveIndustryCategoryId } from "@/lib/auth/industry";
+import { resolveJobTitleForSignup } from "@/lib/job-titles/resolve-job-title";
 import { createClient } from "@/lib/supabase/server";
 
 export async function POST(request: Request) {
@@ -32,21 +33,44 @@ export async function POST(request: Request) {
 
   const supabase = await createClient();
 
-  const { id: industryCategoryId, error: industryError } =
-    await resolveIndustryCategoryId(supabase, body.industry!);
+  const { jobTitle, error: jobTitleError } = await resolveJobTitleForSignup(
+    body.jobTitleId!,
+  );
 
-  if (industryError || !industryCategoryId) {
+  if (jobTitleError || !jobTitle) {
     return NextResponse.json(
-      { success: false, error: industryError ?? "Invalid industry." },
+      { success: false, error: jobTitleError ?? "Invalid job title." },
       { status: 400 },
     );
+  }
+
+  let industryCategoryId = jobTitle.industryCategoryId;
+
+  if (!industryCategoryId) {
+    const { id, error: industryError } = await resolveIndustryCategoryId(
+      supabase,
+      "other",
+    );
+
+    if (industryError || !id) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: industryError ?? "Unable to resolve industry category.",
+        },
+        { status: 400 },
+      );
+    }
+
+    industryCategoryId = id;
   }
 
   const signupProfile = buildCandidateSignupProfile({
     country: body.country!,
     city: body.city!,
-    profession: body.profession!,
+    profession: jobTitle.name,
     industryCategoryId,
+    jobTitleId: jobTitle.id,
     workTypeCodes: body.workTypeCodes!,
     termsAccepted: body.agreedToTerms!,
   });
@@ -60,6 +84,7 @@ export async function POST(request: Request) {
     lastName: body.lastName!,
     signupProfile,
     origin,
+    redirect: body.redirect,
   });
 
   return NextResponse.json(result, { status: result.success ? 200 : 400 });

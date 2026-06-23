@@ -49,6 +49,7 @@ export async function updateSession(request: NextRequest) {
     supabase,
     user,
     request.nextUrl.pathname,
+    request.nextUrl.searchParams.get("redirect"),
   );
 
   if (redirectPath) {

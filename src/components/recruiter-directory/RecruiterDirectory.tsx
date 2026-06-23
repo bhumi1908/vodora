@@ -101,10 +101,7 @@ function ConnectModal({
           <button
             type="button"
             onClick={onConnected}
-            className="w-full rounded-xl bg-blue-600 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-700 sm:text-base"
-          >
-            Done
-          </button>
+            className="w-full rounded-xl bg-blue-600 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-700 sm:text-base">Done</button>
         </div>
       </div>
     );
@@ -367,11 +364,10 @@ export function RecruiterDirectory() {
               key={spec}
               type="button"
               onClick={() => handleSpecialisationChange(spec)}
-              className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition-colors sm:px-4 sm:py-2 sm:text-sm ${
-                selectedSpec === spec
-                  ? "bg-blue-600 text-white"
-                  : "border border-gray-200 bg-white text-gray-600 hover:border-blue-300 hover:text-blue-600"
-              }`}
+              className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition-colors sm:px-4 sm:py-2 sm:text-sm ${selectedSpec === spec
+                ? "bg-blue-600 text-white"
+                : "border border-gray-200 bg-white text-gray-600 hover:border-blue-300 hover:text-blue-600"
+                }`}
             >
               {spec}
             </button>
@@ -389,29 +385,26 @@ export function RecruiterDirectory() {
 
       {error ? (
         <div
-          className={`rounded-xl border p-5 text-center sm:rounded-2xl sm:p-8 ${
-            isMissingRpcError(error.message)
-              ? "border-amber-200 bg-amber-50"
-              : "border-red-200 bg-red-50"
-          }`}
+          className={`rounded-xl border p-5 text-center sm:rounded-2xl sm:p-8 ${isMissingRpcError(error.message)
+            ? "border-amber-200 bg-amber-50"
+            : "border-red-200 bg-red-50"
+            }`}
         >
           <p
-            className={`text-sm font-medium ${
-              isMissingRpcError(error.message)
-                ? "text-amber-900"
-                : "text-red-900"
-            }`}
+            className={`text-sm font-medium ${isMissingRpcError(error.message)
+              ? "text-amber-900"
+              : "text-red-900"
+              }`}
           >
             {isMissingRpcError(error.message)
               ? "Database setup required"
               : "Could not load recruiters"}
           </p>
           <p
-            className={`mt-2 text-sm ${
-              isMissingRpcError(error.message)
-                ? "text-amber-800"
-                : "text-red-700"
-            }`}
+            className={`mt-2 text-sm ${isMissingRpcError(error.message)
+              ? "text-amber-800"
+              : "text-red-700"
+              }`}
           >
             {isMissingRpcError(error.message) ? (
               <>
@@ -510,7 +503,7 @@ export function RecruiterDirectory() {
                     </div>
 
                     {recruiter.specialisations.length > 0 ||
-                    recruiter.industries.length > 0 ? (
+                      recruiter.industries.length > 0 ? (
                       <div className="mt-4 flex flex-wrap gap-1.5">
                         {recruiter.specialisations.map((specialisation) => (
                           <span

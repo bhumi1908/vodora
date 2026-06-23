@@ -6,6 +6,7 @@ import {
   buildVerifyEmailHtml,
   buildVerifyEmailText,
 } from "@/lib/email/templates/verify-email";
+import { parseSafeRedirectPath } from "@/lib/auth/safe-redirect";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const VERIFICATION_TOKEN_BYTES = 32;
@@ -39,9 +40,19 @@ export function generateVerificationToken(): {
   return { token, tokenHash: hashVerificationToken(token) };
 }
 
-export function buildVerifyEmailUrl(origin: string, token: string): string {
+export function buildVerifyEmailUrl(
+  origin: string,
+  token: string,
+  redirect?: string | null,
+): string {
   const url = new URL("/api/auth/verify-email", origin);
   url.searchParams.set("token", token);
+  const safeRedirect = redirect?.trim();
+
+  if (safeRedirect) {
+    url.searchParams.set("redirect", safeRedirect);
+  }
+
   return url.toString();
 }
 
@@ -185,7 +196,11 @@ type VerificationEmailPayload = {
 async function buildVerificationEmailPayload(
   userId: string,
   origin: string,
-  overrides?: { email?: string; recipientName?: string },
+  overrides?: {
+    email?: string;
+    recipientName?: string;
+    redirect?: string | null;
+  },
 ): Promise<VerificationEmailPayload | null> {
   const recipient = await resolveVerificationRecipient(userId, overrides);
 
@@ -199,11 +214,12 @@ async function buildVerificationEmailPayload(
 
   const { token, tokenHash } = generateVerificationToken();
   await storeVerificationToken(userId, tokenHash);
+  const safeRedirect = parseSafeRedirectPath(overrides?.redirect);
 
   return {
     email: recipient.email,
     recipientName: recipient.recipientName,
-    verifyUrl: buildVerifyEmailUrl(origin, token),
+    verifyUrl: buildVerifyEmailUrl(origin, token, safeRedirect),
   };
 }
 
@@ -231,7 +247,11 @@ async function deliverVerificationEmail(
 export async function sendVerificationEmail(
   userId: string,
   origin: string,
-  overrides?: { email?: string; recipientName?: string },
+  overrides?: {
+    email?: string;
+    recipientName?: string;
+    redirect?: string | null;
+  },
 ): Promise<void> {
   const payload = await buildVerificationEmailPayload(userId, origin, overrides);
 
@@ -245,7 +265,11 @@ export async function sendVerificationEmail(
 export async function queueVerificationEmail(
   userId: string,
   origin: string,
-  overrides?: { email?: string; recipientName?: string },
+  overrides?: {
+    email?: string;
+    recipientName?: string;
+    redirect?: string | null;
+  },
 ): Promise<void> {
   const payload = await buildVerificationEmailPayload(userId, origin, overrides);
 

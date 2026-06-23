@@ -9,7 +9,12 @@ export const metadata: Metadata = {
   description: "Sign in to your Vodora account",
 };
 
-export default async function LoginPage() {
-  await redirectIfAuthenticated();
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ redirect?: string }>;
+}) {
+  const params = await searchParams;
+  await redirectIfAuthenticated(params.redirect);
   return <LoginForm emailFeaturesEnabled={EMAIL_FEATURES_ENABLED} />;
 }

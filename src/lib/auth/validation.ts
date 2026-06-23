@@ -92,12 +92,8 @@ export function getCandidateSignupFieldErrors(
     errors.city = "City is required.";
   }
 
-  if (!isNonEmpty(input.profession)) {
-    errors.profession = "Profession is required.";
-  }
-
-  if (!isNonEmpty(input.industry)) {
-    errors.industry = "Industry is required.";
+  if (!isNonEmpty(input.jobTitleId)) {
+    errors.jobTitleId = "Job title is required.";
   }
 
   if (!Array.isArray(input.workTypeCodes) || input.workTypeCodes.length === 0) {

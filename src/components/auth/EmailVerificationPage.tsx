@@ -12,9 +12,19 @@ const RESEND_COOLDOWN_SECONDS = 60;
 function EmailVerificationContent() {
   const searchParams = useSearchParams();
   const email = searchParams.get("email")?.trim() ?? "";
+  const redirectAfterAuth = searchParams.get("redirect");
   const justRegistered = searchParams.get("pending") === "1";
   const isRecruiterLogin = searchParams.get("type") === "recruiter";
-  const loginHref = isRecruiterLogin ? "/login?type=recruiter" : "/login";
+  const loginParams = new URLSearchParams();
+  if (isRecruiterLogin) {
+    loginParams.set("type", "recruiter");
+  }
+  if (redirectAfterAuth) {
+    loginParams.set("redirect", redirectAfterAuth);
+  }
+  const loginHref = loginParams.toString()
+    ? `/login?${loginParams.toString()}`
+    : "/login";
   const [formError, setFormError] = useState("");
   const [successMessage, setSuccessMessage] = useState(
     justRegistered ? "Verification email sent. Please check your inbox." : "",

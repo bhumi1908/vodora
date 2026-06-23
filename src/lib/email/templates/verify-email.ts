@@ -1,4 +1,5 @@
 import { buildEmailBrandHeaderHtml } from "@/lib/email/templates/email-brand-header";
+import { buildEmailFallbackLinkHtml } from "@/lib/email/templates/email-fallback-link";
 
 type VerifyEmailParams = {
   verifyUrl: string;
@@ -42,12 +43,7 @@ export function buildVerifyEmailHtml({
               <a href="${verifyUrl}" style="display:inline-block;padding:14px 32px;background-color:#2563eb;color:#ffffff;font-size:16px;font-weight:600;text-decoration:none;border-radius:8px;">
                 Verify my email
               </a>
-              <p style="margin:24px 0 0;font-size:13px;line-height:1.6;color:#6b7280;">
-                If the button does not work, copy and paste this link into your browser:
-              </p>
-              <p style="margin:8px 0 0;font-size:12px;line-height:1.5;color:#2563eb;word-break:break-all;">
-                ${verifyUrl}
-              </p>
+              ${buildEmailFallbackLinkHtml(verifyUrl)}
             </td>
           </tr>
           <tr>
