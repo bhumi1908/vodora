@@ -26,6 +26,10 @@ export function getRecruiterCandidateProfilePath(vodoraId: string): string {
   return `/recruiter/candidates/${encodeURIComponent(vodoraId)}`;
 }
 
+export function getReferenceSharePath(shareToken: string): string {
+  return `/share/${encodeURIComponent(shareToken)}`;
+}
+
 export function getWelcomePath(accountType: "candidate" | "recruiter"): string {
   return accountType === "recruiter"
     ? RECRUITER_WELCOME_PATH

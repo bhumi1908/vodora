@@ -4,6 +4,8 @@ import type {
   SubmitJobApplicationPayload,
   SubmitJobApplicationResult,
 } from "@/lib/jobs/job-application.types";
+import { createReferenceRecruiterGrant } from "@/lib/references/create-reference-recruiter-grant";
+import { resolveIncludedReferenceIds } from "@/lib/references/resolve-included-reference-ids";
 import { requireOwnCandidate } from "@/lib/profile/require-own-candidate";
 import type { Database } from "@/lib/supabase/database.types";
 
@@ -34,9 +36,24 @@ export async function submitJobApplication(
     };
   }
 
+  const resolvedReferences = await resolveIncludedReferenceIds(
+    supabase,
+    candidateContext.candidateId,
+    payload.referencesAttached ?? false,
+    payload.includedReferenceIds,
+  );
+
+  if (resolvedReferences.error) {
+    return {
+      applicationId: "",
+      alreadyApplied: false,
+      error: resolvedReferences.error,
+    };
+  }
+
   const { data: jobPosting, error: jobError } = await supabase
     .from("job_postings")
-    .select("id, status, closes_at")
+    .select("id, status, closes_at, recruiter_id")
     .eq("id", jobPostingId)
     .maybeSingle();
 
@@ -121,7 +138,8 @@ export async function submitJobApplication(
       cover_letter: coverLetter,
       resume_document_id: resumeDocument.id,
       cover_letter_document_id: coverLetterDocumentId,
-      references_attached: payload.referencesAttached ?? false,
+      references_attached: resolvedReferences.referencesAttached,
+      included_reference_ids: resolvedReferences.includedReferenceIds,
       status: "applied",
     })
     .select("id")
@@ -145,6 +163,24 @@ export async function submitJobApplication(
       alreadyApplied: false,
       error: insertError.message,
     };
+  }
+
+  if (resolvedReferences.referencesAttached) {
+    const grantResult = await createReferenceRecruiterGrant(supabase, {
+      candidateId: candidateContext.candidateId,
+      recruiterId: jobPosting.recruiter_id,
+      jobApplicationId: inserted.id,
+      shareType: resolvedReferences.shareType,
+      includedReferenceIds: resolvedReferences.includedReferenceIds,
+    });
+
+    if (!grantResult.success) {
+      return {
+        applicationId: inserted.id,
+        alreadyApplied: false,
+        error: grantResult.error ?? null,
+      };
+    }
   }
 
   const { error: profileUpdateError } = await supabase

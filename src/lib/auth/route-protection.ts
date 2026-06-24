@@ -20,6 +20,8 @@ const UNVERIFIED_ALLOWED_PREFIXES = ["/verify-email", "/reference"];
 
 const REFERENCE_PREFIXES = ["/reference"];
 
+const SHARE_PREFIXES = ["/share"];
+
 const CANDIDATE_ONLY_PREFIXES = [
   "/dashboard",
   "/welcome/candidate",
@@ -36,6 +38,7 @@ const RECRUITER_ONLY_PREFIXES = ["/recruiter", "/welcome/recruiter"];
 const PROTECTED_PREFIXES = [
   ...CANDIDATE_ONLY_PREFIXES,
   ...RECRUITER_ONLY_PREFIXES,
+  ...SHARE_PREFIXES,
   "/settings",
   "/feedback",
 ];

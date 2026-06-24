@@ -27,6 +27,7 @@ export type ProfileVisibilityOptions = {
   visitorPreview?: boolean;
   recruiterView?: boolean;
   connection?: ProfileConnectionState;
+  hasReferenceAccess?: boolean;
 };
 
 export type ProfileVisibility = {
@@ -51,6 +52,7 @@ export function resolveProfileVisibility(
   const isOwnProfile = options.isOwnProfile ?? false;
   const visitorPreview = options.visitorPreview ?? false;
   const recruiterView = options.recruiterView ?? false;
+  const hasReferenceAccess = options.hasReferenceAccess ?? false;
   const connected = isConnected(options.connection ?? null);
 
   const isOwnerView = isOwnProfile && !visitorPreview;
@@ -59,6 +61,11 @@ export function resolveProfileVisibility(
   const isConnectedRecruiterView = recruiterView && connected;
 
   const showPrivateDetails = isOwnerView || isConnectedRecruiterView;
+  const baseTabIds = isBasicExternalView ? BASIC_EXTERNAL_TABS : ALL_TABS;
+  const visibleTabIds =
+    isOwnerView || hasReferenceAccess
+      ? baseTabIds
+      : baseTabIds.filter((tabId) => tabId !== "references");
 
   return {
     showContactDetails: showPrivateDetails,
@@ -69,7 +76,7 @@ export function resolveProfileVisibility(
     showRestrictedNotice: isBasicExternalView,
     showConnectInHeader: recruiterView && !visitorPreview,
     showConnectPreview: visitorPreview,
-    visibleTabIds: isBasicExternalView ? BASIC_EXTERNAL_TABS : ALL_TABS,
+    visibleTabIds,
   };
 }
 

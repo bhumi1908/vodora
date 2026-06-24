@@ -4,7 +4,7 @@ import type {
   RecruiterSearchFilters,
   RecruiterSearchResult,
 } from "@/lib/recruiter/search.types";
-import type { CandidateProfileData } from "@/lib/profile/types";
+import type { RecruiterCandidateProfileResult } from "@/lib/recruiter/recruiter-candidate-profile.types";
 
 export const RECRUITER_SEARCH_PAGE_SIZE = 10;
 export const RECRUITER_SAVED_PAGE_SIZE = 10;
@@ -171,19 +171,22 @@ export async function fetchRecruiterSearchFilters(): Promise<RecruiterSearchFilt
 
 export async function fetchRecruiterCandidateProfile(
   vodoraId: string,
-): Promise<CandidateProfileData> {
+): Promise<RecruiterCandidateProfileResult> {
   const response = await fetch(
     `/api/recruiter/candidates/profile/${encodeURIComponent(vodoraId)}`,
   );
   const payload = await parseJson<
-    { profile: CandidateProfileData } & ApiSuccess<{ profile: CandidateProfileData }>
+    RecruiterCandidateProfileResult & ApiSuccess<RecruiterCandidateProfileResult>
   >(response);
 
   if (!response.ok || !payload.success || !payload.profile) {
     throw new Error(payload.error ?? "Could not load candidate profile.");
   }
 
-  return payload.profile;
+  return {
+    profile: payload.profile,
+    hasReferenceAccess: payload.hasReferenceAccess ?? false,
+  };
 }
 
 export async function toggleRecruiterCandidateSave(

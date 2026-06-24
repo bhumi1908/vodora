@@ -98,6 +98,7 @@ export async function POST(request: Request, context: RouteContext) {
     coverLetter?: unknown;
     coverLetterDocumentId?: unknown;
     referencesAttached?: unknown;
+    includedReferenceIds?: unknown;
   };
 
   try {
@@ -121,6 +122,12 @@ export async function POST(request: Request, context: RouteContext) {
       ? body.coverLetterDocumentId
       : null;
 
+  const includedReferenceIds = Array.isArray(body.includedReferenceIds)
+    ? body.includedReferenceIds.filter(
+        (value): value is string => typeof value === "string" && value.length > 0,
+      )
+    : undefined;
+
   const result = await submitJobApplication(supabase, id, {
     coverLetter: body.coverLetter,
     coverLetterDocumentId,
@@ -128,6 +135,7 @@ export async function POST(request: Request, context: RouteContext) {
       typeof body.referencesAttached === "boolean"
         ? body.referencesAttached
         : false,
+    includedReferenceIds,
   });
 
   if (result.error) {

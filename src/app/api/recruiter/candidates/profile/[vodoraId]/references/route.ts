@@ -1,12 +1,8 @@
 import { NextResponse } from "next/server";
 
 import { getAccountType } from "@/lib/auth/account-type";
-import { fetchRecruiterCandidateConnectionStatus } from "@/lib/connections/fetch-recruiter-candidate-connection-status";
 import { checkRecruiterReferenceGrant } from "@/lib/references/check-recruiter-reference-grant";
-import {
-  redactPrivateProfileFields,
-  resolveProfileVisibility,
-} from "@/lib/profile/profile-visibility";
+import { fetchRecruiterCandidateReferences } from "@/lib/references/fetch-recruiter-candidate-references";
 import { getCachedRecruiterCandidateProfile } from "@/lib/recruiter/fetch-recruiter-candidate-profile";
 import { createClient } from "@/lib/supabase/server";
 
@@ -39,35 +35,39 @@ export async function GET(_request: Request, context: RouteContext) {
 
   const profile = await getCachedRecruiterCandidateProfile(supabase, vodoraId);
 
-  if (!profile) {
+  if (!profile?.candidateId) {
     return NextResponse.json(
       { success: false, error: "Candidate not found." },
       { status: 404 },
     );
   }
 
-  const connection = profile.candidateId
-    ? await fetchRecruiterCandidateConnectionStatus(supabase, profile.candidateId)
-    : null;
-
-  const hasReferenceAccess = profile.candidateId
-    ? await checkRecruiterReferenceGrant(supabase, profile.candidateId)
-    : false;
-
-  const visibility = resolveProfileVisibility({
-    recruiterView: true,
-    connection,
-    hasReferenceAccess,
-  });
-
-  const visibleProfile = redactPrivateProfileFields(
-    profile,
-    visibility.showContactDetails,
+  const hasGrant = await checkRecruiterReferenceGrant(
+    supabase,
+    profile.candidateId,
   );
+
+  if (!hasGrant) {
+    return NextResponse.json(
+      { success: false, error: "Reference access not granted." },
+      { status: 403 },
+    );
+  }
+
+  const result = await fetchRecruiterCandidateReferences(
+    supabase,
+    profile.candidateId,
+  );
+
+  if (result.error) {
+    return NextResponse.json(
+      { success: false, error: result.error },
+      { status: 500 },
+    );
+  }
 
   return NextResponse.json({
     success: true,
-    profile: visibleProfile,
-    hasReferenceAccess,
+    references: result.references,
   });
 }

@@ -18,6 +18,7 @@ type ProfilePageProps = {
   isOwnProfile?: boolean;
   recruiterView?: boolean;
   connection?: ProfileConnectionState;
+  hasReferenceAccess?: boolean;
   onConnectionChange?: () => void;
   editProfile?: CandidateProfileEditData | null;
 };
@@ -27,6 +28,7 @@ export function ProfilePage({
   isOwnProfile = false,
   recruiterView = false,
   connection = null,
+  hasReferenceAccess = false,
   onConnectionChange,
   editProfile = null,
 }: ProfilePageProps) {
@@ -42,8 +44,9 @@ export function ProfilePage({
         visitorPreview,
         recruiterView,
         connection,
+        hasReferenceAccess,
       }),
-    [connection, isOwnProfile, recruiterView, visitorPreview],
+    [connection, hasReferenceAccess, isOwnProfile, recruiterView, visitorPreview],
   );
 
   function openEditSection(sectionId: ProfileSectionId) {

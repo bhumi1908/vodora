@@ -11,6 +11,7 @@ import {
   RECRUITER_DASHBOARD_PATH,
 } from "@/lib/auth/routes";
 import { fetchRecruiterCandidateConnectionStatus } from "@/lib/connections/fetch-recruiter-candidate-connection-status";
+import { checkRecruiterReferenceGrant } from "@/lib/references/check-recruiter-reference-grant";
 import {
   redactPrivateProfileFields,
   resolveProfileVisibility,
@@ -75,9 +76,14 @@ export default async function RecruiterCandidateProfilePage({
     ? await fetchRecruiterCandidateConnectionStatus(supabase, profile.candidateId)
     : null;
 
+  const hasReferenceAccess = profile.candidateId
+    ? await checkRecruiterReferenceGrant(supabase, profile.candidateId)
+    : false;
+
   const visibility = resolveProfileVisibility({
     recruiterView: true,
     connection,
+    hasReferenceAccess,
   });
 
   const visibleProfile = redactPrivateProfileFields(
@@ -99,6 +105,7 @@ export default async function RecruiterCandidateProfilePage({
       <RecruiterCandidateProfileWithCache
         vodoraId={vodoraId}
         initialProfile={visibleProfile}
+        initialHasReferenceAccess={hasReferenceAccess}
       />
     </>
   );

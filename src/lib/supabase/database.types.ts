@@ -552,6 +552,7 @@ export type Database = {
           cover_letter: string | null;
           cover_letter_document_id: string | null;
           id: string;
+          included_reference_ids: string[];
           job_posting_id: string;
           references_attached: boolean;
           resume_document_id: string | null;
@@ -564,6 +565,7 @@ export type Database = {
           cover_letter?: string | null;
           cover_letter_document_id?: string | null;
           id?: string;
+          included_reference_ids?: string[];
           job_posting_id: string;
           references_attached?: boolean;
           resume_document_id?: string | null;
@@ -576,6 +578,7 @@ export type Database = {
           cover_letter?: string | null;
           cover_letter_document_id?: string | null;
           id?: string;
+          included_reference_ids?: string[];
           job_posting_id?: string;
           references_attached?: boolean;
           resume_document_id?: string | null;
@@ -761,6 +764,48 @@ export type Database = {
           share_type?: string;
           updated_at?: string;
           view_count?: number;
+        };
+        Relationships: [];
+      };
+      reference_recruiter_grants: {
+        Row: {
+          candidate_id: string;
+          created_at: string;
+          grant_source: string;
+          id: string;
+          included_reference_ids: string[];
+          job_application_id: string | null;
+          permissions: Json;
+          recruiter_id: string;
+          revoked_at: string | null;
+          share_type: string;
+          updated_at: string;
+        };
+        Insert: {
+          candidate_id: string;
+          created_at?: string;
+          grant_source?: string;
+          id?: string;
+          included_reference_ids?: string[];
+          job_application_id?: string | null;
+          permissions?: Json;
+          recruiter_id: string;
+          revoked_at?: string | null;
+          share_type: string;
+          updated_at?: string;
+        };
+        Update: {
+          candidate_id?: string;
+          created_at?: string;
+          grant_source?: string;
+          id?: string;
+          included_reference_ids?: string[];
+          job_application_id?: string | null;
+          permissions?: Json;
+          recruiter_id?: string;
+          revoked_at?: string | null;
+          share_type?: string;
+          updated_at?: string;
         };
         Relationships: [];
       };
@@ -1261,6 +1306,24 @@ export type Database = {
       get_recruiter_candidate_profile: {
         Args: {
           p_vodora_id: string;
+        };
+        Returns: Json;
+      };
+      recruiter_has_reference_grant: {
+        Args: {
+          p_candidate_id: string;
+        };
+        Returns: boolean;
+      };
+      get_recruiter_candidate_references: {
+        Args: {
+          p_candidate_id: string;
+        };
+        Returns: Json;
+      };
+      open_reference_share_link: {
+        Args: {
+          p_share_token: string;
         };
         Returns: Json;
       };
