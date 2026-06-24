@@ -7,6 +7,8 @@ export const candidatePeerKeys = {
   filters: () => [...candidatePeerKeys.all, "filters"] as const,
   search: (params: CandidatePeerSearchQueryParams) =>
     [...candidatePeerKeys.all, "search", params] as const,
+  candidateProfile: (vodoraId: string) =>
+    [...candidatePeerKeys.all, "profile", vodoraId] as const,
 };
 
 export type CandidatePeerSearchQueryParams = CandidatePeerSearchParams & {

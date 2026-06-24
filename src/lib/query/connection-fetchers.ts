@@ -253,3 +253,18 @@ export async function fetchRecruiterCandidateConnectionStatus(
 
   return payload.connection ?? null;
 }
+
+export async function fetchCandidatePeerConnectionStatus(
+  candidateId: string,
+): Promise<ProfileConnectionState> {
+  const response = await fetch(
+    `/api/candidate/candidates/${candidateId}/connection-status`,
+  );
+  const payload = (await response.json()) as ApiStatusResponse;
+
+  if (!response.ok || !payload.success) {
+    throw new Error(payload.error ?? "Could not load connection status.");
+  }
+
+  return payload.connection ?? null;
+}

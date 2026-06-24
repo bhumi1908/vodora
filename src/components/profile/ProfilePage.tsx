@@ -17,6 +17,7 @@ type ProfilePageProps = {
   profile: CandidateProfileData;
   isOwnProfile?: boolean;
   recruiterView?: boolean;
+  peerView?: boolean;
   connection?: ProfileConnectionState;
   hasReferenceAccess?: boolean;
   onConnectionChange?: () => void;
@@ -27,6 +28,7 @@ export function ProfilePage({
   profile,
   isOwnProfile = false,
   recruiterView = false,
+  peerView = false,
   connection = null,
   hasReferenceAccess = false,
   onConnectionChange,
@@ -43,10 +45,18 @@ export function ProfilePage({
         isOwnProfile,
         visitorPreview,
         recruiterView,
+        peerView,
         connection,
         hasReferenceAccess,
       }),
-    [connection, hasReferenceAccess, isOwnProfile, recruiterView, visitorPreview],
+    [
+      connection,
+      hasReferenceAccess,
+      isOwnProfile,
+      peerView,
+      recruiterView,
+      visitorPreview,
+    ],
   );
 
   function openEditSection(sectionId: ProfileSectionId) {
@@ -62,6 +72,7 @@ export function ProfilePage({
       <ProfileHeader
         profile={profile}
         visibility={visibility}
+        peerView={peerView}
         connection={connection}
         onConnectionChange={onConnectionChange}
         onShareClick={() => setShareModalOpen(true)}

@@ -29,6 +29,7 @@ const CANDIDATE_ONLY_PREFIXES = [
   "/connections",
   "/find-recruiters",
   "/find-candidates",
+  "/candidates",
   "/my-profile",
   "/jobs",
 ];

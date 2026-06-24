@@ -14,4 +14,6 @@ export const connectionKeys = {
   ) => [...connectionKeys.all, "list", role, tab, { page, limit }] as const,
   profileStatus: (candidateId: string) =>
     [...connectionKeys.all, "profile-status", candidateId] as const,
+  peerProfileStatus: (candidateId: string) =>
+    [...connectionKeys.all, "peer-profile-status", candidateId] as const,
 };

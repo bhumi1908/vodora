@@ -37,9 +37,12 @@ export function useCandidatePeerConnectMutation() {
       candidateId: string;
       message?: string;
     }) => sendCandidatePeerConnectionRequest(candidateId, message),
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       void queryClient.invalidateQueries({ queryKey: candidatePeerKeys.all });
       void queryClient.invalidateQueries({ queryKey: connectionKeys.all });
+      void queryClient.invalidateQueries({
+        queryKey: connectionKeys.peerProfileStatus(variables.candidateId),
+      });
     },
   });
 }

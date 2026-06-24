@@ -17,6 +17,7 @@ import type {
 } from "@/lib/connections/connection.types";
 import {
   CANDIDATE_FIND_RECRUITERS_PATH,
+  getCandidatePeerProfilePath,
   getRecruiterCandidateProfilePath,
   RECRUITER_SEARCH_PATH,
 } from "@/lib/auth/routes";
@@ -71,7 +72,7 @@ export function ConnectionListCard(props: ConnectionListCardProps) {
       : props.role === "candidate" &&
           props.connection.connectionType === "candidate_candidate" &&
           props.connection.vodoraId
-        ? getRecruiterCandidateProfilePath(props.connection.vodoraId)
+        ? getCandidatePeerProfilePath(props.connection.vodoraId)
         : props.role === "candidate"
           ? CANDIDATE_FIND_RECRUITERS_PATH
           : RECRUITER_SEARCH_PATH;
@@ -177,8 +178,10 @@ export function ConnectionListCard(props: ConnectionListCardProps) {
               </button>
             </>
           ) : tab === "connected" &&
-            props.role === "recruiter" &&
-            props.connection.vodoraId ? (
+            props.connection.vodoraId &&
+            (props.role === "recruiter" ||
+              (props.role === "candidate" &&
+                props.connection.connectionType === "candidate_candidate")) ? (
             <Link
               href={profileHref}
               className="inline-flex items-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700 transition-colors hover:bg-blue-100"

@@ -6,7 +6,10 @@ import Link from "next/link";
 import { CandidatePeerConnectButton } from "@/components/candidate-directory/CandidatePeerConnectButton";
 import { CandidateSaveButton } from "@/components/recruiter/CandidateSaveButton";
 import type { CandidatePeerSearchCandidate } from "@/lib/candidate/candidate-peer-search.types";
-import { getRecruiterCandidateProfilePath } from "@/lib/auth/routes";
+import {
+  getCandidatePeerProfilePath,
+  getRecruiterCandidateProfilePath,
+} from "@/lib/auth/routes";
 import type { RecruiterCandidateCardData } from "@/lib/recruiter/dashboard.types";
 import { formatCandidateAvailability } from "@/lib/recruiter/format-candidate-availability";
 import { formatLocation, getInitials } from "@/lib/profile/format";
@@ -149,10 +152,18 @@ function CandidateDirectoryListCard({
                   </Link>
                 </>
               ) : peerCandidate && onConnect ? (
-                <CandidatePeerConnectButton
-                  candidate={peerCandidate}
-                  onConnect={onConnect}
-                />
+                <>
+                  <CandidatePeerConnectButton
+                    candidate={peerCandidate}
+                    onConnect={onConnect}
+                  />
+                  <Link
+                    href={getCandidatePeerProfilePath(candidate.vodoraId)}
+                    className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-1.5 text-sm font-medium text-blue-700 transition-colors hover:bg-blue-100"
+                  >
+                    View Profile
+                  </Link>
+                </>
               ) : null}
             </div>
           </div>
