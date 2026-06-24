@@ -4,6 +4,7 @@ import { Briefcase, MapPin, Plus } from "lucide-react";
 
 import { RecruiterActiveRolesSkeleton } from "@/components/recruiter/RecruiterActiveRolesSkeleton";
 import { RecruiterCreateJobModal } from "@/components/recruiter/RecruiterCreateJobModal";
+import { RecruiterEditJobModal } from "@/components/recruiter/RecruiterEditJobModal";
 import { RecruiterJobCard } from "@/components/recruiter/RecruiterJobCard";
 import { useRecruiterJobsQuery } from "@/lib/query/use-job-queries";
 import { useState } from "react";
@@ -16,6 +17,7 @@ export function RecruiterActiveRolesTab({
   defaultCompanyName,
 }: RecruiterActiveRolesTabProps) {
   const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [editingJobId, setEditingJobId] = useState<string | null>(null);
   const { data, isPending, isError, error } = useRecruiterJobsQuery();
   const jobs = data?.jobs ?? [];
   const workTypes = data?.workTypes ?? [];
@@ -70,7 +72,11 @@ export function RecruiterActiveRolesTab({
       {!isPending && !isError && jobs.length > 0 ? (
         <div className="space-y-4">
           {jobs.map((role) => (
-            <RecruiterJobCard key={role.id} role={role} />
+            <RecruiterJobCard
+              key={role.id}
+              role={role}
+              onEdit={setEditingJobId}
+            />
           ))}
         </div>
       ) : null}
@@ -78,6 +84,14 @@ export function RecruiterActiveRolesTab({
       <RecruiterCreateJobModal
         open={createModalOpen}
         onClose={() => setCreateModalOpen(false)}
+        defaultCompanyName={defaultCompanyName}
+        workTypes={workTypes}
+      />
+
+      <RecruiterEditJobModal
+        jobId={editingJobId}
+        open={Boolean(editingJobId)}
+        onClose={() => setEditingJobId(null)}
         defaultCompanyName={defaultCompanyName}
         workTypes={workTypes}
       />

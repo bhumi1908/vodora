@@ -26,6 +26,10 @@ export function getRecruiterCandidateProfilePath(vodoraId: string): string {
   return `/recruiter/candidates/${encodeURIComponent(vodoraId)}`;
 }
 
+export function getRecruiterJobApplicantsPath(jobId: string): string {
+  return `/recruiter/jobs/${encodeURIComponent(jobId)}/applicants`;
+}
+
 export function getReferenceSharePath(shareToken: string): string {
   return `/share/${encodeURIComponent(shareToken)}`;
 }

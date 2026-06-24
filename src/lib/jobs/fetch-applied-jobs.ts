@@ -1,25 +1,13 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-import type { JobApplicationStatus } from "@/lib/jobs/candidate-jobs.types";
 import { fetchJobPostingsByIds } from "@/lib/jobs/fetch-published-jobs";
 import { formatRelativePosted } from "@/lib/jobs/format-job-posting";
 import type { CandidateAppliedJob } from "@/lib/jobs/job-application.types";
+import { mapApplicationStatus } from "@/lib/jobs/map-application-status";
 import { requireOwnCandidate } from "@/lib/profile/require-own-candidate";
 import type { Database } from "@/lib/supabase/database.types";
 
 type Supabase = SupabaseClient<Database>;
-
-function mapApplicationStatus(dbStatus: string): JobApplicationStatus {
-  const statusMap: Record<string, JobApplicationStatus> = {
-    applied: "Applied",
-    shortlisted: "Shortlisted",
-    interview: "Interview",
-    offer: "Offer",
-    unsuccessful: "Unsuccessful",
-  };
-
-  return statusMap[dbStatus.toLowerCase()] ?? "Applied";
-}
 
 export async function fetchAppliedJobs(
   supabase: Supabase,

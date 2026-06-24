@@ -1,4 +1,5 @@
 export const CANDIDATE_JOBS_PAGE_SIZE = 5;
+export const RECRUITER_JOB_APPLICANTS_PAGE_SIZE = 5;
 
 export const JOB_CATEGORIES = [
   "All",

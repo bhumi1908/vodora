@@ -50,3 +50,20 @@ export type CreateJobPostingFieldErrors = Partial<
     string
   >
 >;
+
+export type RecruiterJobDetail = {
+  id: string;
+  title: string;
+  companyDisplayName: string;
+  category: string;
+  location: string;
+  workTypeId: string;
+  salaryDisplay: string;
+  description: string;
+  responsibilities: string[];
+  requirements: string[];
+  isUrgent: boolean;
+  status: string;
+};
+
+export type UpdateJobPostingPayload = CreateJobPostingPayload;

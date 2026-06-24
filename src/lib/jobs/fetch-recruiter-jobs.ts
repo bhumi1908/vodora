@@ -8,7 +8,9 @@ import {
   transformRecruiterJobPostingRow,
   type RecruiterJobPostingRow,
 } from "@/lib/jobs/format-job-posting";
-import { computeAvgTimeToHireDays } from "@/lib/jobs/format-recruiter-job-stats";import type {
+import { computeAvgTimeToHireDays } from "@/lib/jobs/format-recruiter-job-stats";
+import type {
+  RecruiterJobDetail,
   RecruiterJobStats,
   WorkTypeOption,
 } from "@/lib/jobs/recruiter-jobs.types";
@@ -243,6 +245,106 @@ export async function createRecruiterJobPosting(
       is_urgent: payload.isUrgent,
       status: payload.status,
     })
+    .select("id")
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}
+
+export async function fetchRecruiterJobPostingById(
+  supabase: Supabase,
+  recruiterId: string,
+  jobId: string,
+): Promise<RecruiterJobDetail | null> {
+  const { data, error } = await supabase
+    .from("job_postings")
+    .select(
+      "id, title, company_display_name, category, location, work_type_id, salary_display, description, responsibilities, requirements, is_urgent, status",
+    )
+    .eq("id", jobId)
+    .eq("recruiter_id", recruiterId)
+    .in("status", ["published", "draft"])
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  if (!data) {
+    return null;
+  }
+
+  return {
+    id: data.id,
+    title: data.title,
+    companyDisplayName: data.company_display_name,
+    category: data.category,
+    location: data.location,
+    workTypeId: data.work_type_id,
+    salaryDisplay: data.salary_display ?? "",
+    description: data.description,
+    responsibilities: data.responsibilities ?? [],
+    requirements: data.requirements ?? [],
+    isUrgent: data.is_urgent,
+    status: data.status,
+  };
+}
+
+export async function updateRecruiterJobPosting(
+  supabase: Supabase,
+  recruiterId: string,
+  jobId: string,
+  payload: {
+    title: string;
+    companyDisplayName: string;
+    category: string;
+    location: string;
+    workTypeId: string;
+    salaryDisplay: string | null;
+    description: string;
+    responsibilities: string[];
+    requirements: string[];
+    isUrgent: boolean;
+    status: "draft" | "published";
+  },
+) {
+  const { data: existing, error: existingError } = await supabase
+    .from("job_postings")
+    .select("id")
+    .eq("id", jobId)
+    .eq("recruiter_id", recruiterId)
+    .in("status", ["published", "draft"])
+    .maybeSingle();
+
+  if (existingError) {
+    throw existingError;
+  }
+
+  if (!existing) {
+    return null;
+  }
+
+  const { data, error } = await supabase
+    .from("job_postings")
+    .update({
+      title: payload.title,
+      company_display_name: payload.companyDisplayName,
+      category: payload.category,
+      location: payload.location,
+      work_type_id: payload.workTypeId,
+      salary_display: payload.salaryDisplay,
+      description: payload.description,
+      responsibilities: payload.responsibilities,
+      requirements: payload.requirements,
+      is_urgent: payload.isUrgent,
+      status: payload.status,
+    })
+    .eq("id", jobId)
+    .eq("recruiter_id", recruiterId)
     .select("id")
     .single();
 

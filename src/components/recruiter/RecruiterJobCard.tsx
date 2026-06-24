@@ -1,13 +1,16 @@
+import Link from "next/link";
 import { Briefcase, MapPin } from "lucide-react";
 
 import { Skeleton } from "@/components/ui/Skeleton";
+import { getRecruiterJobApplicantsPath } from "@/lib/auth/routes";
 import type { RecruiterJobListItem } from "@/lib/jobs/recruiter-jobs.types";
 
 type RecruiterJobCardProps = {
   role: RecruiterJobListItem;
+  onEdit?: (jobId: string) => void;
 };
 
-export function RecruiterJobCard({ role }: RecruiterJobCardProps) {
+export function RecruiterJobCard({ role, onEdit }: RecruiterJobCardProps) {
   return (
     <div className="rounded-2xl border border-gray-200 p-4 transition-shadow hover:shadow-md sm:p-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -48,17 +51,17 @@ export function RecruiterJobCard({ role }: RecruiterJobCardProps) {
         </div>
       </div>
       <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:gap-3">
-        <button
-          type="button"
-          disabled
-          className="rounded-xl border border-blue-200 px-4 py-2 text-sm font-medium text-blue-600 opacity-60 sm:w-auto"
+        <Link
+          href={getRecruiterJobApplicantsPath(role.id)}
+          className="rounded-xl border border-blue-200 px-4 py-2 text-center text-sm font-medium text-blue-600 transition-colors hover:bg-blue-50 sm:w-auto"
         >
           View Applicants
-        </button>
+        </Link>
         <button
           type="button"
-          disabled
-          className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 opacity-60 sm:w-auto"
+          onClick={() => onEdit?.(role.id)}
+          disabled={!onEdit}
+          className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
         >
           Edit Role
         </button>

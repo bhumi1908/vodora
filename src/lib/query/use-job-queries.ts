@@ -5,17 +5,26 @@ import {
   fetchAppliedJobs,
   fetchJobApplyContext,
   fetchRecruiterApplicationTotal,
+  fetchRecruiterJobApplicantDetail,
+  fetchRecruiterJobApplicants,
   submitJobApplication,
+  updateRecruiterJobApplicantStatus,
 } from "@/lib/query/job-application-fetchers";
 import {
   createRecruiterJobPosting,
   fetchPublishedJobById,
   fetchPublishedJobs,
+  fetchRecruiterJobById,
   fetchRecruiterJobs,
+  updateRecruiterJobPosting,
 } from "@/lib/query/job-fetchers";
 import { jobKeys, type PublishedJobsQueryParams } from "@/lib/query/keys";
-import type { CreateJobPostingPayload } from "@/lib/jobs/recruiter-jobs.types";
+import type {
+  CreateJobPostingPayload,
+  UpdateJobPostingPayload,
+} from "@/lib/jobs/recruiter-jobs.types";
 import type { SubmitJobApplicationPayload } from "@/lib/jobs/job-application.types";
+import type { JobApplicationStatus } from "@/lib/jobs/candidate-jobs.types";
 
 const STALE_TIME_MS = 60_000;
 
@@ -55,6 +64,36 @@ export function useCreateRecruiterJobMutation() {
     onSuccess: (result) => {
       if (result.success) {
         void queryClient.invalidateQueries({ queryKey: jobKeys.recruiter() });
+        void queryClient.invalidateQueries({ queryKey: jobKeys.all });
+      }
+    },
+  });
+}
+
+export function useRecruiterJobDetailQuery(jobId: string | null, enabled = true) {
+  return useQuery({
+    queryKey: jobKeys.recruiterDetail(jobId ?? ""),
+    queryFn: () => fetchRecruiterJobById(jobId!),
+    enabled: enabled && Boolean(jobId),
+    staleTime: STALE_TIME_MS,
+  });
+}
+
+export function useUpdateRecruiterJobMutation(jobId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (payload: UpdateJobPostingPayload) =>
+      updateRecruiterJobPosting(jobId, payload),
+    onSuccess: (result) => {
+      if (result.success) {
+        void queryClient.invalidateQueries({ queryKey: jobKeys.recruiter() });
+        void queryClient.invalidateQueries({
+          queryKey: jobKeys.recruiterDetail(jobId),
+        });
+        void queryClient.invalidateQueries({
+          queryKey: jobKeys.recruiterJobApplicants(jobId),
+        });
         void queryClient.invalidateQueries({ queryKey: jobKeys.all });
       }
     },
@@ -113,5 +152,50 @@ export function useRecruiterApplicationTotalQuery(enabled = true) {
     queryFn: fetchRecruiterApplicationTotal,
     staleTime: STALE_TIME_MS,
     enabled,
+  });
+}
+
+export function useRecruiterJobApplicantsQuery(jobId: string, enabled = true) {
+  return useQuery({
+    queryKey: jobKeys.recruiterJobApplicants(jobId),
+    queryFn: () => fetchRecruiterJobApplicants(jobId),
+    staleTime: STALE_TIME_MS,
+    enabled: enabled && Boolean(jobId),
+  });
+}
+
+export function useRecruiterJobApplicantDetailQuery(
+  jobId: string,
+  applicationId: string | null,
+  enabled = true,
+) {
+  return useQuery({
+    queryKey: jobKeys.recruiterJobApplicant(jobId, applicationId ?? ""),
+    queryFn: () => fetchRecruiterJobApplicantDetail(jobId, applicationId!),
+    staleTime: STALE_TIME_MS,
+    enabled: enabled && Boolean(jobId) && Boolean(applicationId),
+  });
+}
+
+export function useUpdateRecruiterJobApplicantStatusMutation(jobId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      applicationId,
+      status,
+    }: {
+      applicationId: string;
+      status: JobApplicationStatus;
+    }) => updateRecruiterJobApplicantStatus(jobId, applicationId, status),
+    onSuccess: (_result, variables) => {
+      void queryClient.invalidateQueries({
+        queryKey: jobKeys.recruiterJobApplicants(jobId),
+      });
+      void queryClient.invalidateQueries({
+        queryKey: jobKeys.recruiterJobApplicant(jobId, variables.applicationId),
+      });
+      void queryClient.invalidateQueries({ queryKey: jobKeys.recruiter() });
+    },
   });
 }

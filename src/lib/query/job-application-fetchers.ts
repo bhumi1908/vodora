@@ -3,6 +3,11 @@ import type {
   JobApplyContext,
   SubmitJobApplicationPayload,
 } from "@/lib/jobs/job-application.types";
+import type {
+  RecruiterJobApplicantDetail,
+  RecruiterJobApplicantsResponse,
+} from "@/lib/jobs/recruiter-job-applications.types";
+import type { JobApplicationStatus } from "@/lib/jobs/candidate-jobs.types";
 
 async function parseJson<T>(response: Response): Promise<T> {
   return (await response.json()) as T;
@@ -94,4 +99,80 @@ export async function fetchRecruiterApplicationTotal(): Promise<number> {
   }
 
   return payload.total ?? 0;
+}
+
+export async function fetchRecruiterJobApplicants(
+  jobId: string,
+): Promise<RecruiterJobApplicantsResponse> {
+  const response = await fetch(`/api/recruiter/jobs/${encodeURIComponent(jobId)}/applications`);
+  const payload = await parseJson<{
+    success: boolean;
+    error?: string;
+    job?: RecruiterJobApplicantsResponse["job"];
+    applicants?: RecruiterJobApplicantsResponse["applicants"];
+  }>(response);
+
+  if (response.status === 404) {
+    throw new Error(payload.error ?? "Job not found.");
+  }
+
+  if (!response.ok || !payload.success || !payload.job) {
+    throw new Error(payload.error ?? "Could not load applicants.");
+  }
+
+  return {
+    job: payload.job,
+    applicants: payload.applicants ?? [],
+  };
+}
+
+export async function fetchRecruiterJobApplicantDetail(
+  jobId: string,
+  applicationId: string,
+): Promise<RecruiterJobApplicantDetail> {
+  const response = await fetch(
+    `/api/recruiter/jobs/${encodeURIComponent(jobId)}/applications/${encodeURIComponent(applicationId)}`,
+  );
+  const payload = await parseJson<{
+    success: boolean;
+    error?: string;
+    applicant?: RecruiterJobApplicantDetail;
+  }>(response);
+
+  if (response.status === 404) {
+    throw new Error(payload.error ?? "Application not found.");
+  }
+
+  if (!response.ok || !payload.success || !payload.applicant) {
+    throw new Error(payload.error ?? "Could not load application details.");
+  }
+
+  return payload.applicant;
+}
+
+export async function updateRecruiterJobApplicantStatus(
+  jobId: string,
+  applicationId: string,
+  status: JobApplicationStatus,
+): Promise<JobApplicationStatus> {
+  const response = await fetch(
+    `/api/recruiter/jobs/${encodeURIComponent(jobId)}/applications/${encodeURIComponent(applicationId)}`,
+    {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status }),
+    },
+  );
+
+  const payload = await parseJson<{
+    success: boolean;
+    error?: string;
+    status?: JobApplicationStatus;
+  }>(response);
+
+  if (!response.ok || !payload.success || !payload.status) {
+    throw new Error(payload.error ?? "Could not update application status.");
+  }
+
+  return payload.status;
 }

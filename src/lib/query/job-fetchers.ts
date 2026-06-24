@@ -2,8 +2,10 @@ import type { CandidateJob } from "@/lib/jobs/candidate-jobs.types";
 import { CANDIDATE_JOBS_PAGE_SIZE } from "@/lib/jobs/job-board-options";
 import type {
   CreateJobPostingPayload,
+  RecruiterJobDetail,
   RecruiterJobListItem,
   RecruiterJobStats,
+  UpdateJobPostingPayload,
   WorkTypeOption,
 } from "@/lib/jobs/recruiter-jobs.types";
 import type { PublishedJobsQueryParams } from "@/lib/query/keys";
@@ -156,6 +158,56 @@ export async function createRecruiterJobPosting(
     return {
       success: false,
       error: data.error ?? "Could not create job posting.",
+    };
+  }
+
+  return {
+    success: true,
+    jobId: data.jobId,
+  };
+}
+
+export async function fetchRecruiterJobById(
+  jobId: string,
+): Promise<RecruiterJobDetail> {
+  const response = await fetch(`/api/recruiter/jobs/${jobId}`);
+  const payload = await parseJson<{
+    success: boolean;
+    error?: string;
+    job?: RecruiterJobDetail;
+  }>(response);
+
+  if (response.status === 404) {
+    throw new Error(payload.error ?? "Job not found.");
+  }
+
+  if (!response.ok || !payload.success || !payload.job) {
+    throw new Error(payload.error ?? "Could not load job posting.");
+  }
+
+  return payload.job;
+}
+
+export async function updateRecruiterJobPosting(
+  jobId: string,
+  payload: UpdateJobPostingPayload,
+): Promise<{ success: true; jobId: string } | { success: false; error: string }> {
+  const response = await fetch(`/api/recruiter/jobs/${jobId}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  const data = await parseJson<{
+    success: boolean;
+    error?: string;
+    jobId?: string;
+  }>(response);
+
+  if (!response.ok || !data.success || !data.jobId) {
+    return {
+      success: false,
+      error: data.error ?? "Could not update job posting.",
     };
   }
 

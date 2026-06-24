@@ -33,9 +33,15 @@ export const jobKeys = {
     [...jobKeys.all, "published", params] as const,
   detail: (jobId: string) => [...jobKeys.all, "detail", jobId] as const,
   recruiter: () => [...jobKeys.all, "recruiter"] as const,
+  recruiterDetail: (jobId: string) =>
+    [...jobKeys.all, "recruiter-detail", jobId] as const,
   appliedIds: () => [...jobKeys.all, "applied-ids"] as const,
   applied: () => [...jobKeys.all, "applied"] as const,
   applyContext: (jobId: string) => [...jobKeys.all, "apply-context", jobId] as const,
   recruiterApplicationTotal: () =>
     [...jobKeys.all, "recruiter-application-total"] as const,
+  recruiterJobApplicants: (jobId: string) =>
+    [...jobKeys.all, "recruiter-applicants", jobId] as const,
+  recruiterJobApplicant: (jobId: string, applicationId: string) =>
+    [...jobKeys.all, "recruiter-applicant", jobId, applicationId] as const,
 };

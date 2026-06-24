@@ -6,6 +6,10 @@ export function showJobCreatedSuccessToast() {
   toast.success("Job created successfully!");
 }
 
+export function showJobUpdatedSuccessToast() {
+  toast.success("Job updated successfully!");
+}
+
 export function showJobAppliedSuccessToast(jobTitle?: string) {
   const label = jobTitle?.trim() ? ` for ${jobTitle.trim()}` : "";
   toast.success(`Job applied successfully${label}!`);
