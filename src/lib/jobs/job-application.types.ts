@@ -1,4 +1,5 @@
 import type { CandidateJob, JobApplicationStatus } from "@/lib/jobs/candidate-jobs.types";
+import type { JobApplyReferenceOption } from "@/lib/references/reference-grant-defaults";
 
 export type CandidateAppliedJob = {
   applicationId: string;
@@ -31,12 +32,14 @@ export type JobApplyContext = {
   coverLetter: string;
   coverLetterDocument: JobApplyCoverLetterDocument | null;
   alreadyApplied: boolean;
+  verifiedReferences: JobApplyReferenceOption[];
 };
 
 export type SubmitJobApplicationPayload = {
   coverLetter: string;
   coverLetterDocumentId?: string | null;
   referencesAttached?: boolean;
+  includedReferenceIds?: string[];
 };
 
 export type SubmitJobApplicationResult = {

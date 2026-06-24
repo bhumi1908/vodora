@@ -1,6 +1,6 @@
 "use client";
 
-import { Building2, Mail, Phone, Trash2 } from "lucide-react";
+import { Building2, CheckCircle2, Mail, Phone, Star, Trash2 } from "lucide-react";
 
 import {
   getReferenceStatusLabel,
@@ -17,6 +17,11 @@ import {
 type ReferenceCardProps = {
   reference: CandidateReferenceItem;
   isOwnProfile: boolean;
+  showRefereeContact?: boolean;
+  showVerificationStatus?: boolean;
+  showRatings?: boolean;
+  showEmploymentConfirmation?: boolean;
+  showWrittenComments?: boolean;
   onCancel?: (referenceId: string) => void;
   isCancelling?: boolean;
 };
@@ -55,35 +60,92 @@ function statusClasses(status: string): string {
   }
 }
 
+function ReadOnlyStarRating({
+  label,
+  value,
+}: {
+  label: string;
+  value: number;
+}) {
+  return (
+    <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+      <span className="text-xs text-gray-500">{label}</span>
+      <div
+        className="flex shrink-0 items-center gap-0.5"
+        aria-label={`${label}: ${value} out of 5`}
+      >
+        {[1, 2, 3, 4, 5].map((star) => (
+          <Star
+            key={star}
+            className={`h-3.5 w-3.5 ${
+              star <= value
+                ? "fill-amber-400 text-amber-400"
+                : "fill-gray-200 text-gray-200"
+            }`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function hasReferenceRatings(reference: CandidateReferenceItem): boolean {
+  return (
+    reference.performanceRating != null ||
+    reference.reliabilityRating != null ||
+    reference.teamworkRating != null ||
+    reference.leadershipRating != null ||
+    reference.rehireRecommendation != null
+  );
+}
+
 export function ReferenceCard({
   reference,
   isOwnProfile,
+  showRefereeContact = isOwnProfile,
+  showVerificationStatus = true,
+  showRatings = true,
+  showEmploymentConfirmation = true,
+  showWrittenComments = true,
   onCancel,
   isCancelling = false,
 }: ReferenceCardProps) {
-  const employmentPeriod = formatEmploymentPeriod(reference);
+  const employmentPeriod = showEmploymentConfirmation
+    ? formatEmploymentPeriod(reference)
+    : null;
   const isQuestionnaire =
     normalizeReferenceType(reference.referenceType) === "questionnaire";
   const showWrittenQuote =
+    showWrittenComments &&
     reference.status === "verified" &&
     !isQuestionnaire &&
     Boolean(reference.writtenComments);
   const showQuestionnaire =
+    showWrittenComments &&
     reference.status === "verified" &&
     isQuestionnaire &&
     Boolean(reference.questionnaireResponses);
+  const showRatingsSection =
+    showRatings &&
+    reference.status === "verified" &&
+    hasReferenceRatings(reference);
+  const showEmploymentDetails =
+    showEmploymentConfirmation &&
+    (employmentPeriod ||
+      reference.employmentConfirmed ||
+      reference.employmentDatesConfirmed);
 
   return (
-    <article className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-      <div className="flex items-start gap-4">
-        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-blue-50 text-lg font-semibold text-blue-700">
+    <article className="overflow-hidden rounded-xl border border-gray-200 bg-white p-4 shadow-sm sm:p-5">
+      <div className="flex items-start gap-3 sm:gap-4">
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-blue-50 text-base font-semibold text-blue-700 sm:h-14 sm:w-14 sm:text-lg">
           {getRefereeInitials(reference.refereeName)}
         </div>
 
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <h3 className="text-lg font-semibold text-gray-900">
+              <h3 className="text-base font-semibold text-gray-900 sm:text-lg">
                 {reference.refereeName}
               </h3>
               <p className="text-sm font-medium text-gray-700">
@@ -95,17 +157,35 @@ export function ReferenceCard({
                   ? ` · ${formatReferenceDate(reference)}`
                   : ""}
               </p>
-              {employmentPeriod ? (
-                <p className="mt-1 text-xs text-gray-400">{employmentPeriod}</p>
+              {showEmploymentDetails ? (
+                <div className="mt-2 flex flex-col gap-1">
+                  {employmentPeriod ? (
+                    <p className="text-xs text-gray-400">{employmentPeriod}</p>
+                  ) : null}
+                  {reference.employmentConfirmed ? (
+                    <p className="flex items-center gap-1 text-xs text-green-700">
+                      <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
+                      Employment confirmed
+                    </p>
+                  ) : null}
+                  {reference.employmentDatesConfirmed ? (
+                    <p className="flex items-center gap-1 text-xs text-green-700">
+                      <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
+                      Employment dates confirmed
+                    </p>
+                  ) : null}
+                </div>
               ) : null}
             </div>
 
-            <div className="flex items-center gap-2">
-              <span
-                className={`rounded-full px-3 py-1 text-xs font-medium ${statusClasses(reference.status)}`}
-              >
-                {getReferenceStatusLabel(reference.status)}
-              </span>
+            <div className="flex shrink-0 items-center gap-2 self-start">
+              {showVerificationStatus ? (
+                <span
+                  className={`rounded-full px-3 py-1 text-xs font-medium ${statusClasses(reference.status)}`}
+                >
+                  {getReferenceStatusLabel(reference.status)}
+                </span>
+              ) : null}
               {isOwnProfile && reference.status === "pending" && onCancel ? (
                 <button
                   type="button"
@@ -124,6 +204,56 @@ export function ReferenceCard({
             <blockquote className="mt-4 border-l-4 border-blue-200 pl-4 text-sm italic leading-relaxed text-gray-700">
               &ldquo;{reference.writtenComments}&rdquo;
             </blockquote>
+          ) : null}
+
+          {showRatingsSection ? (
+            <div className="mt-4 space-y-2 border-t border-gray-100 pt-4">
+              <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                Reference ratings
+              </p>
+              <div className="space-y-2">
+                {reference.performanceRating != null ? (
+                  <ReadOnlyStarRating
+                    label="Performance"
+                    value={reference.performanceRating}
+                  />
+                ) : null}
+                {reference.reliabilityRating != null ? (
+                  <ReadOnlyStarRating
+                    label="Reliability"
+                    value={reference.reliabilityRating}
+                  />
+                ) : null}
+                {reference.teamworkRating != null ? (
+                  <ReadOnlyStarRating
+                    label="Teamwork"
+                    value={reference.teamworkRating}
+                  />
+                ) : null}
+                {reference.leadershipRating != null ? (
+                  <ReadOnlyStarRating
+                    label="Leadership"
+                    value={reference.leadershipRating}
+                  />
+                ) : null}
+                {reference.rehireRecommendation != null ? (
+                  <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+                    <span className="text-xs text-gray-500">
+                      Rehire recommendation
+                    </span>
+                    <span
+                      className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                        reference.rehireRecommendation
+                          ? "bg-green-50 text-green-700"
+                          : "bg-gray-100 text-gray-600"
+                      }`}
+                    >
+                      {reference.rehireRecommendation ? "Yes" : "No"}
+                    </span>
+                  </div>
+                ) : null}
+              </div>
+            </div>
           ) : null}
 
           {showQuestionnaire && reference.questionnaireResponses ? (
@@ -169,19 +299,21 @@ export function ReferenceCard({
             </p>
           ) : null}
 
-          <div className="mt-4 flex flex-wrap gap-4 border-t border-gray-100 pt-4 text-sm text-gray-600">
-            <span className="inline-flex items-center gap-1.5">
-              <Building2 className="h-4 w-4 text-gray-400" />
-              {reference.refereeCompany}
+          <div className="mt-4 flex flex-col gap-2 border-t border-gray-100 pt-4 text-sm text-gray-600 sm:flex-row sm:flex-wrap sm:gap-4">
+            <span className="inline-flex min-w-0 items-center gap-1.5">
+              <Building2 className="h-4 w-4 shrink-0 text-gray-400" />
+              <span className="wrap-break-word">{reference.refereeCompany}</span>
             </span>
-            <span className="inline-flex items-center gap-1.5">
-              <Mail className="h-4 w-4 text-gray-400" />
-              {reference.refereeEmail}
-            </span>
-            {reference.refereePhone ? (
-              <span className="inline-flex items-center gap-1.5">
-                <Phone className="h-4 w-4 text-gray-400" />
-                {reference.refereePhone}
+            {showRefereeContact && reference.refereeEmail ? (
+              <span className="inline-flex min-w-0 items-center gap-1.5">
+                <Mail className="h-4 w-4 shrink-0 text-gray-400" />
+                <span className="break-all">{reference.refereeEmail}</span>
+              </span>
+            ) : null}
+            {showRefereeContact && reference.refereePhone ? (
+              <span className="inline-flex min-w-0 items-center gap-1.5">
+                <Phone className="h-4 w-4 shrink-0 text-gray-400" />
+                <span className="wrap-break-word">{reference.refereePhone}</span>
               </span>
             ) : null}
           </div>

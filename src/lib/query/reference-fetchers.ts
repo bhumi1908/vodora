@@ -35,3 +35,18 @@ export async function cancelCandidateReference(
     throw new Error(result.error ?? "Unable to cancel reference request.");
   }
 }
+
+export async function fetchRecruiterCandidateReferences(
+  vodoraId: string,
+): Promise<CandidateReferenceItem[]> {
+  const response = await fetch(
+    `/api/recruiter/candidates/profile/${encodeURIComponent(vodoraId)}/references`,
+  );
+  const result = (await response.json()) as CandidateReferencesResponse;
+
+  if (!response.ok || !result.success) {
+    throw new Error(result.error ?? "Unable to load references.");
+  }
+
+  return result.references ?? [];
+}

@@ -1,6 +1,12 @@
 import { NextResponse } from "next/server";
 
 import { deleteCandidateFile } from "@/lib/profile/delete-candidate-file";
+import {
+  deleteCandidateDocuments,
+  deleteStoredProfilePhotoUrl,
+  fetchCandidateDocumentsOfType,
+  shouldReplaceDocumentsOnUpload,
+} from "@/lib/profile/replace-candidate-documents";
 import { requireOwnCandidate } from "@/lib/profile/require-own-candidate";
 import { uploadCandidateFile } from "@/lib/profile/upload-candidate-file";
 import { validateProfileFile } from "@/lib/profile/validation";
@@ -54,6 +60,28 @@ export async function POST(request: Request) {
     );
   }
 
+  const replaceExistingDocuments = shouldReplaceDocumentsOnUpload(
+    documentType,
+    isPrimary,
+  );
+  const [previousDocuments, candidateRow] = await Promise.all([
+    replaceExistingDocuments
+      ? fetchCandidateDocumentsOfType(
+          supabase,
+          context.candidateId,
+          documentType,
+        )
+      : Promise.resolve([]),
+    documentType === "profile_photo"
+      ? supabase
+          .from("candidates")
+          .select("profile_picture_url")
+          .eq("id", context.candidateId)
+          .maybeSingle()
+          .then(({ data }) => data)
+      : Promise.resolve(null),
+  ]);
+
   const uploadResult = await uploadCandidateFile(
     supabase,
     context.userId,
@@ -68,7 +96,7 @@ export async function POST(request: Request) {
     );
   }
 
-  if (isPrimary) {
+  if (replaceExistingDocuments || isPrimary) {
     await supabase
       .from("candidate_documents")
       .update({ is_primary: false })
@@ -99,10 +127,44 @@ export async function POST(request: Request) {
   }
 
   if (documentType === "profile_photo") {
-    await supabase
+    const { error: candidateError } = await supabase
       .from("candidates")
       .update({ profile_picture_url: uploadResult.publicUrl })
       .eq("id", context.candidateId);
+
+    if (candidateError) {
+      await supabase
+        .from("candidate_documents")
+        .delete()
+        .eq("id", inserted.id)
+        .eq("candidate_id", context.candidateId);
+      await deleteCandidateFile(
+        supabase,
+        uploadResult.publicUrl,
+        context.userId,
+      );
+      return NextResponse.json(
+        { success: false, error: candidateError.message },
+        { status: 500 },
+      );
+    }
+  }
+
+  if (replaceExistingDocuments) {
+    await deleteCandidateDocuments(
+      supabase,
+      previousDocuments,
+      context.userId,
+    );
+  }
+
+  if (documentType === "profile_photo") {
+    await deleteStoredProfilePhotoUrl(
+      supabase,
+      candidateRow?.profile_picture_url,
+      context.userId,
+      uploadResult.publicUrl,
+    );
   }
 
   return NextResponse.json({

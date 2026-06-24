@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 
+import { deleteCandidateFile } from "@/lib/profile/delete-candidate-file";
+import { deleteStoredProfilePhotoUrl } from "@/lib/profile/replace-candidate-documents";
 import { uploadCandidateFile } from "@/lib/profile/upload-candidate-file";
 import { validateProfileFile } from "@/lib/profile/validation";
 import { requireOwnRecruiter } from "@/lib/recruiter/require-own-recruiter";
@@ -35,6 +37,12 @@ export async function POST(request: Request) {
     );
   }
 
+  const { data: recruiterRow } = await supabase
+    .from("recruiters")
+    .select("profile_picture_url")
+    .eq("id", context.recruiterId)
+    .maybeSingle();
+
   const uploadResult = await uploadCandidateFile(
     supabase,
     context.userId,
@@ -56,11 +64,23 @@ export async function POST(request: Request) {
     .eq("id", context.recruiterId);
 
   if (recruiterError) {
+    await deleteCandidateFile(
+      supabase,
+      uploadResult.publicUrl,
+      context.userId,
+    );
     return NextResponse.json(
       { success: false, error: recruiterError.message },
       { status: 500 },
     );
   }
+
+  await deleteStoredProfilePhotoUrl(
+    supabase,
+    recruiterRow?.profile_picture_url,
+    context.userId,
+    uploadResult.publicUrl,
+  );
 
   return NextResponse.json({
     success: true,

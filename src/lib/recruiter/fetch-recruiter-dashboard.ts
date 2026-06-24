@@ -11,7 +11,11 @@ import { fetchRecruiterSavedCount } from "@/lib/recruiter/fetch-recruiter-saved-
 
 type Supabase = SupabaseClient<Database>;
 
-export const RECRUITER_DASHBOARD_CANDIDATE_LIMIT = 15;
+export const RECRUITER_DASHBOARD_CANDIDATE_LIMIT = 7;
+
+function getRecruiterDashboardCandidateLimit(): number {
+  return RECRUITER_DASHBOARD_CANDIDATE_LIMIT - Math.floor(Math.random() * 2);
+}
 
 type RpcCandidateRow = {
   id: string;
@@ -97,7 +101,7 @@ async function fetchRecruiterDashboardCandidates(
   supabase: Supabase,
 ): Promise<{ candidates: RecruiterDashboardCandidate[]; error: string | null }> {
   const { data, error } = await supabase.rpc("get_recruiter_dashboard_candidates", {
-    p_limit: RECRUITER_DASHBOARD_CANDIDATE_LIMIT,
+    p_limit: getRecruiterDashboardCandidateLimit(),
   });
 
   if (error) {

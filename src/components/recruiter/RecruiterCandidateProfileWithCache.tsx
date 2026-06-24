@@ -13,19 +13,28 @@ import { useRecruiterCandidateConnectionStatusQuery } from "@/lib/query/use-conn
 type RecruiterCandidateProfileWithCacheProps = {
   vodoraId: string;
   initialProfile: CandidateProfileData;
+  initialHasReferenceAccess?: boolean;
 };
 
 export function RecruiterCandidateProfileWithCache({
   vodoraId,
   initialProfile,
+  initialHasReferenceAccess = false,
 }: RecruiterCandidateProfileWithCacheProps) {
   const queryClient = useQueryClient();
 
-  const { data: profile } = useQuery({
+  const { data } = useQuery({
     queryKey: recruiterKeys.candidateProfile(vodoraId),
     queryFn: () => fetchRecruiterCandidateProfile(vodoraId),
-    initialData: initialProfile,
+    initialData: {
+      profile: initialProfile,
+      hasReferenceAccess: initialHasReferenceAccess,
+    },
   });
+
+  const profile = data?.profile ?? initialProfile;
+  const hasReferenceAccess =
+    data?.hasReferenceAccess ?? initialHasReferenceAccess;
 
   const { data: connection } = useRecruiterCandidateConnectionStatusQuery(
     profile?.candidateId ?? null,
@@ -61,6 +70,7 @@ export function RecruiterCandidateProfileWithCache({
       profile={profile}
       recruiterView
       connection={connection ?? null}
+      hasReferenceAccess={hasReferenceAccess}
       onConnectionChange={handleConnectionChange}
     />
   );

@@ -51,6 +51,7 @@ export async function fetchJobApplyContext(
     { data: candidateRow, error: candidateError },
     { data: documents, error: documentsError },
     { data: existingApplication },
+    { data: verifiedReferences, error: verifiedReferencesError },
   ] = await Promise.all([
     supabase
       .from("users")
@@ -75,6 +76,12 @@ export async function fetchJobApplyContext(
       .eq("job_posting_id", jobPostingId)
       .eq("candidate_id", candidateContext.candidateId)
       .maybeSingle(),
+    supabase
+      .from("reference_requests")
+      .select("id, referee_name, referee_title, referee_company")
+      .eq("candidate_id", candidateContext.candidateId)
+      .eq("status", "verified")
+      .order("verified_at", { ascending: false }),
   ]);
 
   if (userError || !userRow) {
@@ -87,6 +94,10 @@ export async function fetchJobApplyContext(
 
   if (documentsError) {
     return { context: null, error: documentsError.message };
+  }
+
+  if (verifiedReferencesError) {
+    return { context: null, error: verifiedReferencesError.message };
   }
 
   const fullName = [userRow.first_name, userRow.last_name]
@@ -140,6 +151,12 @@ export async function fetchJobApplyContext(
       coverLetter,
       coverLetterDocument,
       alreadyApplied: Boolean(existingApplication),
+      verifiedReferences: (verifiedReferences ?? []).map((reference) => ({
+        id: reference.id,
+        refereeName: reference.referee_name,
+        refereeTitle: reference.referee_title,
+        refereeCompany: reference.referee_company,
+      })),
     },
     error: null,
   };

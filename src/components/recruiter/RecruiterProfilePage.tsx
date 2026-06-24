@@ -38,6 +38,7 @@ import {
   RECRUITER_CONNECTIONS_PATH,
   RECRUITER_SEARCH_PATH,
 } from "@/lib/auth/routes";
+import { env } from "@/lib/env";
 import { formatRecruiterJobStatsForDisplay } from "@/lib/jobs/format-recruiter-job-stats";
 import {
   formatWebsiteHref,
@@ -417,40 +418,42 @@ export function RecruiterProfilePage() {
                   </p>
                 )}
               </div>
-             
-              <div>
-                <h2 className="mb-4 text-lg font-semibold text-gray-900">
-                  Recent Placements
-                </h2>
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
-                  {RECRUITER_PROFILE_STATIC_RECENT_PLACEMENTS.map((placement) => (
-                    <div
-                      key={placement.name}
-                      className="flex items-center gap-3 rounded-xl bg-gray-50 p-3 sm:gap-4 sm:p-4"
-                    >
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-100">
-                        <span className="text-sm font-semibold text-blue-700">
-                          {placement.avatar}
+
+              {env.NEXT_PUBLIC_SHOW_RECENT_PLACEMENTS ? (
+                <div>
+                  <h2 className="mb-4 text-lg font-semibold text-gray-900">
+                    Recent Placements
+                  </h2>
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
+                    {RECRUITER_PROFILE_STATIC_RECENT_PLACEMENTS.map((placement) => (
+                      <div
+                        key={placement.name}
+                        className="flex items-center gap-3 rounded-xl bg-gray-50 p-3 sm:gap-4 sm:p-4"
+                      >
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-100">
+                          <span className="text-sm font-semibold text-blue-700">
+                            {placement.avatar}
+                          </span>
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="flex min-w-0 items-center gap-1.5 truncate text-sm font-medium text-gray-900">
+                            <span className="truncate">{placement.name}</span>
+                            <ArrowRight
+                              className="h-3.5 w-3.5 shrink-0 text-gray-400"
+                              aria-hidden="true"
+                            />
+                            <span className="truncate">{placement.company}</span>
+                          </p>
+                          <p className="text-xs text-gray-500">{placement.role}</p>
+                        </div>
+                        <span className="shrink-0 rounded-lg border border-green-200 bg-green-50 px-2 py-1 text-xs font-medium text-green-700">
+                          {placement.timeToHire}
                         </span>
                       </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="flex min-w-0 items-center gap-1.5 truncate text-sm font-medium text-gray-900">
-                          <span className="truncate">{placement.name}</span>
-                          <ArrowRight
-                            className="h-3.5 w-3.5 shrink-0 text-gray-400"
-                            aria-hidden="true"
-                          />
-                          <span className="truncate">{placement.company}</span>
-                        </p>
-                        <p className="text-xs text-gray-500">{placement.role}</p>
-                      </div>
-                      <span className="shrink-0 rounded-lg border border-green-200 bg-green-50 px-2 py-1 text-xs font-medium text-green-700">
-                        {placement.timeToHire}
-                      </span>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
+              ) : null}
             </div>
           ) : null}
 

@@ -160,7 +160,11 @@ export function ProfileTabs({ profile, visibility, onEditSection }: ProfileTabsP
           <SkillsTab skills={profile.skills} editButton={renderEditButton("skills")} />
         ) : null}
         {activeTab === "references" ? (
-          <ReferencesTab isOwnProfile={isOwnProfile} profile={profile} />
+          <ReferencesTab
+            isOwnProfile={isOwnProfile}
+            profile={profile}
+            hasReferenceAccess={visibility.visibleTabIds.includes("references")}
+          />
         ) : null}
         {activeTab === "documents" ? (
           <DocumentsTab

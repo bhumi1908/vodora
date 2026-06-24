@@ -10,7 +10,7 @@ import type { Database } from "@/lib/supabase/database.types";
 
 type Supabase = SupabaseClient<Database>;
 
-async function fetchRecruiterCandidateProfile(
+export async function fetchRecruiterCandidateProfile(
   supabase: Supabase,
   vodoraId: string,
 ): Promise<CandidateProfileData | null> {

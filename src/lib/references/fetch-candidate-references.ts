@@ -30,6 +30,8 @@ export type CandidateReferenceItem = {
   teamworkRating: number | null;
   leadershipRating: number | null;
   rehireRecommendation: boolean | null;
+  employmentConfirmed: boolean | null;
+  employmentDatesConfirmed: boolean | null;
 };
 
 export async function fetchCandidateReferences(
@@ -61,7 +63,9 @@ export async function fetchCandidateReferences(
         reliability_rating,
         teamwork_rating,
         leadership_rating,
-        rehire_recommendation
+        rehire_recommendation,
+        employment_confirmed,
+        employment_dates_confirmed
       )
     `,
     )
@@ -107,6 +111,8 @@ export async function fetchCandidateReferences(
       teamworkRating: response?.teamwork_rating ?? null,
       leadershipRating: response?.leadership_rating ?? null,
       rehireRecommendation: response?.rehire_recommendation ?? null,
+      employmentConfirmed: response?.employment_confirmed ?? null,
+      employmentDatesConfirmed: response?.employment_dates_confirmed ?? null,
     };
   });
 

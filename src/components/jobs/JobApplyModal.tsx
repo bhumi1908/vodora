@@ -58,6 +58,10 @@ export function JobApplyModal({
   >(null);
   const [coverFileName, setCoverFileName] = useState("");
   const [pendingCoverFile, setPendingCoverFile] = useState<File | null>(null);
+  const [shareReferences, setShareReferences] = useState(false);
+  const [selectedReferenceIds, setSelectedReferenceIds] = useState<string[]>(
+    [],
+  );
 
   const {
     data: applyContext,
@@ -77,6 +81,8 @@ export function JobApplyModal({
       setCoverLetterDocumentId(null);
       setCoverFileName("");
       setPendingCoverFile(null);
+      setShareReferences(false);
+      setSelectedReferenceIds([]);
       return;
     }
 
@@ -85,6 +91,10 @@ export function JobApplyModal({
       setCoverLetterDocumentId(applyContext.coverLetterDocument?.id ?? null);
       setCoverFileName(applyContext.coverLetterDocument?.fileName ?? "");
       setPendingCoverFile(null);
+      setShareReferences(false);
+      setSelectedReferenceIds(
+        applyContext.verifiedReferences.map((reference) => reference.id),
+      );
     }
   }, [open, applyContext]);
 
@@ -125,12 +135,23 @@ export function JobApplyModal({
     }
 
     try {
+      const verifiedReferenceIds =
+        applyContext?.verifiedReferences.map((reference) => reference.id) ?? [];
+      const sharingAllReferences =
+        shareReferences &&
+        selectedReferenceIds.length === verifiedReferenceIds.length &&
+        verifiedReferenceIds.every((id) => selectedReferenceIds.includes(id));
+
       const result = await submitMutation.mutateAsync({
         jobId: job.id,
         payload: {
           coverLetter: coverText,
           coverLetterDocumentId: documentId,
-          referencesAttached: false,
+          referencesAttached: shareReferences,
+          includedReferenceIds:
+            shareReferences && !sharingAllReferences
+              ? selectedReferenceIds
+              : undefined,
         },
       });
 
@@ -153,7 +174,13 @@ export function JobApplyModal({
 
   const isSubmitting = submitMutation.isPending || uploadMutation.isPending;
   const resume = applyContext?.resume ?? null;
-  const canSubmit = Boolean(resume) && Boolean(coverText.trim()) && !isSubmitting;
+  const verifiedReferences = applyContext?.verifiedReferences ?? [];
+  const canShareReferences = verifiedReferences.length > 0;
+  const canSubmit =
+    Boolean(resume) &&
+    Boolean(coverText.trim()) &&
+    !isSubmitting &&
+    (!shareReferences || selectedReferenceIds.length > 0);
 
   if (step === "success") {
     return (
@@ -371,6 +398,82 @@ export function JobApplyModal({
                 </button>
               ) : null}
             </div>
+          </section>
+
+          <div className="border-t border-gray-100" />
+
+          <section>
+            <h3 className="mb-1 text-sm font-semibold uppercase tracking-wide text-gray-700">
+              Reference Passport
+            </h3>
+            <p className="mb-4 text-xs text-gray-400">
+              Optionally share verified references with {job.recruiter.name} as
+              part of this application.
+            </p>
+
+            {canShareReferences ? (
+              <div className="space-y-4 rounded-xl border border-gray-200 bg-gray-50 p-4">
+                <label className="flex cursor-pointer items-start gap-3">
+                  <input
+                    type="checkbox"
+                    checked={shareReferences}
+                    onChange={(event) => setShareReferences(event.target.checked)}
+                    className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span>
+                    <span className="block text-sm font-medium text-gray-900">
+                      Share my Reference Passport with this recruiter
+                    </span>
+                    <span className="mt-1 block text-xs text-gray-500">
+                      Only verified references you select below will be visible
+                      on your profile for this recruiter.
+                    </span>
+                  </span>
+                </label>
+
+                {shareReferences ? (
+                  <div className="space-y-2 border-t border-gray-200 pt-4">
+                    <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                      Select references to share
+                    </p>
+                    {verifiedReferences.map((reference) => (
+                      <label
+                        key={reference.id}
+                        className="flex cursor-pointer items-start gap-3 rounded-lg border border-gray-200 bg-white px-3 py-3"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedReferenceIds.includes(reference.id)}
+                          onChange={(event) => {
+                            setSelectedReferenceIds((current) => {
+                              if (event.target.checked) {
+                                return [...current, reference.id];
+                              }
+
+                              return current.filter((id) => id !== reference.id);
+                            });
+                          }}
+                          className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        />
+                        <span>
+                          <span className="block text-sm font-medium text-gray-900">
+                            {reference.refereeName}
+                          </span>
+                          <span className="block text-xs text-gray-500">
+                            {reference.refereeTitle} at {reference.refereeCompany}
+                          </span>
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            ) : (
+              <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-500">
+                You do not have any verified references yet. You can still apply
+                without sharing references.
+              </div>
+            )}
           </section>
         </div>
       )}

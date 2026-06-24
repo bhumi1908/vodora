@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { getAccountType } from "@/lib/auth/account-type";
 import { fetchRecruiterCandidateConnectionStatus } from "@/lib/connections/fetch-recruiter-candidate-connection-status";
+import { checkRecruiterReferenceGrant } from "@/lib/references/check-recruiter-reference-grant";
 import {
   redactPrivateProfileFields,
   resolveProfileVisibility,
@@ -49,9 +50,14 @@ export async function GET(_request: Request, context: RouteContext) {
     ? await fetchRecruiterCandidateConnectionStatus(supabase, profile.candidateId)
     : null;
 
+  const hasReferenceAccess = profile.candidateId
+    ? await checkRecruiterReferenceGrant(supabase, profile.candidateId)
+    : false;
+
   const visibility = resolveProfileVisibility({
     recruiterView: true,
     connection,
+    hasReferenceAccess,
   });
 
   const visibleProfile = redactPrivateProfileFields(
@@ -62,5 +68,6 @@ export async function GET(_request: Request, context: RouteContext) {
   return NextResponse.json({
     success: true,
     profile: visibleProfile,
+    hasReferenceAccess,
   });
 }
