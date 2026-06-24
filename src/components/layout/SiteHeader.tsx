@@ -12,7 +12,9 @@ import {
   CANDIDATE_FIND_CANDIDATES_PATH,
   CANDIDATE_FIND_RECRUITERS_PATH,
   CANDIDATE_JOBS_PATH,
+  RECRUITER_PROFILE_PATH,
 } from "@/lib/auth/routes";
+import { useAccountType } from "@/lib/auth/use-account-type";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
 
@@ -106,7 +108,13 @@ export function SiteHeader() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [lastPathname, setLastPathname] = useState(pathname);
   const { user, authLoading, setUser } = useAuthUser();
+  const accountType = useAccountType(user);
   const isLanding = pathname === "/";
+  const profileHref =
+    accountType === "recruiter" ? RECRUITER_PROFILE_PATH : "/my-profile";
+  const notificationRole =
+    accountType === "recruiter" ? "recruiter" : "candidate";
+  const accountTypeLoading = Boolean(user) && accountType === null;
 
   if (pathname !== lastPathname) {
     setLastPathname(pathname);
@@ -179,14 +187,19 @@ export function SiteHeader() {
             <div className="hidden items-center gap-2 sm:gap-3 md:flex">
               {showAuthActions ? (
                 isLoggedIn && user ? (
-                  <>
-                    <ConnectionNotificationBell role="candidate" />
-                    <UserProfileMenu
-                      user={user}
-                      variant="desktop"
-                      onSignOut={() => setUser(null)}
-                    />
-                  </>
+                  accountTypeLoading ? (
+                    <div className="h-8 w-24 animate-pulse rounded-lg bg-gray-100" />
+                  ) : (
+                    <>
+                      <ConnectionNotificationBell role={notificationRole} />
+                      <UserProfileMenu
+                        user={user}
+                        profileHref={profileHref}
+                        variant="desktop"
+                        onSignOut={() => setUser(null)}
+                      />
+                    </>
+                  )
                 ) : (
                   <AuthButtons />
                 )
@@ -245,17 +258,22 @@ export function SiteHeader() {
               >
                 {showAuthActions ? (
                   isLoggedIn && user ? (
-                    <>
-                      <div className="mb-2 flex justify-end">
-                        <ConnectionNotificationBell role="candidate" />
-                      </div>
-                      <UserProfileMenu
-                        user={user}
-                        variant="mobile"
-                        onNavigate={closeMobileMenu}
-                        onSignOut={() => setUser(null)}
-                      />
-                    </>
+                    accountTypeLoading ? (
+                      <div className="h-16 animate-pulse rounded-lg bg-gray-100" />
+                    ) : (
+                      <>
+                        <div className="mb-2 flex justify-end">
+                          <ConnectionNotificationBell role={notificationRole} />
+                        </div>
+                        <UserProfileMenu
+                          user={user}
+                          profileHref={profileHref}
+                          variant="mobile"
+                          onNavigate={closeMobileMenu}
+                          onSignOut={() => setUser(null)}
+                        />
+                      </>
+                    )
                   ) : (
                     <MobileAuthButtons onNavigate={closeMobileMenu} />
                   )

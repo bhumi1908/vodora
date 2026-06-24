@@ -10,6 +10,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { showLogoutSuccessToast } from "@/lib/auth-toast";
 import { clearQueryCacheOnLogout } from "@/lib/query/logout";
 
+const DEFAULT_PROFILE_PATH = "/my-profile";
+
 function getDisplayName(user: User): string {
   const firstName =
     typeof user.user_metadata?.first_name === "string"
@@ -41,6 +43,7 @@ function getInitials(user: User): string {
 
 type UserProfileMenuProps = {
   user: User;
+  profileHref?: string;
   onSignOut?: () => void;
   variant?: "desktop" | "mobile";
   onNavigate?: () => void;
@@ -48,6 +51,7 @@ type UserProfileMenuProps = {
 
 export function UserProfileMenu({
   user,
+  profileHref = DEFAULT_PROFILE_PATH,
   onSignOut,
   variant = "desktop",
   onNavigate,
@@ -117,7 +121,7 @@ export function UserProfileMenu({
         </div>
 
         <Link
-          href="/my-profile"
+          href={profileHref}
           className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100"
           onClick={onNavigate}
         >
@@ -186,7 +190,7 @@ export function UserProfileMenu({
           </div>
 
           <Link
-            href="/my-profile"
+            href={profileHref}
             role="menuitem"
             className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 transition-colors hover:bg-gray-50"
             onClick={() => {

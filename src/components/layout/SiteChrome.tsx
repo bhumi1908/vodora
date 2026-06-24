@@ -123,6 +123,7 @@ export function SiteChrome({ children }: { children: React.ReactNode }) {
   const accountType = useAccountType(user);
   const realtimeRole =
     isRecruiterAppRoute(pathname) ||
+    (pathname === "/" && accountType === "recruiter") ||
     (isAccountAwareRoute(pathname) && accountType === "recruiter")
       ? "recruiter"
       : "candidate";

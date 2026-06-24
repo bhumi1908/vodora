@@ -10,15 +10,16 @@ import {
 import Link from "next/link";
 
 import { Skeleton } from "@/components/ui/Skeleton";
-import type { RecruiterJobListItem } from "@/lib/jobs/recruiter-jobs.types";
-import type { RecruiterDashboardContext } from "@/lib/recruiter/dashboard.types";
 import {
   RECRUITER_PROFILE_PATH,
   RECRUITER_PROFILE_ROLES_PATH,
   RECRUITER_SAVED_PATH,
   RECRUITER_SEARCH_PATH,
 } from "@/lib/auth/routes";
+import { env } from "@/lib/env";
 import { getInitials } from "@/lib/profile/format";
+import type { RecruiterJobListItem } from "@/lib/jobs/recruiter-jobs.types";
+import type { RecruiterDashboardContext } from "@/lib/recruiter/dashboard.types";
 
 const CANDIDATES_VIEWED_STAT = {
   label: "Candidates Viewed",
@@ -230,34 +231,36 @@ export function RecruiterDashboardSidebar({
         </Link>
       </div>
 
-      <div className="rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 p-6 text-white">
-        <TrendingUp className="mb-3 h-8 w-8 text-blue-200" />
-        <p className="mb-1 font-semibold">Your hiring is</p>
-        {isJobsPending ? (
-          <Skeleton className="mb-1 h-10 w-28 bg-blue-500" />
-        ) : (
-          <p className="text-4xl font-bold">
-            {hiringFasterPercent === "—"
-              ? "—"
-              : `${hiringFasterPercent} faster`}
-          </p>
-        )}
-        <p className="mt-1 text-sm text-blue-100">
-          {hiringFasterPercent === "—"
-            ? "Complete a hire to measure your speed"
-            : "than traditional reference checking"}
-        </p>
-        <div className="mt-4 border-t border-blue-500 pt-4">
-          <p className="text-xs text-blue-200">
-            Estimated time saved this month
-          </p>
+      {env.NEXT_PUBLIC_SHOW_RECENT_PLACEMENTS ? (
+        <div className="rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 p-6 text-white">
+          <TrendingUp className="mb-3 h-8 w-8 text-blue-200" />
+          <p className="mb-1 font-semibold">Your hiring is</p>
           {isJobsPending ? (
-            <Skeleton className="mt-1 h-8 w-24 bg-blue-500" />
+            <Skeleton className="mb-1 h-10 w-28 bg-blue-500" />
           ) : (
-            <p className="mt-1 text-2xl font-bold">{hoursSavedThisMonth}</p>
+            <p className="text-4xl font-bold">
+              {hiringFasterPercent === "—"
+                ? "—"
+                : `${hiringFasterPercent} faster`}
+            </p>
           )}
+          <p className="mt-1 text-sm text-blue-100">
+            {hiringFasterPercent === "—"
+              ? "Complete a hire to measure your speed"
+              : "than traditional reference checking"}
+          </p>
+          <div className="mt-4 border-t border-blue-500 pt-4">
+            <p className="text-xs text-blue-200">
+              Estimated time saved this month
+            </p>
+            {isJobsPending ? (
+              <Skeleton className="mt-1 h-8 w-24 bg-blue-500" />
+            ) : (
+              <p className="mt-1 text-2xl font-bold">{hoursSavedThisMonth}</p>
+            )}
+          </div>
         </div>
-      </div>
+      ) : null}
     </div>
   );
 }
