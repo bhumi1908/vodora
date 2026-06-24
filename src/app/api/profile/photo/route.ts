@@ -1,5 +1,11 @@
 import { NextResponse } from "next/server";
 
+import { deleteCandidateFile } from "@/lib/profile/delete-candidate-file";
+import {
+  deleteCandidateDocuments,
+  deleteStoredProfilePhotoUrl,
+  fetchCandidateDocumentsOfType,
+} from "@/lib/profile/replace-candidate-documents";
 import { requireOwnCandidate } from "@/lib/profile/require-own-candidate";
 import { uploadCandidateFile } from "@/lib/profile/upload-candidate-file";
 import { validateProfileFile } from "@/lib/profile/validation";
@@ -35,6 +41,19 @@ export async function POST(request: Request) {
     );
   }
 
+  const [previousPhotos, { data: candidateRow }] = await Promise.all([
+    fetchCandidateDocumentsOfType(
+      supabase,
+      context.candidateId,
+      "profile_photo",
+    ),
+    supabase
+      .from("candidates")
+      .select("profile_picture_url")
+      .eq("id", context.candidateId)
+      .maybeSingle(),
+  ]);
+
   const uploadResult = await uploadCandidateFile(
     supabase,
     context.userId,
@@ -69,6 +88,11 @@ export async function POST(request: Request) {
     });
 
   if (documentError) {
+    await deleteCandidateFile(
+      supabase,
+      uploadResult.publicUrl,
+      context.userId,
+    );
     return NextResponse.json(
       { success: false, error: documentError.message },
       { status: 500 },
@@ -81,11 +105,29 @@ export async function POST(request: Request) {
     .eq("id", context.candidateId);
 
   if (candidateError) {
+    await supabase
+      .from("candidate_documents")
+      .delete()
+      .eq("candidate_id", context.candidateId)
+      .eq("file_url", uploadResult.publicUrl);
+    await deleteCandidateFile(
+      supabase,
+      uploadResult.publicUrl,
+      context.userId,
+    );
     return NextResponse.json(
       { success: false, error: candidateError.message },
       { status: 500 },
     );
   }
+
+  await deleteCandidateDocuments(supabase, previousPhotos, context.userId);
+  await deleteStoredProfilePhotoUrl(
+    supabase,
+    candidateRow?.profile_picture_url,
+    context.userId,
+    uploadResult.publicUrl,
+  );
 
   return NextResponse.json({
     success: true,

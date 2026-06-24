@@ -1309,6 +1309,12 @@ export type Database = {
         };
         Returns: Json;
       };
+      get_reference_collection_candidate_details: {
+        Args: {
+          p_candidate_id: string;
+        };
+        Returns: Json;
+      };
       recruiter_has_reference_grant: {
         Args: {
           p_candidate_id: string;

@@ -9,6 +9,7 @@ import {
 } from "@/lib/email/templates/reference-request";
 import {
   mapReferenceRequestToInsert,
+  type ReferenceRequestInsertContext,
   validateReferenceRequest,
 } from "@/lib/profile/reference-validation";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -87,7 +88,7 @@ export function queueReferenceRequestEmail(
 
 export async function createReferenceRequest(
   supabase: Supabase,
-  context: { candidateId: string; userId: string; candidateName: string },
+  context: ReferenceRequestInsertContext & { candidateName: string },
   input: RequestReferenceFormData,
   origin: string,
 ): Promise<CreateReferenceRequestResult> {
@@ -98,8 +99,9 @@ export async function createReferenceRequest(
   }
 
   const insertPayload = mapReferenceRequestToInsert(input, context);
+  const insertClient = context.recruiterId ? createAdminClient() : supabase;
 
-  const { data, error } = await supabase
+  const { data, error } = await insertClient
     .from("reference_requests")
     .insert(insertPayload)
     .select("id, invitation_token, referee_email, referee_name")

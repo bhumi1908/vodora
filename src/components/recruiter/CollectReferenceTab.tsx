@@ -1,86 +1,241 @@
 "use client";
 
+import { CheckCircle, FileText, Send, Users } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+
+import { FormError } from "@/components/auth/shared/FormFields";
+import { ReferenceRequestFormFields } from "@/components/profile/reference/ReferenceRequestFormFields";
 import {
-  ArrowRight,
-  Briefcase,
-  CheckCircle,
-  FileText,
-  Send,
-  UserCheck,
-  Users,
-} from "lucide-react";
-import { useState } from "react";
+  createEmptyReferenceRequest,
+  type RequestReferenceFormData,
+} from "@/components/profile/reference/types";
+import { useFieldErrors } from "@/hooks/useFieldErrors";
+import { hasFieldErrors } from "@/lib/form/field-errors";
+import {
+  getReferenceFieldErrors,
+  type ReferenceFieldErrors,
+} from "@/lib/profile/reference-validation";
+import type {
+  ReferenceCollectionCandidateDetails,
+  ReferenceCollectionCandidateOption,
+} from "@/lib/recruiter/fetch-reference-collection-candidates";
+import {
+  showReferenceRequestErrorToast,
+  showReferenceRequestSentToast,
+} from "@/lib/references/reference-toast";
 
 type CollectReferenceTabProps = {
   recruiterName: string;
   companyName: string | null;
 };
 
-type CollectReferenceForm = {
+type SentState = {
   candidateName: string;
-  candidateTitle: string;
-  candidateCompany: string;
-  candidateEmail: string;
   refereeName: string;
-  refereeTitle: string;
-  refereeCompany: string;
-  refereeEmail: string;
-  refereePhone: string;
-  relationship: string;
-  jobTitle: string;
-  employmentStart: string;
-  employmentEnd: string;
-  notes: string;
 };
 
-const emptyForm = (): CollectReferenceForm => ({
-  candidateName: "",
-  candidateTitle: "",
-  candidateCompany: "",
-  candidateEmail: "",
-  refereeName: "",
-  refereeTitle: "",
-  refereeCompany: "",
-  refereeEmail: "",
-  refereePhone: "",
-  relationship: "",
-  jobTitle: "",
-  employmentStart: "",
-  employmentEnd: "",
-  notes: "",
-});
-
 export function CollectReferenceTab({
-  recruiterName,
-  companyName,
+  recruiterName: _recruiterName,
+  companyName: _companyName,
 }: CollectReferenceTabProps) {
-  const [sent, setSent] = useState(false);
-  const [form, setForm] = useState(emptyForm);
+  const [candidateOptions, setCandidateOptions] = useState<
+    ReferenceCollectionCandidateOption[]
+  >([]);
+  const [candidatesError, setCandidatesError] = useState("");
+  const [isLoadingCandidates, setIsLoadingCandidates] = useState(true);
+  const [selectedCandidateId, setSelectedCandidateId] = useState("");
+  const [candidateDetails, setCandidateDetails] =
+    useState<ReferenceCollectionCandidateDetails | null>(null);
+  const [isLoadingCandidateDetails, setIsLoadingCandidateDetails] =
+    useState(false);
+  const [candidateDetailsError, setCandidateDetailsError] = useState("");
+  const [form, setForm] = useState(createEmptyReferenceRequest);
+  const { errors, setErrors, clearField } =
+    useFieldErrors<keyof ReferenceFieldErrors>();
+  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [sent, setSent] = useState<SentState | null>(null);
 
-  const update = (field: keyof CollectReferenceForm, value: string) =>
-    setForm((prev) => ({ ...prev, [field]: value }));
+  useEffect(() => {
+    let cancelled = false;
 
-  const isValid =
-    form.candidateName &&
-    form.candidateEmail &&
-    form.refereeName &&
-    form.refereeEmail &&
-    form.relationship;
+    async function loadCandidates() {
+      setIsLoadingCandidates(true);
+      setCandidatesError("");
 
-  const handleSend = () => {
-    if (!isValid) {
+      try {
+        const response = await fetch("/api/recruiter/references");
+        const result = (await response.json()) as {
+          success: boolean;
+          candidates?: ReferenceCollectionCandidateOption[];
+          error?: string;
+        };
+
+        if (!response.ok || !result.success) {
+          throw new Error(result.error ?? "Could not load candidates.");
+        }
+
+        if (!cancelled) {
+          setCandidateOptions(result.candidates ?? []);
+        }
+      } catch (loadError) {
+        if (!cancelled) {
+          setCandidatesError(
+            loadError instanceof Error
+              ? loadError.message
+              : "Could not load candidates.",
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoadingCandidates(false);
+        }
+      }
+    }
+
+    void loadCandidates();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const loadCandidateDetails = useCallback(
+    async (candidateId: string, vodoraId?: string) => {
+      if (!candidateId) {
+        setCandidateDetails(null);
+        setCandidateDetailsError("");
+        return;
+      }
+
+      setIsLoadingCandidateDetails(true);
+      setCandidateDetailsError("");
+
+      try {
+        const query = vodoraId
+          ? `?vodoraId=${encodeURIComponent(vodoraId)}`
+          : "";
+        const response = await fetch(
+          `/api/recruiter/references/candidates/${encodeURIComponent(candidateId)}${query}`,
+        );
+        const result = (await response.json()) as {
+          success: boolean;
+          candidate?: ReferenceCollectionCandidateDetails;
+          error?: string;
+        };
+
+        if (!response.ok || !result.success || !result.candidate) {
+          throw new Error(result.error ?? "Could not load candidate details.");
+        }
+
+        setCandidateDetails(result.candidate);
+      } catch (loadError) {
+      setCandidateDetails(null);
+      setCandidateDetailsError(
+        loadError instanceof Error
+          ? loadError.message
+          : "Could not load candidate details.",
+      );
+    } finally {
+      setIsLoadingCandidateDetails(false);
+    }
+  },
+    [],
+  );
+
+  function handleCandidateChange(candidateId: string) {
+    const option = candidateOptions.find(
+      (candidate) => candidate.candidateId === candidateId,
+    );
+    setSelectedCandidateId(candidateId);
+    void loadCandidateDetails(candidateId, option?.vodoraId);
+  }
+
+  function updateField<K extends keyof RequestReferenceFormData>(
+    field: K,
+    value: RequestReferenceFormData[K],
+  ) {
+    setForm((current) => ({ ...current, [field]: value }));
+    clearField(field);
+    setError("");
+  }
+
+  async function handleSubmit() {
+    if (!selectedCandidateId) {
+      setError("Select a candidate before sending the reference request.");
       return;
     }
 
-    setSent(true);
-  };
+    if (!candidateDetails) {
+      setError("Candidate details could not be loaded. Please try again.");
+      return;
+    }
 
-  const reset = () => {
-    setSent(false);
-    setForm(emptyForm());
-  };
+    const fieldErrors = getReferenceFieldErrors(form);
 
-  const companyLabel = companyName ?? "your company";
+    if (hasFieldErrors(fieldErrors)) {
+      setErrors(fieldErrors);
+      return;
+    }
+
+    setIsSubmitting(true);
+    setErrors({});
+    setError("");
+
+    try {
+      const response = await fetch("/api/recruiter/references", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          candidateId: selectedCandidateId,
+          ...form,
+        }),
+      });
+
+      const result = (await response.json()) as {
+        success: boolean;
+        error?: string;
+        fieldErrors?: ReferenceFieldErrors;
+        candidateName?: string;
+      };
+
+      if (!response.ok || !result.success) {
+        if (result.fieldErrors) {
+          setErrors(result.fieldErrors);
+        }
+
+        const message =
+          result.error ?? "Unable to send reference request.";
+        setError(message);
+        showReferenceRequestErrorToast(message);
+        return;
+      }
+
+      showReferenceRequestSentToast(form.name);
+      setSent({
+        candidateName: result.candidateName ?? candidateDetails.name,
+        refereeName: form.name,
+      });
+      setSelectedCandidateId("");
+      setCandidateDetails(null);
+      setForm(createEmptyReferenceRequest());
+    } catch {
+      const message = "Unable to send reference request. Please try again.";
+      setError(message);
+      showReferenceRequestErrorToast(message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  function reset() {
+    setSent(null);
+    setSelectedCandidateId("");
+    setCandidateDetails(null);
+    setForm(createEmptyReferenceRequest());
+    setErrors({});
+    setError("");
+  }
 
   if (sent) {
     return (
@@ -92,93 +247,10 @@ export function CollectReferenceTab({
           Reference Request Sent
         </h3>
         <p className="mb-8 leading-relaxed text-gray-500">
-          Two emails have been dispatched:
+          An email has been sent to{" "}
+          <strong>{sent.refereeName}</strong> with a secure link to complete a
+          reference for <strong>{sent.candidateName}</strong>.
         </p>
-
-        <div className="mb-10 grid grid-cols-1 gap-4 text-left sm:grid-cols-2">
-          <div className="rounded-2xl border border-blue-100 bg-blue-50 p-5">
-            <div className="mb-3 flex items-center gap-2">
-              <UserCheck className="h-5 w-5 text-blue-600" />
-              <span className="text-sm font-semibold text-blue-900">
-                Email to Referee
-              </span>
-            </div>
-            <p className="text-sm font-medium text-blue-800">{form.refereeName}</p>
-            <p className="mb-3 text-xs text-blue-600">{form.refereeEmail}</p>
-            <p className="text-xs leading-relaxed text-blue-700">
-              Includes a secure link to complete a reference for{" "}
-              <strong>{form.candidateName}</strong>. The response is verified by
-              Vodora and permanently linked to the candidate&apos;s trust profile.
-            </p>
-          </div>
-
-          <div className="rounded-2xl border border-green-100 bg-green-50 p-5">
-            <div className="mb-3 flex items-center gap-2">
-              <FileText className="h-5 w-5 text-green-600" />
-              <span className="text-sm font-semibold text-green-900">
-                Email to Candidate
-              </span>
-            </div>
-            <p className="text-sm font-medium text-green-800">
-              {form.candidateName}
-            </p>
-            <p className="mb-3 text-xs text-green-600">{form.candidateEmail}</p>
-            <p className="text-xs leading-relaxed text-green-700">
-              Notified that a reference is being collected on their behalf.
-              Invited to create a Vodora profile to save and own the reference
-              once verified.
-            </p>
-          </div>
-        </div>
-
-        <div className="mb-8 rounded-2xl border border-gray-200 bg-white p-6 text-left">
-          <p className="mb-4 text-xs font-semibold uppercase tracking-wide text-gray-400">
-            Preview — Referee Email
-          </p>
-          <div className="mb-4 border-b border-gray-100 pb-3">
-            <p className="text-sm text-gray-500">
-              From: <span className="text-gray-800">noreply@vodora.com</span>
-            </p>
-            <p className="text-sm text-gray-500">
-              To: <span className="text-gray-800">{form.refereeEmail}</span>
-            </p>
-            <p className="text-sm text-gray-500">
-              Subject:{" "}
-              <span className="text-gray-800">
-                Reference request for {form.candidateName} — from {recruiterName}{" "}
-                at {companyLabel}
-              </span>
-            </p>
-          </div>
-          <div className="space-y-3 text-sm leading-relaxed text-gray-700">
-            <p>Hi {form.refereeName},</p>
-            <p>
-              <strong>{recruiterName}</strong> from <strong>{companyLabel}</strong>{" "}
-              is collecting a verified professional reference for{" "}
-              <strong>{form.candidateName}</strong>
-              {form.relationship
-                ? `, who listed you as their ${form.relationship.toLowerCase()}`
-                : ""}
-              .
-            </p>
-            <p>
-              Vodora is a professional trust platform that permanently links
-              verified references to a candidate&apos;s identity — meaning you only
-              need to provide this reference once. It will be securely stored and
-              reused with {form.candidateName}&apos;s permission.
-            </p>
-            <div className="mt-4 flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-3 text-center font-semibold text-white">
-              Complete Reference
-              <ArrowRight className="h-4 w-4 shrink-0" aria-hidden="true" />
-              vodora.com/ref/secure-link
-            </div>
-            <p className="pt-2 text-xs text-gray-400">
-              This link expires in 14 days. Completing this reference takes
-              approximately 5 minutes.
-            </p>
-          </div>
-        </div>
-
         <button
           type="button"
           onClick={reset}
@@ -197,13 +269,20 @@ export function CollectReferenceTab({
           Collect a Reference
         </h2>
         <p className="text-sm text-gray-500">
-          Enter the candidate and referee details below. Vodora will email the
-          referee a secure link to complete a verified reference, and notify the
-          candidate so they can save it to their profile.
+          Select a verified candidate and enter referee details. Vodora will email
+          the referee a secure link to complete a verified reference on the
+          candidate&apos;s behalf.
         </p>
       </div>
 
-      <div className="space-y-8">
+      <form
+        onSubmit={(event) => {
+          event.preventDefault();
+          void handleSubmit();
+        }}
+        noValidate
+        className="space-y-8"
+      >
         <section>
           <div className="mb-5 flex items-center gap-2">
             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-100">
@@ -211,35 +290,73 @@ export function CollectReferenceTab({
             </div>
             <h3 className="font-semibold text-gray-900">Candidate Details</h3>
           </div>
+
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <CollectReferenceField
-              label="Full Name"
-              required
-              value={form.candidateName}
-              onChange={(value) => update("candidateName", value)}
-              placeholder="e.g. Sarah Johnson"
-            />
-            <CollectReferenceField
+            <div className="sm:col-span-2">
+              <label
+                htmlFor="collect-reference-candidate"
+                className="mb-1.5 block text-xs font-medium text-gray-600"
+              >
+                Full Name <span className="text-red-500">*</span>
+              </label>
+              <select
+                id="collect-reference-candidate"
+                value={selectedCandidateId}
+                onChange={(event) => handleCandidateChange(event.target.value)}
+                disabled={isLoadingCandidates}
+                className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:cursor-not-allowed disabled:bg-gray-50"
+              >
+                <option value="">
+                  {isLoadingCandidates
+                    ? "Loading verified candidates…"
+                    : "Select a verified candidate…"}
+                </option>
+                {candidateOptions.map((candidate) => (
+                  <option key={candidate.candidateId} value={candidate.candidateId}>
+                    {candidate.name}
+                    {candidate.title ? ` — ${candidate.title}` : ""}
+                  </option>
+                ))}
+              </select>
+              {candidatesError ? (
+                <p className="mt-1.5 text-xs text-red-600">{candidatesError}</p>
+              ) : null}
+            </div>
+
+            <CollectReferenceReadOnlyField
               label="Job Title"
-              value={form.candidateTitle}
-              onChange={(value) => update("candidateTitle", value)}
-              placeholder="e.g. Senior Software Engineer"
+              value={
+                isLoadingCandidateDetails
+                  ? "Loading…"
+                  : (candidateDetails?.title ?? "")
+              }
+              placeholder="Select a candidate"
             />
-            <CollectReferenceField
+            <CollectReferenceReadOnlyField
               label="Company"
-              value={form.candidateCompany}
-              onChange={(value) => update("candidateCompany", value)}
-              placeholder="e.g. Tech Corp"
+              value={
+                isLoadingCandidateDetails
+                  ? "Loading…"
+                  : (candidateDetails?.company ?? "")
+              }
+              placeholder="Select a candidate"
             />
-            <CollectReferenceField
+            <CollectReferenceReadOnlyField
               label="Candidate Email"
               required
-              type="email"
-              value={form.candidateEmail}
-              onChange={(value) => update("candidateEmail", value)}
-              placeholder="candidate@email.com"
+              value={
+                isLoadingCandidateDetails
+                  ? "Loading…"
+                  : (candidateDetails?.email ?? "")
+              }
+              placeholder="Select a candidate"
             />
           </div>
+
+          {candidateDetailsError ? (
+            <p className="mt-3 text-xs text-red-600">{candidateDetailsError}</p>
+          ) : null}
+
           <div className="mt-3 flex items-start gap-2 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3">
             <FileText className="mt-0.5 h-4 w-4 shrink-0 text-blue-500" />
             <p className="text-xs text-blue-700">
@@ -253,197 +370,63 @@ export function CollectReferenceTab({
         <div className="border-t border-gray-100" />
 
         <section>
-          <div className="mb-5 flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-purple-100">
-              <Briefcase className="h-4 w-4 text-purple-600" />
-            </div>
-            <h3 className="font-semibold text-gray-900">Employment Context</h3>
-          </div>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <CollectReferenceField
-              label="Role Being Referenced"
-              value={form.jobTitle}
-              onChange={(value) => update("jobTitle", value)}
-              placeholder="e.g. Software Engineer"
-            />
-            <CollectReferenceField
-              label="Employment Start"
-              type="month"
-              value={form.employmentStart}
-              onChange={(value) => update("employmentStart", value)}
-            />
-            <CollectReferenceField
-              label="Employment End"
-              type="month"
-              value={form.employmentEnd}
-              onChange={(value) => update("employmentEnd", value)}
-            />
-          </div>
+          <ReferenceRequestFormFields
+            form={form}
+            errors={errors}
+            onFieldChange={updateField}
+          />
         </section>
 
-        <div className="border-t border-gray-100" />
-
-        <section>
-          <div className="mb-5 flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-green-100">
-              <UserCheck className="h-4 w-4 text-green-600" />
-            </div>
-            <h3 className="font-semibold text-gray-900">Referee Details</h3>
-          </div>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <CollectReferenceField
-              label="Referee Full Name"
-              required
-              value={form.refereeName}
-              onChange={(value) => update("refereeName", value)}
-              placeholder="e.g. John Smith"
-            />
-            <CollectReferenceField
-              label="Referee Job Title"
-              value={form.refereeTitle}
-              onChange={(value) => update("refereeTitle", value)}
-              placeholder="e.g. Engineering Manager"
-            />
-            <CollectReferenceField
-              label="Referee Company"
-              value={form.refereeCompany}
-              onChange={(value) => update("refereeCompany", value)}
-              placeholder="e.g. Tech Corp"
-            />
-            <CollectReferenceField
-              label="Referee Email"
-              required
-              type="email"
-              value={form.refereeEmail}
-              onChange={(value) => update("refereeEmail", value)}
-              placeholder="referee@company.com"
-            />
-            <CollectReferenceField
-              label="Referee Phone"
-              type="tel"
-              value={form.refereePhone}
-              onChange={(value) => update("refereePhone", value)}
-              placeholder="+61 4XX XXX XXX"
-            />
-            <div>
-              <label className="mb-1.5 block text-xs font-medium text-gray-600">
-                Relationship to Candidate <span className="text-red-500">*</span>
-              </label>
-              <select
-                value={form.relationship}
-                onChange={(e) => update("relationship", e.target.value)}
-                className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">Select relationship…</option>
-                <option>Direct Manager</option>
-                <option>Senior Manager</option>
-                <option>Team Lead</option>
-                <option>Colleague / Peer</option>
-                <option>Client</option>
-                <option>Mentor</option>
-                <option>HR / People Team</option>
-              </select>
-            </div>
-          </div>
-          <div className="mt-4">
-            <label className="mb-1.5 block text-xs font-medium text-gray-600">
-              Additional Notes for Referee (optional)
-            </label>
-            <textarea
-              rows={3}
-              value={form.notes}
-              onChange={(e) => update("notes", e.target.value)}
-              placeholder="Any context you'd like to share with the referee before they complete the form…"
-              className="w-full resize-none rounded-xl border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-        </section>
-
-        <div className="rounded-2xl border border-gray-200 bg-gray-50 p-6">
-          <p className="mb-4 text-sm font-semibold text-gray-700">
-            What happens when you send:
-          </p>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div className="flex items-start gap-3">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-100">
-                <UserCheck className="h-4 w-4 text-blue-600" />
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-gray-900">
-                  Referee receives
-                </p>
-                <p className="mt-0.5 text-xs leading-relaxed text-gray-500">
-                  A secure, time-limited link to complete a structured reference.
-                  Vodora verifies their corporate email before the response is
-                  accepted.
-                </p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-green-100">
-                <FileText className="h-4 w-4 text-green-600" />
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-gray-900">
-                  Candidate receives
-                </p>
-                <p className="mt-0.5 text-xs leading-relaxed text-gray-500">
-                  A notification that a reference is being collected, plus an
-                  invitation to create a free Vodora profile to permanently own
-                  and reuse this reference.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
+        {error ? <FormError message={error} /> : null}
 
         <div className="flex flex-col-reverse gap-4 pt-2 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-xs text-gray-400">
             <span className="text-red-400">*</span> Required fields
           </p>
           <button
-            type="button"
-            onClick={handleSend}
-            disabled={!isValid}
+            type="submit"
+            disabled={
+              isSubmitting ||
+              isLoadingCandidates ||
+              isLoadingCandidateDetails ||
+              !selectedCandidateId ||
+              !candidateDetails
+            }
             className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-8 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
           >
             <Send className="h-4 w-4" />
-            Send Reference Request
+            {isSubmitting ? "Sending…" : "Send Reference Request"}
           </button>
         </div>
-      </div>
+      </form>
     </div>
   );
 }
 
-type CollectReferenceFieldProps = {
+type CollectReferenceReadOnlyFieldProps = {
   label: string;
   value: string;
-  onChange: (value: string) => void;
   placeholder?: string;
   required?: boolean;
-  type?: string;
 };
 
-function CollectReferenceField({
+function CollectReferenceReadOnlyField({
   label,
   value,
-  onChange,
   placeholder,
   required = false,
-  type = "text",
-}: CollectReferenceFieldProps) {
+}: CollectReferenceReadOnlyFieldProps) {
   return (
     <div>
       <label className="mb-1.5 block text-xs font-medium text-gray-600">
         {label} {required ? <span className="text-red-500">*</span> : null}
       </label>
       <input
-        type={type}
+        type="text"
+        readOnly
         value={value}
-        onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-700"
       />
     </div>
   );

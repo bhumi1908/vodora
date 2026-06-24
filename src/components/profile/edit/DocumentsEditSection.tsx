@@ -107,7 +107,16 @@ export function DocumentsEditSection({
         return;
       }
 
-      const nextDocuments = [result.document, ...documents];
+      const nextDocuments = [
+        result.document,
+        ...documents.filter(
+          (item) =>
+            !(
+              (documentType === "resume" && item.type === "resume") ||
+              (documentType === "profile_photo" && item.type === "profile_photo")
+            ),
+        ),
+      ];
       onChange({ documents: nextDocuments });
       onDocumentsSaved?.(nextDocuments);
       clearSelectedFile();

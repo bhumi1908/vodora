@@ -206,18 +206,27 @@ export function getReferenceResponseFieldErrors(
   return errors;
 }
 
+export type ReferenceRequestInsertContext = {
+  candidateId: string;
+  userId: string;
+  recruiterId?: string;
+};
+
 export function mapReferenceRequestToInsert(
   input: RequestReferenceFormData,
-  context: {
-    candidateId: string;
-    userId: string;
-  },
+  context: ReferenceRequestInsertContext,
 ) {
+  const isRecruiterRequest = Boolean(context.recruiterId);
+
   return {
     candidate_id: context.candidateId,
-    requested_by_type: "candidate" as const,
+    requested_by_type: isRecruiterRequest
+      ? ("recruiter" as const)
+      : ("candidate" as const),
     requested_by_user_id: context.userId,
-    requested_by_recruiter_id: null,
+    requested_by_recruiter_id: isRecruiterRequest
+      ? context.recruiterId!
+      : null,
     referee_name: input.name.trim(),
     referee_title: input.title.trim(),
     referee_company: input.company.trim(),
