@@ -5,6 +5,7 @@ import {
   Briefcase,
   MapPin,
   Search,
+  SearchX,
   Users,
 } from "lucide-react";
 import Link from "next/link";
@@ -97,10 +98,21 @@ export function RecruiterJobApplicantsPage({ jobId }: RecruiterJobApplicantsPage
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [page]);
 
+  const hasActiveSearch = searchQuery.trim().length > 0;
+  const isSearchEmpty =
+    hasActiveSearch && filteredApplicants.length === 0 && applicants.length > 0;
+
   useEffect(() => {
-    if (filteredApplicants.length === 0) {
-      setSelectedApplicationId(null);
+    if (isSearchEmpty) {
       setMobileView("list");
+      return;
+    }
+
+    if (filteredApplicants.length === 0) {
+      if (applicants.length === 0) {
+        setSelectedApplicationId(null);
+        setMobileView("list");
+      }
       return;
     }
 
@@ -112,7 +124,7 @@ export function RecruiterJobApplicantsPage({ jobId }: RecruiterJobApplicantsPage
       setSelectedApplicationId(filteredApplicants[0]?.applicationId ?? null);
       setMobileView("list");
     }
-  }, [filteredApplicants, selectedApplicationId]);
+  }, [applicants.length, filteredApplicants, isSearchEmpty, selectedApplicationId]);
 
   useEffect(() => {
     if (!selectedApplicationId && applicants.length > 0) {
@@ -129,12 +141,26 @@ export function RecruiterJobApplicantsPage({ jobId }: RecruiterJobApplicantsPage
     setMobileView("list");
   }, []);
 
-  const selectedApplicant =
-    applicants.find(
-      (applicant) => applicant.applicationId === selectedApplicationId,
-    ) ?? filteredApplicants.find(
-      (applicant) => applicant.applicationId === selectedApplicationId,
-    );
+  const detailApplicationId = useMemo(() => {
+    if (isSearchEmpty) {
+      return null;
+    }
+
+    if (
+      selectedApplicationId &&
+      applicants.some(
+        (applicant) => applicant.applicationId === selectedApplicationId,
+      )
+    ) {
+      return selectedApplicationId;
+    }
+
+    return applicants[0]?.applicationId ?? null;
+  }, [applicants, isSearchEmpty, selectedApplicationId]);
+
+  const detailApplicant = applicants.find(
+    (applicant) => applicant.applicationId === detailApplicationId,
+  );
 
   if (isPending) {
     return <RecruiterJobApplicantsPageSkeleton />;
@@ -224,78 +250,143 @@ export function RecruiterJobApplicantsPage({ jobId }: RecruiterJobApplicantsPage
             </div>
           ) : null}
 
-          <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,360px)_minmax(0,1fr)]">
-            <aside
-              className={`space-y-4 ${
-                mobileView === "detail" ? "hidden lg:block" : "block"
-              }`}
-            >
-              <div className="relative">
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                <input
-                  type="search"
+          {isSearchEmpty ? (
+            <div className="mt-6 space-y-4">
+              <ApplicantSearchInput
+                value={searchQuery}
+                onChange={setSearchQuery}
+              />
+              <ApplicantSearchEmptyState
+                searchQuery={searchQuery.trim()}
+                onClear={() => setSearchQuery("")}
+              />
+            </div>
+          ) : (
+            <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,360px)_minmax(0,1fr)]">
+              <aside
+                className={`space-y-4 ${
+                  mobileView === "detail" ? "hidden lg:block" : "block"
+                }`}
+              >
+                <ApplicantSearchInput
                   value={searchQuery}
-                  onChange={(event) => setSearchQuery(event.target.value)}
-                  placeholder="Search applicants…"
-                  className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-10 pr-4 text-sm outline-none transition-colors focus:border-blue-300 focus:ring-2 focus:ring-blue-100"
+                  onChange={setSearchQuery}
                 />
-              </div>
 
-              {listRangeLabel ? (
-                <p className="text-sm text-gray-600">
-                  Showing{" "}
-                  <span className="font-semibold text-gray-900">{listRangeLabel}</span>{" "}
-                  applicant{filteredApplicants.length === 1 ? "" : "s"}
-                </p>
-              ) : null}
-
-              <div className="space-y-3 lg:max-h-[calc(100vh-14rem)] lg:overflow-y-auto lg:pr-1">
-                {filteredApplicants.length === 0 ? (
-                  <p className="rounded-2xl border border-dashed border-gray-200 px-4 py-8 text-center text-sm text-gray-500">
-                    No applicants match your search.
+                {listRangeLabel ? (
+                  <p className="text-sm text-gray-600">
+                    Showing{" "}
+                    <span className="font-semibold text-gray-900">
+                      {listRangeLabel}
+                    </span>{" "}
+                    applicant{filteredApplicants.length === 1 ? "" : "s"}
                   </p>
-                ) : (
-                  paginatedApplicants.map((applicant) => (
+                ) : null}
+
+                <div className="space-y-3 lg:max-h-[calc(100vh-14rem)] lg:overflow-y-auto lg:pr-1">
+                  {paginatedApplicants.map((applicant) => (
                     <RecruiterJobApplicantListCard
                       key={applicant.applicationId}
                       applicant={applicant}
                       selected={applicant.applicationId === selectedApplicationId}
-                      onSelect={() => handleSelectApplicant(applicant.applicationId)}
+                      onSelect={() =>
+                        handleSelectApplicant(applicant.applicationId)
+                      }
                     />
-                  ))
+                  ))}
+                </div>
+
+                {filteredApplicants.length > 0 && totalPages > 1 ? (
+                  <Pagination
+                    currentPage={page}
+                    totalPages={totalPages}
+                    onPageChange={setPage}
+                    className="pt-1"
+                  />
+                ) : null}
+              </aside>
+
+              <div
+                className={`min-w-0 ${
+                  mobileView === "list" ? "hidden lg:block" : "block"
+                }`}
+              >
+                {detailApplicant && detailApplicationId ? (
+                  <RecruiterJobApplicantDetailPanel
+                    jobId={jobId}
+                    applicationId={detailApplicationId}
+                    summaryName={detailApplicant.name}
+                  />
+                ) : (
+                  <div className="rounded-2xl border border-dashed border-gray-200 bg-white px-6 py-16 text-center text-sm text-gray-500">
+                    Select an applicant to review their application.
+                  </div>
                 )}
               </div>
-
-              {filteredApplicants.length > 0 && totalPages > 1 ? (
-                <Pagination
-                  currentPage={page}
-                  totalPages={totalPages}
-                  onPageChange={setPage}
-                  className="pt-1"
-                />
-              ) : null}
-            </aside>
-
-            <div
-              className={`min-w-0 ${
-                mobileView === "list" ? "hidden lg:block" : "block"
-              }`}
-            >
-              {selectedApplicant && selectedApplicationId ? (
-                <RecruiterJobApplicantDetailPanel
-                  jobId={jobId}
-                  applicationId={selectedApplicationId}
-                  summaryName={selectedApplicant.name}
-                />
-              ) : (
-                <div className="rounded-2xl border border-dashed border-gray-200 bg-white px-6 py-16 text-center text-sm text-gray-500">
-                  Select an applicant to review their application.
-                </div>
-              )}
             </div>
-          </div>
+          )}
         </>
       )}
+    </div>
+  );
+}
+
+function ApplicantSearchInput({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <div className="relative">
+      <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+      <input
+        type="search"
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder="Search applicants…"
+        className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-10 pr-4 text-sm outline-none transition-colors focus:border-blue-300 focus:ring-2 focus:ring-blue-100"
+      />
+    </div>
+  );
+}
+
+function ApplicantSearchEmptyState({
+  searchQuery,
+  onClear,
+}: {
+  searchQuery: string;
+  onClear: () => void;
+}) {
+  return (
+    <div className="rounded-2xl border border-gray-200 bg-white px-6 py-16 text-center sm:py-20">
+      <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-50">
+        <SearchX className="h-8 w-8 text-blue-400" />
+      </div>
+      <h2 className="mb-2 text-lg font-semibold text-gray-900">
+        No candidates found
+      </h2>
+      <p className="mx-auto max-w-md text-sm text-gray-500">
+        {searchQuery ? (
+          <>
+            No applicants match{" "}
+            <span className="font-medium text-gray-700">
+              &ldquo;{searchQuery}&rdquo;
+            </span>
+            . Try a different name, role, company, or location.
+          </>
+        ) : (
+          "Try adjusting your search terms."
+        )}
+      </p>
+      <button
+        type="button"
+        onClick={onClear}
+        className="mt-6 inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:border-gray-300 hover:bg-gray-50"
+      >
+        Clear search
+      </button>
     </div>
   );
 }
