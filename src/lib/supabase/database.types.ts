@@ -1309,6 +1309,12 @@ export type Database = {
         };
         Returns: Json;
       };
+      get_candidate_peer_profile: {
+        Args: {
+          p_vodora_id: string;
+        };
+        Returns: Json;
+      };
       get_reference_collection_candidate_details: {
         Args: {
           p_candidate_id: string;

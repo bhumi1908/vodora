@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ConnectionTab } from "@/lib/connections/connection.types";
 import {
   fetchCandidateConnectionList,
+  fetchCandidatePeerConnectionStatus,
   fetchConnectionCounts,
   fetchRecruiterCandidateConnectionStatus,
   fetchRecruiterConnectionList,
@@ -52,6 +53,17 @@ export function useRecruiterCandidateConnectionStatusQuery(
   return useQuery({
     queryKey: connectionKeys.profileStatus(candidateId ?? ""),
     queryFn: () => fetchRecruiterCandidateConnectionStatus(candidateId!),
+    enabled: Boolean(candidateId) && enabled,
+  });
+}
+
+export function useCandidatePeerConnectionStatusQuery(
+  candidateId: string | null,
+  enabled = true,
+) {
+  return useQuery({
+    queryKey: connectionKeys.peerProfileStatus(candidateId ?? ""),
+    queryFn: () => fetchCandidatePeerConnectionStatus(candidateId!),
     enabled: Boolean(candidateId) && enabled,
   });
 }

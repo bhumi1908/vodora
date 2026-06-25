@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 
 import { ProfileConnectionStats } from "@/components/connections/ProfileConnectionStats";
+import { CandidateProfilePeerConnectButton } from "@/components/connections/CandidateProfilePeerConnectButton";
 import { RecruiterProfileConnectButton } from "@/components/connections/RecruiterProfileConnectButton";
 import { ProfileSectionEditButton } from "@/components/profile/edit/ProfileSectionEditButton";
 import { candidateSectionHasContent } from "@/components/profile/edit/profile-section-content";
@@ -29,6 +30,7 @@ type ActionPlacement = "desktop" | "mobile";
 type ProfileHeaderProps = {
   profile: CandidateProfileData;
   visibility: ProfileVisibility;
+  peerView?: boolean;
   connection?: ProfileConnectionState;
   onConnectionChange?: () => void;
   onShareClick?: () => void;
@@ -80,6 +82,7 @@ function ProfileAvatar({
 function ProfileHeaderActions({
   visibility,
   profile,
+  peerView = false,
   connection,
   onConnectionChange,
   onShareClick,
@@ -89,6 +92,7 @@ function ProfileHeaderActions({
 }: {
   visibility: ProfileVisibility;
   profile: CandidateProfileData;
+  peerView?: boolean;
   connection: ProfileConnectionState;
   onConnectionChange?: () => void;
   onShareClick?: () => void;
@@ -147,11 +151,19 @@ function ProfileHeaderActions({
       <div
         className={`${rowClass} ${isMobile ? "[&_button]:w-full [&>span]:w-full [&>span]:justify-center" : ""}`}
       >
-        <RecruiterProfileConnectButton
-          profile={profile}
-          connection={connection}
-          onConnectionChange={onConnectionChange}
-        />
+        {peerView ? (
+          <CandidateProfilePeerConnectButton
+            profile={profile}
+            connection={connection}
+            onConnectionChange={onConnectionChange}
+          />
+        ) : (
+          <RecruiterProfileConnectButton
+            profile={profile}
+            connection={connection}
+            onConnectionChange={onConnectionChange}
+          />
+        )}
       </div>
     );
   }
@@ -162,6 +174,7 @@ function ProfileHeaderActions({
 export function ProfileHeader({
   profile,
   visibility,
+  peerView = false,
   connection = null,
   onConnectionChange,
   onShareClick,
@@ -183,6 +196,7 @@ export function ProfileHeader({
   const actionProps = {
     visibility,
     profile,
+    peerView,
     connection,
     onConnectionChange,
     onShareClick,

@@ -21,9 +21,8 @@ import type {
   RecruiterConnectionEntry,
 } from "@/lib/connections/connection.types";
 import {
-  CANDIDATE_FIND_RECRUITERS_PATH,
+  getCandidatePeerProfilePath,
   getRecruiterCandidateProfilePath,
-  RECRUITER_SEARCH_PATH,
 } from "@/lib/auth/routes";
 type ConnectionListCardProps =
   | {
@@ -79,28 +78,23 @@ function getConnectionTypeLabel(
   return "Recruiter";
 }
 
-function getProfileHref(
+function getViewProfileHref(
   role: "candidate" | "recruiter",
   connection: CandidateConnectionEntry | RecruiterConnectionEntry,
 ): string | null {
-  if (role === "recruiter" && connection.vodoraId) {
+  if (!connection.vodoraId) {
+    return null;
+  }
+
+  if (role === "recruiter") {
     return getRecruiterCandidateProfilePath(connection.vodoraId);
   }
 
   if (
     role === "candidate" &&
-    connection.connectionType === "candidate_candidate" &&
-    connection.vodoraId
+    connection.connectionType === "candidate_candidate"
   ) {
-    return getRecruiterCandidateProfilePath(connection.vodoraId);
-  }
-
-  if (role === "candidate" && connection.connectionType === "candidate_recruiter") {
-    return CANDIDATE_FIND_RECRUITERS_PATH;
-  }
-
-  if (role === "recruiter") {
-    return RECRUITER_SEARCH_PATH;
+    return getCandidatePeerProfilePath(connection.vodoraId);
   }
 
   return null;
@@ -110,9 +104,9 @@ export function ConnectionListCard(props: ConnectionListCardProps) {
   const { tab, onAccept, onReject, isResponding = false } = props;
   const connection = props.connection;
   const canRespond = tab === "received" && connection.status === "pending";
-  const profileHref = getProfileHref(props.role, connection);
-  const showProfileLink = tab === "connected" && profileHref !== null;
   const typeLabel = getConnectionTypeLabel(props.role, connection.connectionType);
+  const viewProfileHref =
+    tab === "connected" ? getViewProfileHref(props.role, connection) : null;
 
   const subtitle =
     props.role === "candidate"
@@ -232,9 +226,9 @@ export function ConnectionListCard(props: ConnectionListCardProps) {
                 Decline
               </button>
             </>
-          ) : showProfileLink ? (
+          ) : viewProfileHref ? (
             <Link
-              href={profileHref}
+              href={viewProfileHref}
               className="inline-flex items-center gap-1 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
             >
               View Profile

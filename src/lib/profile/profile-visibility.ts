@@ -26,6 +26,7 @@ export type ProfileVisibilityOptions = {
   isOwnProfile?: boolean;
   visitorPreview?: boolean;
   recruiterView?: boolean;
+  peerView?: boolean;
   connection?: ProfileConnectionState;
   hasReferenceAccess?: boolean;
 };
@@ -52,15 +53,16 @@ export function resolveProfileVisibility(
   const isOwnProfile = options.isOwnProfile ?? false;
   const visitorPreview = options.visitorPreview ?? false;
   const recruiterView = options.recruiterView ?? false;
+  const peerView = options.peerView ?? false;
   const hasReferenceAccess = options.hasReferenceAccess ?? false;
   const connected = isConnected(options.connection ?? null);
 
   const isOwnerView = isOwnProfile && !visitorPreview;
-  const isBasicExternalView =
-    visitorPreview || (recruiterView && !connected);
-  const isConnectedRecruiterView = recruiterView && connected;
+  const isExternalView = recruiterView || peerView;
+  const isBasicExternalView = visitorPreview || (isExternalView && !connected);
+  const isConnectedExternalView = isExternalView && connected;
 
-  const showPrivateDetails = isOwnerView || isConnectedRecruiterView;
+  const showPrivateDetails = isOwnerView || isConnectedExternalView;
   const baseTabIds = isBasicExternalView ? BASIC_EXTERNAL_TABS : ALL_TABS;
   const visibleTabIds =
     isOwnerView || hasReferenceAccess
@@ -74,7 +76,7 @@ export function resolveProfileVisibility(
     showOwnerActions: isOwnerView,
     showVisitorBanner: visitorPreview,
     showRestrictedNotice: isBasicExternalView,
-    showConnectInHeader: recruiterView && !visitorPreview,
+    showConnectInHeader: isExternalView && !visitorPreview,
     showConnectPreview: visitorPreview,
     visibleTabIds,
   };

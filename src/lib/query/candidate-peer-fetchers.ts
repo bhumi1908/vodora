@@ -2,6 +2,7 @@ import type {
   CandidatePeerSearchFilters,
   CandidatePeerSearchResult,
 } from "@/lib/candidate/candidate-peer-search.types";
+import type { CandidateProfileData } from "@/lib/profile/types";
 import {
   CANDIDATE_PEER_SEARCH_PAGE_SIZE,
   type CandidatePeerSearchQueryParams,
@@ -111,4 +112,23 @@ export async function sendCandidatePeerConnectionRequest(
   if (!response.ok || !payload.success) {
     throw new Error(payload.error ?? "Could not send connection request.");
   }
+}
+
+export async function fetchCandidatePeerProfile(
+  vodoraId: string,
+): Promise<CandidateProfileData> {
+  const response = await fetch(
+    `/api/candidate/candidates/profile/${encodeURIComponent(vodoraId)}`,
+  );
+  const payload = await parseJson<{
+    success?: boolean;
+    error?: string;
+    profile?: CandidateProfileData;
+  }>(response);
+
+  if (!response.ok || !payload.success || !payload.profile) {
+    throw new Error(payload.error ?? "Could not load candidate profile.");
+  }
+
+  return payload.profile;
 }
