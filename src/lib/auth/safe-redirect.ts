@@ -1,7 +1,10 @@
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 
 import { getAccountType } from "@/lib/auth/account-type";
-import { getPostLoginRedirect } from "@/lib/auth/post-login-redirect";
+import {
+  getPostLoginRedirect,
+  type PostLoginContext,
+} from "@/lib/auth/post-login-redirect";
 import {
   isCandidateOnlyRoute,
   isGuestOnlyRoute,
@@ -91,9 +94,14 @@ export async function resolvePostLoginRedirect(
   supabase: SupabaseClient,
   user: User,
   requestedRedirect?: string | null,
+  context?: Partial<PostLoginContext>,
 ): Promise<string> {
-  const accountType = await getAccountType(supabase, user);
-  const defaultRedirect = await getPostLoginRedirect(supabase, user);
+  const accountType =
+    context?.accountType ?? (await getAccountType(supabase, user));
+  const defaultRedirect = await getPostLoginRedirect(supabase, user, {
+    ...context,
+    accountType,
+  });
   const safePath = parseSafeRedirectPath(requestedRedirect);
 
   if (!safePath) {

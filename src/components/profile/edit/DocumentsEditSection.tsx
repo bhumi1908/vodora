@@ -16,6 +16,11 @@ import type {
 import { DOCUMENT_TYPE_OPTIONS } from "@/components/profile/edit/types";
 import { formatDocumentType } from "@/lib/profile/format";
 import {
+  showProfileDocumentDeletedToast,
+  showProfileDocumentSaveErrorToast,
+  showProfileDocumentUploadedToast,
+} from "@/lib/profile/profile-edit-toast";
+import {
   useDeleteProfileDocumentMutation,
   useUploadProfileDocumentMutation,
 } from "@/lib/query/use-profile-mutations";
@@ -104,6 +109,7 @@ export function DocumentsEditSection({
 
       if (!result.success) {
         setError(result.error);
+        showProfileDocumentSaveErrorToast(result.error);
         return;
       }
 
@@ -121,8 +127,10 @@ export function DocumentsEditSection({
       onDocumentsSaved?.(nextDocuments);
       clearSelectedFile();
       setSuccess(`${formatDocumentType(documentType)} uploaded.`);
+      showProfileDocumentUploadedToast(documentType);
     } catch {
       setError("Failed to upload document.");
+      showProfileDocumentSaveErrorToast();
     }
   }
 
@@ -135,7 +143,9 @@ export function DocumentsEditSection({
       const result = await deleteMutation.mutateAsync(document.id);
 
       if (!result.success) {
-        setError(result.error ?? "Failed to delete document.");
+        const message = result.error ?? "Failed to delete document.";
+        setError(message);
+        showProfileDocumentSaveErrorToast(message);
         return;
       }
 
@@ -148,8 +158,10 @@ export function DocumentsEditSection({
       }
 
       setSuccess("Document removed.");
+      showProfileDocumentDeletedToast();
     } catch {
       setError("Failed to delete document.");
+      showProfileDocumentSaveErrorToast();
     } finally {
       setDeletingId(null);
     }

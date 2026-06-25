@@ -5,6 +5,7 @@ import {
   getInitials,
 } from "@/lib/profile/format";
 import type { OwnCandidateProfileRpcResult } from "@/lib/profile/own-candidate-profile-rpc.types";
+import { parseSpotlightBlocks } from "@/lib/profile/spotlight";
 import type { CandidateProfileData } from "@/lib/profile/types";
 
 function toMonthInput(value: string | null): string {
@@ -74,6 +75,7 @@ export function transformOwnCandidateProfileToView(
     vodoraId: candidate?.vodora_id ?? null,
     availabilityStatus: candidate?.availability_status ?? "not_looking",
     availabilityStart: candidate?.availability_start ?? null,
+    spotlightBlocks: parseSpotlightBlocks(candidate?.spotlight_blocks ?? []),
     skills: [],
     experience: [],
     education: [],

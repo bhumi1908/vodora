@@ -31,6 +31,8 @@ export type CandidateProfileDocument = {
   isPrimary: boolean;
 };
 
+import type { SpotlightBlock } from "@/lib/profile/spotlight.types";
+
 export type CandidateProfileData = {
   userId: string;
   candidateId: string | null;
@@ -48,6 +50,7 @@ export type CandidateProfileData = {
   vodoraId: string | null;
   availabilityStatus: string;
   availabilityStart: string | null;
+  spotlightBlocks: SpotlightBlock[];
   skills: CandidateProfileSkill[];
   experience: CandidateProfileExperience[];
   education: CandidateProfileEducation[];

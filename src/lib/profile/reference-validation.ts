@@ -131,7 +131,7 @@ function validateSharedEmploymentFields(
   errors: ReferenceResponseFieldErrors,
 ) {
   if (!input.employmentConfirmed) {
-    errors.employmentConfirmed = "Employment confirmation is required.";
+    errors.employmentConfirmed = "You must confirm that you worked with this candidate.";
   }
 
   if (!input.positionHeld?.trim()) {
@@ -144,6 +144,10 @@ function validateSharedEmploymentFields(
 
   if (!input.attestationConfirmed) {
     errors.attestationConfirmed = "You must confirm this information is accurate.";
+  }
+
+  if (!input.signatureName?.trim()) {
+    errors.signatureName = "Signature name is required.";
   }
 }
 
@@ -303,5 +307,9 @@ export function mapReferenceResponseToInsert(
       ? input.questionnaireAnswers
       : input.writtenAssessmentAnswers,
     attestation_confirmed: true,
+    signature_name: input.signatureName.trim(),
+    signature_date: input.signatureDate.trim() || null,
+    allow_profile_creation: input.allowProfileCreation,
+    referee_linkedin: input.refereeLinkedIn.trim() || null,
   };
 }

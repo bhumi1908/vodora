@@ -137,7 +137,7 @@ export const WRITTEN_REFERENCE_ASSESSMENT = [
     description: "How would you rate their punctuality and attendance?",
     type: "select",
     options: WRITTEN_ASSESSMENT_SCALE.punctuality,
-    required: true,
+    required: false,
   },
   {
     id: "professionalism",
@@ -173,7 +173,7 @@ export const WRITTEN_REFERENCE_ASSESSMENT = [
     description: "How well did the candidate fit into the workplace culture?",
     type: "select",
     options: WRITTEN_ASSESSMENT_SCALE.cultureFit,
-    required: true,
+    required: false,
   },
   {
     id: "technical_knowledge",
@@ -182,7 +182,7 @@ export const WRITTEN_REFERENCE_ASSESSMENT = [
     description: "How would you assess the candidate's knowledge of their role?",
     type: "select",
     options: WRITTEN_ASSESSMENT_SCALE.technicalKnowledge,
-    required: true,
+    required: false,
   },
   {
     id: "problem_solving",
@@ -191,7 +191,7 @@ export const WRITTEN_REFERENCE_ASSESSMENT = [
     description: "How effectively did the candidate solve problems?",
     type: "select",
     options: WRITTEN_ASSESSMENT_SCALE.problemSolving,
-    required: true,
+    required: false,
   },
   {
     id: "initiative_ownership",
@@ -200,7 +200,7 @@ export const WRITTEN_REFERENCE_ASSESSMENT = [
     description: "How much initiative did the candidate demonstrate?",
     type: "select",
     options: WRITTEN_ASSESSMENT_SCALE.initiative,
-    required: true,
+    required: false,
   },
   {
     id: "adaptability",
@@ -209,7 +209,7 @@ export const WRITTEN_REFERENCE_ASSESSMENT = [
     description: "How well did the candidate adapt to change?",
     type: "select",
     options: WRITTEN_ASSESSMENT_SCALE.adaptability,
-    required: true,
+    required: false,
   },
   {
     id: "leadership_potential",
@@ -218,15 +218,15 @@ export const WRITTEN_REFERENCE_ASSESSMENT = [
     description: "How would you assess the candidate's leadership capability?",
     type: "select",
     options: WRITTEN_ASSESSMENT_SCALE.leadership,
-    required: true,
+    required: false,
   },
   {
     id: "greatest_strengths",
     section: "written_feedback",
     label: "What were the candidate's greatest strengths?",
     type: "textarea",
-    required: true,
-    placeholder: "Describe the candidate's strongest professional qualities...",
+    required: false,
+    placeholder: "Describe the candidate's key strengths, accomplishments, or standout qualities…",
   },
   {
     id: "improvement_during_employment",
@@ -234,7 +234,7 @@ export const WRITTEN_REFERENCE_ASSESSMENT = [
     label: "Did the candidate improve during the time you worked together?",
     type: "select",
     options: WRITTEN_ASSESSMENT_SCALE.improvement,
-    required: true,
+    required: false,
   },
   {
     id: "rehire_recommendation",

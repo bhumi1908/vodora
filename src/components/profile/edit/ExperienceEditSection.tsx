@@ -19,6 +19,10 @@ import type { EditableExperience } from "@/components/profile/edit/types";
 import { useFieldErrors } from "@/hooks/useFieldErrors";
 import { entryFieldKey, hasFieldErrors } from "@/lib/form/field-errors";
 import { getExperienceFieldErrors } from "@/lib/profile/validation";
+import {
+  showProfileSectionSaveErrorToast,
+  showProfileSectionSavedToast,
+} from "@/lib/profile/profile-edit-toast";
 import { useSaveExperienceMutation } from "@/lib/query/use-profile-mutations";
 
 type ExperienceEditSectionProps = {
@@ -83,14 +87,18 @@ export function ExperienceEditSection({
       const result = await saveMutation.mutateAsync(entries);
 
       if (!result.success) {
-        setError(result.error ?? "Failed to save experience.");
+        const message = result.error ?? "Failed to save experience.";
+        setError(message);
+        showProfileSectionSaveErrorToast("experience", message);
         return;
       }
 
       setSuccess("Experience saved.");
+      showProfileSectionSavedToast("experience");
       onSaved?.();
     } catch {
       setError("Failed to save experience.");
+      showProfileSectionSaveErrorToast("experience");
     }
   }
 

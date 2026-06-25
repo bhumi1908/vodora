@@ -1,6 +1,7 @@
 "use client";
 
-import { Building2, CheckCircle2, Mail, Phone, Star, Trash2 } from "lucide-react";
+import { useState } from "react";
+import { Building2, CheckCircle2, ChevronDown, Mail, Phone, Star, Trash2 } from "lucide-react";
 
 import {
   getReferenceStatusLabel,
@@ -150,6 +151,15 @@ export function ReferenceCard({
       reference.employmentConfirmed ||
       reference.employmentDatesConfirmed);
 
+  const hasCollapsibleDetails =
+    showWrittenQuote ||
+    showWrittenAssessmentSummary ||
+    showRatingsSection ||
+    showQuestionnaire;
+
+  const [detailsExpanded, setDetailsExpanded] = useState(false);
+  const detailsId = `reference-details-${reference.id}`;
+
   return (
     <article className="overflow-hidden rounded-xl border border-gray-200 bg-white p-4 shadow-sm sm:p-5">
       <div className="flex items-start gap-3 sm:gap-4">
@@ -215,170 +225,192 @@ export function ReferenceCard({
             </div>
           </div>
 
-          {showWrittenQuote ? (
-            <blockquote className="mt-4 border-l-4 border-blue-200 pl-4 text-sm italic leading-relaxed text-gray-700">
-              &ldquo;{reference.writtenComments}&rdquo;
-            </blockquote>
+          {hasCollapsibleDetails ? (
+            <button
+              type="button"
+              onClick={() => setDetailsExpanded((expanded) => !expanded)}
+              aria-expanded={detailsExpanded}
+              aria-controls={detailsId}
+              className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-blue-600 transition-colors hover:text-blue-800"
+            >
+              {detailsExpanded ? "Show less" : "Read more"}
+              <ChevronDown
+                className={`h-4 w-4 transition-transform ${
+                  detailsExpanded ? "rotate-180" : ""
+                }`}
+                aria-hidden="true"
+              />
+            </button>
           ) : null}
 
-          {showWrittenAssessmentSummary && reference.writtenAssessmentResponses ? (
-            <div className="mt-4 space-y-4 border-t border-gray-100 pt-4">
-              {reference.writtenComments ? (
-                <blockquote className="border-l-4 border-blue-200 pl-4 text-sm italic leading-relaxed text-gray-700">
+          {hasCollapsibleDetails && !detailsExpanded ? null : (
+            <div id={detailsId}>
+              {showWrittenQuote ? (
+                <blockquote className="mt-4 border-l-4 border-blue-200 pl-4 text-sm italic leading-relaxed text-gray-700">
                   &ldquo;{reference.writtenComments}&rdquo;
                 </blockquote>
               ) : null}
 
-              <div className="rounded-lg border border-gray-100 bg-gray-50 p-4">
-                <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
-                  Referee summary
-                </p>
-                <dl className="mt-3 space-y-2">
-                  {WRITTEN_REFERENCE_SUMMARY_FIELDS.map((field) => {
-                    const question = getWrittenAssessmentQuestion(field.id);
-                    const rawValue =
-                      reference.writtenAssessmentResponses?.[field.id] ?? "";
-                    const formatted = question
-                      ? formatWrittenAssessmentAnswerValue(question, rawValue)
-                      : rawValue;
+              {showWrittenAssessmentSummary && reference.writtenAssessmentResponses ? (
+                <div className="mt-4 space-y-4 border-t border-gray-100 pt-4">
+                  {reference.writtenComments ? (
+                    <blockquote className="border-l-4 border-blue-200 pl-4 text-sm italic leading-relaxed text-gray-700">
+                      &ldquo;{reference.writtenComments}&rdquo;
+                    </blockquote>
+                  ) : null}
+
+                  <div className="rounded-lg border border-gray-100 bg-gray-50 p-4">
+                    <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                      Referee summary
+                    </p>
+                    <dl className="mt-3 space-y-2">
+                      {WRITTEN_REFERENCE_SUMMARY_FIELDS.map((field) => {
+                        const question = getWrittenAssessmentQuestion(field.id);
+                        const rawValue =
+                          reference.writtenAssessmentResponses?.[field.id] ?? "";
+                        const formatted = question
+                          ? formatWrittenAssessmentAnswerValue(question, rawValue)
+                          : rawValue;
+
+                        if (!formatted) {
+                          return null;
+                        }
+
+                        return (
+                          <div
+                            key={field.id}
+                            className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-3"
+                          >
+                            <dt className="text-xs text-gray-500">{field.label}</dt>
+                            <dd className="text-sm font-medium text-gray-800">
+                              {formatted}
+                            </dd>
+                          </div>
+                        );
+                      })}
+                    </dl>
+                  </div>
+
+                  <dl className="space-y-3">
+                    {WRITTEN_REFERENCE_ASSESSMENT.filter(
+                      (question) =>
+                        question.id !== "greatest_strengths" &&
+                        !WRITTEN_REFERENCE_SUMMARY_FIELDS.some(
+                          (field) => field.id === question.id,
+                        ),
+                    ).map((question) => {
+                      const rawValue =
+                        reference.writtenAssessmentResponses?.[question.id] ?? "";
+                      const formatted = formatWrittenAssessmentAnswerValue(
+                        question,
+                        rawValue,
+                      );
+
+                      if (!formatted) {
+                        return null;
+                      }
+
+                      return (
+                        <div key={question.id}>
+                          <dt className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                            {question.label}
+                          </dt>
+                          <dd className="mt-1 text-sm text-gray-700">
+                            {question.type === "textarea" ? (
+                              <span className="whitespace-pre-wrap">{formatted}</span>
+                            ) : (
+                              formatted
+                            )}
+                          </dd>
+                        </div>
+                      );
+                    })}
+                  </dl>
+                </div>
+              ) : null}
+
+              {showRatingsSection ? (
+                <div className="mt-4 space-y-2 border-t border-gray-100 pt-4">
+                  <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                    Reference ratings
+                  </p>
+                  <div className="space-y-2">
+                    {reference.performanceRating != null ? (
+                      <ReadOnlyStarRating
+                        label="Performance"
+                        value={reference.performanceRating}
+                      />
+                    ) : null}
+                    {reference.reliabilityRating != null ? (
+                      <ReadOnlyStarRating
+                        label="Reliability"
+                        value={reference.reliabilityRating}
+                      />
+                    ) : null}
+                    {reference.teamworkRating != null ? (
+                      <ReadOnlyStarRating
+                        label="Teamwork"
+                        value={reference.teamworkRating}
+                      />
+                    ) : null}
+                    {reference.leadershipRating != null ? (
+                      <ReadOnlyStarRating
+                        label="Leadership"
+                        value={reference.leadershipRating}
+                      />
+                    ) : null}
+                    {reference.rehireRecommendation != null ? (
+                      <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+                        <span className="text-xs text-gray-500">
+                          Rehire recommendation
+                        </span>
+                        <span
+                          className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                            reference.rehireRecommendation
+                              ? "bg-green-50 text-green-700"
+                              : "bg-gray-100 text-gray-600"
+                          }`}
+                        >
+                          {reference.rehireRecommendation ? "Yes" : "No"}
+                        </span>
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+              ) : null}
+
+              {showQuestionnaire && reference.questionnaireResponses ? (
+                <dl className="mt-4 space-y-3 border-t border-gray-100 pt-4">
+                  {REFERENCE_QUESTIONNAIRE.map((question) => {
+                    const rawValue = reference.questionnaireResponses?.[question.id];
+                    const formatted = formatQuestionnaireAnswerValue(
+                      question,
+                      rawValue ?? "",
+                    );
 
                     if (!formatted) {
                       return null;
                     }
 
                     return (
-                      <div
-                        key={field.id}
-                        className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-3"
-                      >
-                        <dt className="text-xs text-gray-500">{field.label}</dt>
-                        <dd className="text-sm font-medium text-gray-800">
-                          {formatted}
+                      <div key={question.id}>
+                        <dt className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                          {question.label}
+                        </dt>
+                        <dd className="mt-1 text-sm text-gray-700">
+                          {question.type === "textarea" ? (
+                            <span className="whitespace-pre-wrap">{formatted}</span>
+                          ) : (
+                            formatted
+                          )}
                         </dd>
                       </div>
                     );
                   })}
                 </dl>
-              </div>
-
-              <dl className="space-y-3">
-                {WRITTEN_REFERENCE_ASSESSMENT.filter(
-                  (question) =>
-                    question.id !== "greatest_strengths" &&
-                    !WRITTEN_REFERENCE_SUMMARY_FIELDS.some(
-                      (field) => field.id === question.id,
-                    ),
-                ).map((question) => {
-                  const rawValue =
-                    reference.writtenAssessmentResponses?.[question.id] ?? "";
-                  const formatted = formatWrittenAssessmentAnswerValue(
-                    question,
-                    rawValue,
-                  );
-
-                  if (!formatted) {
-                    return null;
-                  }
-
-                  return (
-                    <div key={question.id}>
-                      <dt className="text-xs font-medium uppercase tracking-wide text-gray-500">
-                        {question.label}
-                      </dt>
-                      <dd className="mt-1 text-sm text-gray-700">
-                        {question.type === "textarea" ? (
-                          <span className="whitespace-pre-wrap">{formatted}</span>
-                        ) : (
-                          formatted
-                        )}
-                      </dd>
-                    </div>
-                  );
-                })}
-              </dl>
+              ) : null}
             </div>
-          ) : null}
-
-          {showRatingsSection ? (
-            <div className="mt-4 space-y-2 border-t border-gray-100 pt-4">
-              <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
-                Reference ratings
-              </p>
-              <div className="space-y-2">
-                {reference.performanceRating != null ? (
-                  <ReadOnlyStarRating
-                    label="Performance"
-                    value={reference.performanceRating}
-                  />
-                ) : null}
-                {reference.reliabilityRating != null ? (
-                  <ReadOnlyStarRating
-                    label="Reliability"
-                    value={reference.reliabilityRating}
-                  />
-                ) : null}
-                {reference.teamworkRating != null ? (
-                  <ReadOnlyStarRating
-                    label="Teamwork"
-                    value={reference.teamworkRating}
-                  />
-                ) : null}
-                {reference.leadershipRating != null ? (
-                  <ReadOnlyStarRating
-                    label="Leadership"
-                    value={reference.leadershipRating}
-                  />
-                ) : null}
-                {reference.rehireRecommendation != null ? (
-                  <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
-                    <span className="text-xs text-gray-500">
-                      Rehire recommendation
-                    </span>
-                    <span
-                      className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                        reference.rehireRecommendation
-                          ? "bg-green-50 text-green-700"
-                          : "bg-gray-100 text-gray-600"
-                      }`}
-                    >
-                      {reference.rehireRecommendation ? "Yes" : "No"}
-                    </span>
-                  </div>
-                ) : null}
-              </div>
-            </div>
-          ) : null}
-
-          {showQuestionnaire && reference.questionnaireResponses ? (
-            <dl className="mt-4 space-y-3 border-t border-gray-100 pt-4">
-              {REFERENCE_QUESTIONNAIRE.map((question) => {
-                const rawValue = reference.questionnaireResponses?.[question.id];
-                const formatted = formatQuestionnaireAnswerValue(
-                  question,
-                  rawValue ?? "",
-                );
-
-                if (!formatted) {
-                  return null;
-                }
-
-                return (
-                  <div key={question.id}>
-                    <dt className="text-xs font-medium uppercase tracking-wide text-gray-500">
-                      {question.label}
-                    </dt>
-                    <dd className="mt-1 text-sm text-gray-700">
-                      {question.type === "textarea" ? (
-                        <span className="whitespace-pre-wrap">{formatted}</span>
-                      ) : (
-                        formatted
-                      )}
-                    </dd>
-                  </div>
-                );
-              })}
-            </dl>
-          ) : null}
+          )}
 
           {reference.status === "submitted" ? (
             <p className="mt-4 text-sm text-amber-700">

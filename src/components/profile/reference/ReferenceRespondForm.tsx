@@ -1,20 +1,25 @@
 "use client";
 
+import {
+  AlertCircle,
+  Briefcase,
+  Building2,
+  CheckCircle,
+  ChevronDown,
+  Clock,
+  FileText,
+  Lock,
+  Shield,
+} from "lucide-react";
 import { useState } from "react";
 
-import {
-  FormError,
-  FormField,
-} from "@/components/auth/shared/FormFields";
 import { ReferenceQuestionnaireFields } from "@/components/profile/reference/ReferenceQuestionnaireFields";
-import { WrittenReferenceAssessmentFields } from "@/components/profile/reference/WrittenReferenceAssessmentFields";
 import {
   createEmptyReferenceResponse,
   normalizeReferenceType,
   type ReferenceResponseFormData,
 } from "@/components/profile/reference/types";
 import { useFieldErrors } from "@/hooks/useFieldErrors";
-import { formatDateRange } from "@/lib/profile/format";
 import {
   getReferenceResponseFieldErrors,
   hasReferenceResponseFieldErrors,
@@ -25,19 +30,143 @@ import {
   showReferenceSubmitErrorToast,
   showReferenceSubmitSuccessToast,
 } from "@/lib/references/reference-toast";
+import {
+  WRITTEN_REFERENCE_ASSESSMENT,
+  type WrittenAssessmentQuestionId,
+} from "@/lib/references/written-reference-assessment";
 
 type ReferenceRespondFormProps = {
   invitation: ReferenceInvitationDetails;
   token: string;
-  onSubmitted: (status: "verified" | "submitted") => void;
+  onSubmitted: (result: {
+    status: "verified" | "submitted";
+    responseId: string;
+    form: ReferenceResponseFormData;
+    welcomeRedirectTo?: string;
+  }) => void;
 };
+
+function Select({
+  label,
+  options,
+  value,
+  onChange,
+  required,
+  error,
+  number,
+}: {
+  label: string;
+  options: { value: string; label: string }[];
+  value: string;
+  onChange: (v: string) => void;
+  required?: boolean;
+  error?: string;
+  number?: number;
+}) {
+  return (
+    <div>
+      <label className="mb-1.5 block text-sm font-medium text-gray-700">
+        {number ? `${number}. ` : ""}
+        {label}
+        {required ? <span className="ml-0.5 text-red-500">*</span> : null}
+      </label>
+      <div className="relative">
+        <select
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          className={`w-full appearance-none rounded-xl border bg-white px-4 py-2.5 text-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+            error ? "border-red-500" : "border-gray-300"
+          }`}
+        >
+          <option value="">Select…</option>
+          {options.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+        <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+      </div>
+      {error ? <p className="mt-1 text-sm text-red-600">{error}</p> : null}
+    </div>
+  );
+}
+
+function TextInput({
+  label,
+  value,
+  onChange,
+  placeholder,
+  type = "text",
+  required,
+  error,
+  readOnly,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  type?: string;
+  required?: boolean;
+  error?: string;
+  readOnly?: boolean;
+}) {
+  return (
+    <div>
+      <label className="mb-1.5 block text-sm font-medium text-gray-700">
+        {label}
+        {required ? <span className="ml-0.5 text-red-500">*</span> : null}
+      </label>
+      <input
+        type={type}
+        value={value}
+        readOnly={readOnly}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder={placeholder}
+        className={`w-full rounded-xl border px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+          error ? "border-red-500" : "border-gray-300"
+        } ${readOnly ? "bg-gray-50 text-gray-600" : ""}`}
+      />
+      {error ? <p className="mt-1 text-sm text-red-600">{error}</p> : null}
+    </div>
+  );
+}
+
+function SectionHeading({ number, title }: { number: string; title: string }) {
+  return (
+    <div className="mb-6 flex items-center gap-3">
+      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-600">
+        <span className="text-sm font-bold text-white">{number}</span>
+      </div>
+      <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
+    </div>
+  );
+}
+
+const PROFESSIONAL_ASSESSMENT_QUESTIONS = WRITTEN_REFERENCE_ASSESSMENT.filter(
+  (question) => question.section === "professional_assessment",
+);
+
+const WRITTEN_FEEDBACK_QUESTIONS = WRITTEN_REFERENCE_ASSESSMENT.filter(
+  (question) => question.section === "written_feedback",
+);
+
+const REHIRE_QUESTIONS = WRITTEN_REFERENCE_ASSESSMENT.filter(
+  (question) => question.section === "rehire",
+);
 
 export function ReferenceRespondForm({
   invitation,
   token,
   onSubmitted,
 }: ReferenceRespondFormProps) {
-  const [form, setForm] = useState(createEmptyReferenceResponse);
+  const [form, setForm] = useState(() =>
+    createEmptyReferenceResponse({
+      positionHeld: invitation.candidateTitle?.trim() || "Not specified",
+      refereePhone: invitation.refereePhone ?? "",
+    }),
+  );
+  const [workedTogether, setWorkedTogether] = useState<"yes" | "no" | "">("");
   const { errors, setErrors, clearField } =
     useFieldErrors<keyof ReferenceResponseFieldErrors>();
   const [questionnaireErrors, setQuestionnaireErrors] = useState<
@@ -52,19 +181,44 @@ export function ReferenceRespondForm({
   const referenceType = normalizeReferenceType(invitation.referenceType);
   const isQuestionnaire = referenceType === "questionnaire";
 
-  const employmentPeriod = formatDateRange(
-    invitation.employmentStart,
-    invitation.employmentEnd,
-  );
-  const hasEmploymentDates =
-    Boolean(invitation.employmentStart) || Boolean(invitation.employmentEnd);
-
   function updateField<K extends keyof ReferenceResponseFormData>(
     field: K,
     value: ReferenceResponseFormData[K],
   ) {
     setForm((current) => ({ ...current, [field]: value }));
     clearField(field);
+    setError("");
+  }
+
+  function updateWorkedTogether(value: "yes" | "no") {
+    setWorkedTogether(value);
+    updateField("employmentConfirmed", value === "yes");
+    if (value === "yes") {
+      updateField("employmentDatesConfirmed", true);
+      if (!form.positionHeld.trim() && invitation.candidateTitle) {
+        updateField("positionHeld", invitation.candidateTitle);
+      }
+    }
+    clearField("employmentConfirmed");
+    setError("");
+  }
+
+  function updateWrittenAssessmentAnswer(
+    questionId: WrittenAssessmentQuestionId,
+    value: string,
+  ) {
+    setForm((current) => ({
+      ...current,
+      writtenAssessmentAnswers: {
+        ...current.writtenAssessmentAnswers,
+        [questionId]: value,
+      },
+    }));
+    setWrittenAssessmentErrors((current) => {
+      const next = { ...current };
+      delete next[questionId];
+      return next;
+    });
     setError("");
   }
 
@@ -84,24 +238,41 @@ export function ReferenceRespondForm({
     setError("");
   }
 
-  function updateWrittenAssessmentAnswer(questionId: string, value: string) {
-    setForm((current) => ({
-      ...current,
-      writtenAssessmentAnswers: {
-        ...current.writtenAssessmentAnswers,
-        [questionId]: value,
-      },
-    }));
-    setWrittenAssessmentErrors((current) => {
-      const next = { ...current };
-      delete next[questionId];
-      return next;
-    });
-    setError("");
-  }
+  const isValid =
+    workedTogether === "yes" &&
+    form.attestationConfirmed &&
+    Boolean(form.signatureName.trim()) &&
+    !hasReferenceResponseFieldErrors(
+      getReferenceResponseFieldErrors(
+        {
+          ...form,
+          employmentConfirmed: true,
+          employmentDatesConfirmed: true,
+          positionHeld:
+            form.positionHeld.trim() ||
+            invitation.candidateTitle?.trim() ||
+            "Not specified",
+        },
+        referenceType,
+      ),
+    );
 
   async function handleSubmit() {
-    const fieldErrors = getReferenceResponseFieldErrors(form, referenceType);
+    const submissionForm: ReferenceResponseFormData = {
+      ...form,
+      employmentConfirmed: workedTogether === "yes",
+      employmentDatesConfirmed:
+        workedTogether === "yes" ? true : form.employmentDatesConfirmed,
+      positionHeld:
+        form.positionHeld.trim() ||
+        invitation.candidateTitle?.trim() ||
+        "Not specified",
+    };
+
+    const fieldErrors = getReferenceResponseFieldErrors(
+      submissionForm,
+      referenceType,
+    );
 
     if (hasReferenceResponseFieldErrors(fieldErrors)) {
       const { questionnaire, writtenAssessment, ...rest } = fieldErrors;
@@ -118,7 +289,7 @@ export function ReferenceRespondForm({
       const response = await fetch("/api/reference/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token, response: form }),
+        body: JSON.stringify({ token, response: submissionForm }),
       });
 
       const result = (await response.json()) as {
@@ -126,9 +297,11 @@ export function ReferenceRespondForm({
         error?: string;
         fieldErrors?: ReferenceResponseFieldErrors;
         status?: "verified" | "submitted";
+        responseId?: string;
+        welcomeRedirectTo?: string;
       };
 
-      if (!response.ok || !result.success) {
+      if (!response.ok || !result.success || !result.responseId) {
         if (result.fieldErrors) {
           const { questionnaire, writtenAssessment, ...rest } = result.fieldErrors;
           setErrors(rest);
@@ -143,7 +316,12 @@ export function ReferenceRespondForm({
       }
 
       showReferenceSubmitSuccessToast(result.status === "verified");
-      onSubmitted(result.status ?? "submitted");
+      onSubmitted({
+        status: result.status ?? "submitted",
+        responseId: result.responseId,
+        form: submissionForm,
+        welcomeRedirectTo: result.welcomeRedirectTo,
+      });
     } catch {
       const message = "Unable to submit reference. Please try again.";
       setError(message);
@@ -152,6 +330,10 @@ export function ReferenceRespondForm({
       setIsSubmitting(false);
     }
   }
+
+  const candidateMessage =
+    invitation.candidateMessage ??
+    "Thank you for taking the time to provide a professional reference. Your feedback helps verify my professional history and experience. Responses are securely stored and timestamped within Vodora.";
 
   return (
     <form
@@ -162,138 +344,379 @@ export function ReferenceRespondForm({
       noValidate
       className="space-y-6"
     >
-      <div className="rounded-xl border border-blue-100 bg-blue-50 p-4 text-sm text-blue-900">
-        <p className="font-medium">Reference for {invitation.candidateName}</p>
-        <p className="mt-1 text-blue-800">
-          You were listed as their {invitation.relationshipLabel.toLowerCase()} at{" "}
-          {invitation.refereeCompany}.
+      <div className="rounded-2xl border border-gray-200 bg-white p-5 sm:p-6">
+        <p className="mb-4 text-sm text-gray-500">
+          You have been nominated as a referee by:
         </p>
-        <p className="mt-2 text-blue-800">
-          Thank you for taking the time to provide a professional reference. Your
-          feedback helps verify the candidate&apos;s professional history and is
-          securely stored within Vodora.
-        </p>
-        {invitation.candidateMessage ? (
-          <p className="mt-3 border-t border-blue-100 pt-3 text-blue-800">
-            <span className="font-medium">Message: </span>
-            &ldquo;{invitation.candidateMessage}&rdquo;
+        <div className="flex items-start gap-4">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-blue-100">
+            <span className="text-xl font-bold text-blue-700">
+              {invitation.candidateInitials}
+            </span>
+          </div>
+          <div className="min-w-0 flex-1">
+            <h2 className="text-lg font-semibold text-gray-900">
+              {invitation.candidateName}
+            </h2>
+            <div className="mt-1 flex flex-wrap gap-3 text-sm text-gray-500">
+              {invitation.candidateTitle ? (
+                <span className="flex items-center gap-1">
+                  <Briefcase className="h-3.5 w-3.5 shrink-0" />
+                  {invitation.candidateTitle}
+                </span>
+              ) : null}
+              {invitation.candidateCompany ? (
+                <span className="flex items-center gap-1">
+                  <Building2 className="h-3.5 w-3.5 shrink-0" />
+                  {invitation.candidateCompany}
+                </span>
+              ) : null}
+              {invitation.employmentPeriod ? (
+                <span className="flex items-center gap-1">
+                  <Clock className="h-3.5 w-3.5 shrink-0" />
+                  {invitation.employmentPeriod}
+                </span>
+              ) : null}
+            </div>
+          </div>
+        </div>
+        <div className="mt-4 rounded-xl border border-blue-100 bg-blue-50 p-4">
+          <p className="text-sm italic leading-relaxed text-blue-800">
+            &ldquo;{candidateMessage}&rdquo;
           </p>
+        </div>
+        <div className="mt-3 flex items-start gap-2">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-gray-400" />
+          <p className="text-xs text-gray-500">
+            This reference is stored once and can help the candidate throughout
+            their career, reducing repeated requests to managers and referees.
+            Responses are securely stored and timestamped within Vodora.
+          </p>
+        </div>
+      </div>
+
+      <div className="rounded-2xl border border-gray-200 bg-white p-5 sm:p-6">
+        <SectionHeading number="1" title="Referee Verification — Your Details" />
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <TextInput
+            label="Full Name"
+            value={invitation.refereeName}
+            onChange={() => undefined}
+            readOnly
+            required
+          />
+          <TextInput
+            label="Position / Job Title"
+            value={invitation.refereeTitle}
+            onChange={() => undefined}
+            readOnly
+            required
+          />
+          <TextInput
+            label="Company"
+            value={invitation.refereeCompany}
+            onChange={() => undefined}
+            readOnly
+            required
+          />
+          <TextInput
+            label="Corporate Email"
+            type="email"
+            value={invitation.refereeEmail}
+            onChange={() => undefined}
+            readOnly
+            required
+          />
+          <TextInput
+            label="Phone Number"
+            type="tel"
+            value={form.refereePhone}
+            onChange={(value) => updateField("refereePhone", value)}
+            placeholder="+61 4XX XXX XXX"
+          />
+          <TextInput
+            label="LinkedIn Profile URL"
+            value={form.refereeLinkedIn}
+            onChange={(value) => updateField("refereeLinkedIn", value)}
+            placeholder="linkedin.com/in/johnsmith"
+          />
+        </div>
+        <div className="mt-4">
+          <TextInput
+            label="Relationship to Candidate"
+            value={invitation.relationshipLabel}
+            onChange={() => undefined}
+            readOnly
+            required
+          />
+        </div>
+      </div>
+
+      <div className="rounded-2xl border border-gray-200 bg-white p-5 sm:p-6">
+        <SectionHeading number="2" title="Employment Verification" />
+        <p className="mb-4 text-sm text-gray-600">Did this person work with you?</p>
+        <div className="flex gap-6">
+          {(["yes", "no"] as const).map((option) => (
+            <label key={option} className="flex cursor-pointer items-center gap-2">
+              <input
+                type="radio"
+                name="workedTogether"
+                value={option}
+                checked={workedTogether === option}
+                onChange={() => updateWorkedTogether(option)}
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+              />
+              <span className="text-sm font-medium capitalize text-gray-700">
+                {option}
+              </span>
+            </label>
+          ))}
+        </div>
+        {errors.employmentConfirmed ? (
+          <p className="mt-2 text-sm text-red-600">{errors.employmentConfirmed}</p>
+        ) : null}
+        {workedTogether === "no" ? (
+          <div className="mt-4 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 p-4">
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
+            <p className="text-sm text-amber-800">
+              You&apos;ve indicated this person did not work with you. Please ensure
+              you are the correct referee before proceeding.
+            </p>
+          </div>
         ) : null}
       </div>
 
-      <div className="space-y-4">
-        <div>
-          <p className="text-sm font-medium text-gray-900">Employment verification</p>
-          <label className="mt-2 flex items-start gap-3">
-            <input
-              type="checkbox"
-              checked={form.employmentConfirmed}
-              onChange={(event) =>
-                updateField("employmentConfirmed", event.target.checked)
-              }
-              className="mt-1 h-4 w-4 rounded text-blue-600"
-            />
-            <span className="text-sm text-gray-700">
-              Did this person work with you? I confirm {invitation.candidateName}{" "}
-              was employed in the role described.
-            </span>
-          </label>
-          {errors.employmentConfirmed ? (
-            <p className="mt-1 text-sm text-red-600">{errors.employmentConfirmed}</p>
-          ) : null}
+      {isQuestionnaire ? (
+        <div className="rounded-2xl border border-gray-200 bg-white p-5 sm:p-6">
+          <SectionHeading number="3" title="Structured Questionnaire" />
+          <ReferenceQuestionnaireFields
+            answers={form.questionnaireAnswers}
+            errors={questionnaireErrors}
+            onAnswerChange={updateQuestionnaireAnswer}
+          />
+        </div>
+      ) : (
+        <>
+          <div className="rounded-2xl border border-gray-200 bg-white p-5 sm:p-6">
+            <SectionHeading number="3" title="Professional Assessment" />
+            <div className="space-y-5">
+              {PROFESSIONAL_ASSESSMENT_QUESTIONS.map((question, index) => {
+                const label =
+                  question.type === "select" && question.description
+                    ? `${question.label} — ${question.description}`
+                    : question.label;
+
+                return (
+                <Select
+                  key={question.id}
+                  number={index + 1}
+                  label={label}
+                  required={question.required}
+                  value={form.writtenAssessmentAnswers[question.id]}
+                  onChange={(value) =>
+                    updateWrittenAssessmentAnswer(question.id, value)
+                  }
+                  options={[
+                    ...(question.type === "select" ? question.options : []),
+                  ]}
+                  error={writtenAssessmentErrors[question.id]}
+                />
+              );
+              })}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-gray-200 bg-white p-5 sm:p-6">
+            <SectionHeading number="4" title="Written Feedback" />
+            <div className="space-y-5">
+              {WRITTEN_FEEDBACK_QUESTIONS.map((question) => {
+                if (question.type !== "select") {
+                  return (
+                    <div key={question.id}>
+                      <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                        {question.label}
+                      </label>
+                      <textarea
+                        rows={4}
+                        value={form.writtenAssessmentAnswers[question.id]}
+                        onChange={(event) =>
+                          updateWrittenAssessmentAnswer(
+                            question.id,
+                            event.target.value,
+                          )
+                        }
+                        placeholder={question.placeholder}
+                        className="w-full resize-none rounded-xl border border-gray-300 px-4 py-3 text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                      {writtenAssessmentErrors[question.id] ? (
+                        <p className="mt-1 text-sm text-red-600">
+                          {writtenAssessmentErrors[question.id]}
+                        </p>
+                      ) : null}
+                    </div>
+                  );
+                }
+
+                return (
+                  <Select
+                    key={question.id}
+                    label={question.label}
+                    value={form.writtenAssessmentAnswers[question.id]}
+                    onChange={(value) =>
+                      updateWrittenAssessmentAnswer(question.id, value)
+                    }
+                    options={[...question.options]}
+                    error={writtenAssessmentErrors[question.id]}
+                  />
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-gray-200 bg-white p-5 sm:p-6">
+            <SectionHeading number="5" title="Rehire Recommendation" />
+            {REHIRE_QUESTIONS.map((question) => (
+              <Select
+                key={question.id}
+                label={question.label}
+                required={question.required}
+                value={form.writtenAssessmentAnswers[question.id]}
+                onChange={(value) =>
+                  updateWrittenAssessmentAnswer(question.id, value)
+                }
+                options={[...(question.type === "select" ? question.options : [])]}
+                error={writtenAssessmentErrors[question.id]}
+              />
+            ))}
+          </div>
+        </>
+      )}
+
+      <div className="rounded-2xl border border-gray-200 bg-white p-5 sm:p-6">
+        <SectionHeading number="6" title="Digital Declaration" />
+        <div className="mb-5 rounded-xl border border-gray-200 bg-gray-50 p-4">
+          <p className="mb-3 text-sm font-medium text-gray-700">I confirm that:</p>
+          <ul className="space-y-2 text-sm text-gray-600">
+            {[
+              "I know the candidate professionally.",
+              "The information provided is true and accurate to the best of my knowledge.",
+              "I understand this reference will be stored within the candidate's Vodora Trust Profile.",
+            ].map((item) => (
+              <li key={item} className="flex items-start gap-2">
+                <CheckCircle className="mt-0.5 h-4 w-4 shrink-0 text-blue-500" />
+                {item}
+              </li>
+            ))}
+          </ul>
         </div>
 
-        <FormField
-          id="position-held"
-          label="Position held"
-          required
-          value={form.positionHeld}
-          onChange={(event) => updateField("positionHeld", event.target.value)}
-          placeholder="e.g. Senior Software Engineer"
-          error={errors.positionHeld}
-        />
-
-        <div>
-          <p className="text-sm font-medium text-gray-900">Employment dates</p>
-          {hasEmploymentDates ? (
-            <p className="mt-1 text-sm text-gray-600">{employmentPeriod}</p>
-          ) : (
-            <p className="mt-1 text-sm text-gray-500">
-              No employment dates were provided by the candidate.
-            </p>
-          )}
-          <label className="mt-3 flex items-start gap-3">
+        <div className="space-y-4">
+          <label className="flex cursor-pointer items-start gap-3">
             <input
               type="checkbox"
-              checked={form.employmentDatesConfirmed}
+              checked={form.attestationConfirmed}
               onChange={(event) =>
-                updateField("employmentDatesConfirmed", event.target.checked)
+                updateField("attestationConfirmed", event.target.checked)
               }
-              className="mt-1 h-4 w-4 rounded text-blue-600"
+              className="mt-0.5 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
             />
             <span className="text-sm text-gray-700">
-              {hasEmploymentDates
-                ? "I confirm the employment dates shown above are accurate."
-                : "I confirm the employment dates for this role are accurate."}
+              I agree to the above declaration and confirm this reference is genuine
             </span>
           </label>
-          {errors.employmentDatesConfirmed ? (
-            <p className="mt-1 text-sm text-red-600">
-              {errors.employmentDatesConfirmed}
-            </p>
+          {errors.attestationConfirmed ? (
+            <p className="text-sm text-red-600">{errors.attestationConfirmed}</p>
           ) : null}
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <TextInput
+              label="Full Name"
+              value={form.signatureName}
+              onChange={(value) => updateField("signatureName", value)}
+              placeholder="Your full name"
+              required
+              error={errors.signatureName}
+            />
+            <TextInput
+              label="Date"
+              type="date"
+              value={form.signatureDate}
+              onChange={(value) => updateField("signatureDate", value)}
+              required
+            />
+          </div>
+
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-gray-700">
+              Digital Signature
+            </label>
+            <div className="flex h-16 w-full items-center justify-center rounded-xl border-2 border-dashed border-gray-300 bg-gray-50">
+              <p className="text-sm italic text-gray-400">
+                {form.signatureName
+                  ? `— ${form.signatureName}`
+                  : "Your name above serves as your digital signature"}
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 
-      {isQuestionnaire ? (
-        <ReferenceQuestionnaireFields
-          answers={form.questionnaireAnswers}
-          errors={questionnaireErrors}
-          onAnswerChange={updateQuestionnaireAnswer}
-        />
-      ) : (
-        <WrittenReferenceAssessmentFields
-          answers={form.writtenAssessmentAnswers}
-          errors={writtenAssessmentErrors}
-          onAnswerChange={updateWrittenAssessmentAnswer}
-        />
-      )}
+      <div className="rounded-2xl border border-blue-200 bg-blue-50 p-5">
+        <label className="flex cursor-pointer items-start gap-3">
+          <input
+            type="checkbox"
+            checked={form.allowProfileCreation}
+            onChange={(event) =>
+              updateField("allowProfileCreation", event.target.checked)
+            }
+            className="mt-0.5 h-4 w-4 rounded border-blue-300 text-blue-600 focus:ring-blue-500"
+          />
+          <div>
+            <p className="text-sm font-semibold text-blue-900">
+              Would you like Vodora to create a profile for you?
+            </p>
+            <p className="mt-0.5 text-xs text-blue-700">
+              As a verified referee your profile will be pre-populated with your
+              name, title, and company. You&apos;ll receive an email to complete your
+              setup. Completely optional.
+            </p>
+          </div>
+        </label>
+      </div>
 
-      <label className="flex items-start gap-3 rounded-lg border border-gray-200 bg-gray-50 p-4">
-        <input
-          type="checkbox"
-          checked={form.attestationConfirmed}
-          onChange={(event) =>
-            updateField("attestationConfirmed", event.target.checked)
-          }
-          className="mt-1 h-4 w-4 rounded text-blue-600"
-        />
-        <span className="text-sm text-gray-700">
-          I confirm that I know the candidate professionally, the information
-          provided is true and accurate to the best of my knowledge, and I
-          understand this reference will be stored within the candidate&apos;s Vodora
-          Trust Profile.
-          {errors.attestationConfirmed ? (
-            <span className="mt-1 block text-red-600">
-              {errors.attestationConfirmed}
-            </span>
-          ) : null}
-        </span>
-      </label>
+      {error ? (
+        <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+          {error}
+        </div>
+      ) : null}
 
-      {error ? <FormError message={error} /> : null}
+      <button
+        type="submit"
+        disabled={!isValid || isSubmitting}
+        className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-4 text-base font-semibold text-white shadow-sm transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
+      >
+        <FileText className="h-5 w-5" />
+        {isSubmitting ? "Submitting..." : "Submit Reference"}
+      </button>
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-xs text-gray-500">
-          Signed in email must match <strong>{invitation.refereeEmail}</strong>.
+      {!isValid ? (
+        <p className="text-center text-xs text-gray-400">
+          Complete all required fields (*) and the declaration to submit.
         </p>
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-60"
-        >
-          {isSubmitting ? "Submitting..." : "Submit Reference"}
-        </button>
+      ) : null}
+
+      <div className="flex flex-wrap items-center justify-center gap-2 pb-2 text-xs text-gray-400 sm:gap-4">
+        <span className="flex items-center gap-1">
+          <Lock className="h-3.5 w-3.5" />
+          End-to-end encrypted
+        </span>
+        <span className="hidden sm:inline">·</span>
+        <span className="flex items-center gap-1">
+          <Shield className="h-3.5 w-3.5" />
+          GDPR compliant
+        </span>
+        <span className="hidden sm:inline">·</span>
+        <span>Powered by Vodora</span>
       </div>
     </form>
   );

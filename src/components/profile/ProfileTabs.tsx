@@ -1,23 +1,17 @@
 "use client";
 
 import {
-  Award,
   Briefcase,
-  FileText,
   FolderOpen,
-  GraduationCap,
+  Lock,
   UserPlus,
   Users,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { DocumentsTab } from "@/components/profile/tabs/DocumentsTab";
-import { EducationTab } from "@/components/profile/tabs/EducationTab";
-import { ExperienceTab } from "@/components/profile/tabs/ExperienceTab";
 import { JobsTab } from "@/components/profile/tabs/JobsTab";
-import { OverviewTab } from "@/components/profile/tabs/OverviewTab";
 import { ReferencesTab } from "@/components/profile/tabs/ReferencesTab";
-import { SkillsTab } from "@/components/profile/tabs/SkillsTab";
 import { ProfileSectionEditButton } from "@/components/profile/edit/ProfileSectionEditButton";
 import {
   candidateSectionHasContent,
@@ -39,32 +33,76 @@ type ProfileTabsProps = {
 const tabs: Array<{
   id: ProfileTabId;
   label: string;
-  icon: typeof FileText;
+  icon: typeof Users;
 }> = [
-  { id: "overview", label: "Overview", icon: FileText },
-  { id: "experience", label: "Experience", icon: Briefcase },
-  { id: "education", label: "Education", icon: GraduationCap },
-  { id: "skills", label: "Skills", icon: Award },
   { id: "references", label: "References", icon: Users },
   { id: "documents", label: "Documents", icon: FolderOpen },
   { id: "jobs", label: "Jobs", icon: Briefcase },
 ];
+
+function LockedPrivateTabsPanel() {
+  return (
+    <div className="flex flex-col items-center px-6 py-10 text-center">
+      <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-gray-100">
+        <Lock className="h-6 w-6 text-gray-400" />
+      </div>
+      <h3 className="mb-2 font-semibold text-gray-900">
+        References, Documents & Jobs are private
+      </h3>
+      <p className="max-w-sm text-sm leading-relaxed text-gray-500">
+        Connect with this candidate to request access to their verified
+        reference profile and documents.
+      </p>
+    </div>
+  );
+}
 
 export function ProfileTabs({ profile, visibility, onEditSection }: ProfileTabsProps) {
   const visibleTabs = tabs.filter((tab) =>
     visibility.visibleTabIds.includes(tab.id),
   );
   const [activeTab, setActiveTab] = useState<ProfileTabId>(
-    visibleTabs[0]?.id ?? "overview",
+    visibleTabs[0]?.id ?? "references",
   );
 
   useEffect(() => {
     if (!visibility.visibleTabIds.includes(activeTab)) {
-      setActiveTab(visibility.visibleTabIds[0] ?? "overview");
+      setActiveTab(visibility.visibleTabIds[0] ?? "references");
     }
   }, [activeTab, visibility.visibleTabIds]);
 
   const isOwnProfile = visibility.showOwnerActions;
+
+  function handleTabKeyDown(
+    event: React.KeyboardEvent<HTMLButtonElement>,
+    tabId: ProfileTabId,
+  ) {
+    const currentIndex = visibleTabs.findIndex((tab) => tab.id === tabId);
+    if (currentIndex < 0) {
+      return;
+    }
+
+    let nextIndex: number | null = null;
+
+    if (event.key === "ArrowRight") {
+      nextIndex = (currentIndex + 1) % visibleTabs.length;
+    } else if (event.key === "ArrowLeft") {
+      nextIndex = (currentIndex - 1 + visibleTabs.length) % visibleTabs.length;
+    } else if (event.key === "Home") {
+      nextIndex = 0;
+    } else if (event.key === "End") {
+      nextIndex = visibleTabs.length - 1;
+    }
+
+    if (nextIndex === null) {
+      return;
+    }
+
+    event.preventDefault();
+    const nextTab = visibleTabs[nextIndex];
+    setActiveTab(nextTab.id);
+    document.getElementById(`profile-tab-${nextTab.id}`)?.focus();
+  }
 
   function renderEditButton(sectionId: ProfileSectionId) {
     if (!onEditSection) {
@@ -82,48 +120,26 @@ export function ProfileTabs({ profile, visibility, onEditSection }: ProfileTabsP
     );
   }
 
-  return (
-    <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
-      <div className="border-b border-gray-200">
-        {visibility.showConnectPreview ? (
-          <div className="flex flex-col gap-2 border-b border-gray-100 px-4 py-3 sm:hidden">
-            <span
-              aria-hidden="true"
-              className="inline-flex w-full items-center justify-center gap-1.5 rounded-full bg-blue-600 px-4 py-2 text-sm font-medium text-white"
-            >
-              <UserPlus className="h-4 w-4" />
-              Connect
-            </span>
-          </div>
-        ) : null}
-
-        <div className="flex items-stretch justify-between gap-2 sm:gap-4">
-          <nav className="flex min-w-0 flex-1 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {visibleTabs.map((tab) => {
-              const Icon = tab.icon;
-              return (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex shrink-0 items-center gap-1.5 border-b-2 px-3 py-3 text-xs font-medium transition-colors sm:gap-2 sm:px-6 sm:py-4 sm:text-sm ${
-                    activeTab === tab.id
-                      ? "border-blue-600 text-blue-600"
-                      : "border-transparent text-gray-600 hover:border-gray-300 hover:text-gray-900"
-                  }`}
-                >
-                  <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                  <span className="whitespace-nowrap">{tab.label}</span>
-                </button>
-              );
-            })}
+  if (visibility.showLockedPrivateTabs) {
+    return (
+      <div className="mb-4 overflow-hidden rounded-xl border border-gray-200 bg-white">
+        <div className="flex items-center justify-between border-b border-gray-200">
+          <nav className="flex">
+            {tabs.map(({ id, label, icon: Icon }) => (
+              <div
+                key={id}
+                className="flex select-none items-center gap-2 px-4 py-4 text-sm font-medium text-gray-300 sm:px-6"
+              >
+                <Icon className="h-4 w-4" />
+                {label}
+              </div>
+            ))}
           </nav>
-
           {visibility.showConnectPreview ? (
-            <div className="hidden shrink-0 items-center px-4 sm:flex sm:px-6">
+            <div className="px-4 sm:px-6">
               <span
                 aria-hidden="true"
-                className="inline-flex items-center gap-1.5 rounded-full bg-blue-600 px-4 py-2 text-sm font-medium text-white"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white"
               >
                 <UserPlus className="h-4 w-4" />
                 Connect
@@ -131,50 +147,84 @@ export function ProfileTabs({ profile, visibility, onEditSection }: ProfileTabsP
             </div>
           ) : null}
         </div>
+        <LockedPrivateTabsPanel />
+      </div>
+    );
+  }
+
+  if (visibleTabs.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="mb-4 overflow-hidden rounded-xl border border-gray-200 bg-white">
+      <div className="border-b border-gray-200">
+        <nav
+          aria-label="Profile sections"
+          className="flex overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          role="tablist"
+        >
+          {visibleTabs.map((tab) => {
+            const Icon = tab.icon;
+            const isSelected = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                id={`profile-tab-${tab.id}`}
+                type="button"
+                role="tab"
+                aria-selected={isSelected}
+                aria-controls={`profile-tabpanel-${tab.id}`}
+                tabIndex={isSelected ? 0 : -1}
+                onClick={() => setActiveTab(tab.id)}
+                onKeyDown={(event) => handleTabKeyDown(event, tab.id)}
+                className={`flex shrink-0 items-center gap-2 border-b-2 px-4 py-4 text-sm font-medium transition-colors sm:px-6 ${
+                  isSelected
+                    ? "border-blue-600 text-blue-600"
+                    : "border-transparent text-gray-600 hover:border-gray-300 hover:text-gray-900"
+                }`}
+              >
+                <Icon className="h-4 w-4" aria-hidden="true" />
+                <span className="whitespace-nowrap">{tab.label}</span>
+              </button>
+            );
+          })}
+        </nav>
       </div>
 
-      <div className="p-4 sm:p-6">
-        {activeTab === "overview" ? (
-          <OverviewTab
-            about={profile.about}
-            availabilityStatus={profile.availabilityStatus}
-            availabilityStart={profile.availabilityStart}
-            showAvailability={visibility.showAvailability}
-            showRestrictedNotice={visibility.showRestrictedNotice}
-            editButton={renderEditButton("overview")}
-          />
-        ) : null}
-        {activeTab === "experience" ? (
-          <ExperienceTab
-            experience={profile.experience}
-            editButton={renderEditButton("experience")}
-          />
-        ) : null}
-        {activeTab === "education" ? (
-          <EducationTab
-            education={profile.education}
-            editButton={renderEditButton("education")}
-          />
-        ) : null}
-        {activeTab === "skills" ? (
-          <SkillsTab skills={profile.skills} editButton={renderEditButton("skills")} />
-        ) : null}
-        {activeTab === "references" ? (
-          <ReferencesTab
-            isOwnProfile={isOwnProfile}
-            profile={profile}
-            hasReferenceAccess={visibility.visibleTabIds.includes("references")}
-          />
-        ) : null}
-        {activeTab === "documents" ? (
-          <DocumentsTab
-            documents={profile.documents}
-            isOwnProfile={isOwnProfile}
-            editButton={renderEditButton("documents")}
-          />
-        ) : null}
-        {activeTab === "jobs" ? <JobsTab /> : null}
-      </div>
+      {visibleTabs.map((tab) => {
+        if (activeTab !== tab.id) {
+          return null;
+        }
+
+        return (
+          <div
+            key={tab.id}
+            id={`profile-tabpanel-${tab.id}`}
+            role="tabpanel"
+            aria-labelledby={`profile-tab-${tab.id}`}
+            className="p-4 sm:p-6"
+          >
+            {tab.id === "references" ? (
+              <ReferencesTab
+                isOwnProfile={isOwnProfile}
+                profile={profile}
+                hasReferenceAccess={visibility.visibleTabIds.includes(
+                  "references",
+                )}
+              />
+            ) : null}
+            {tab.id === "documents" ? (
+              <DocumentsTab
+                documents={profile.documents}
+                isOwnProfile={isOwnProfile}
+                editButton={renderEditButton("documents")}
+              />
+            ) : null}
+            {tab.id === "jobs" ? <JobsTab /> : null}
+          </div>
+        );
+      })}
     </div>
   );
 }

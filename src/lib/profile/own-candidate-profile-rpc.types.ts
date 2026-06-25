@@ -8,6 +8,8 @@ export type OwnCandidateProfileUserRow = {
   country: string | null;
 };
 
+import type { SpotlightBlock } from "@/lib/profile/spotlight.types";
+
 export type OwnCandidateProfileCandidateRow = {
   id: string;
   vodora_id: string;
@@ -24,6 +26,7 @@ export type OwnCandidateProfileCandidateRow = {
   availability_start: string | null;
   experience_level: string | null;
   total_years_experience: number | null;
+  spotlight_blocks?: SpotlightBlock[] | null;
 };
 
 export type OwnCandidateProfileSkillRow = {

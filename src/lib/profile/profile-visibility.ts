@@ -1,26 +1,11 @@
 import type { ProfileConnectionState } from "@/lib/connections/connection.types";
 import type { CandidateProfileData } from "@/lib/profile/types";
 
-export type ProfileTabId =
-  | "overview"
-  | "experience"
-  | "education"
-  | "skills"
-  | "references"
-  | "documents"
-  | "jobs";
+export type ProfileTabId = "references" | "documents" | "jobs";
 
-const ALL_TABS: ProfileTabId[] = [
-  "overview",
-  "experience",
-  "education",
-  "skills",
-  "references",
-  "documents",
-  "jobs",
-];
-
-const BASIC_EXTERNAL_TABS: ProfileTabId[] = ["overview", "experience", "skills"];
+const OWNER_TABS: ProfileTabId[] = ["references", "documents", "jobs"];
+const CONNECTED_EXTERNAL_TABS: ProfileTabId[] = ["references", "documents"];
+const LOCKED_PREVIEW_TABS: ProfileTabId[] = ["references", "documents", "jobs"];
 
 export type ProfileVisibilityOptions = {
   isOwnProfile?: boolean;
@@ -40,6 +25,7 @@ export type ProfileVisibility = {
   showRestrictedNotice: boolean;
   showConnectInHeader: boolean;
   showConnectPreview: boolean;
+  showLockedPrivateTabs: boolean;
   visibleTabIds: ProfileTabId[];
 };
 
@@ -63,11 +49,23 @@ export function resolveProfileVisibility(
   const isConnectedExternalView = isExternalView && connected;
 
   const showPrivateDetails = isOwnerView || isConnectedExternalView;
-  const baseTabIds = isBasicExternalView ? BASIC_EXTERNAL_TABS : ALL_TABS;
-  const visibleTabIds =
-    isOwnerView || hasReferenceAccess
-      ? baseTabIds
-      : baseTabIds.filter((tabId) => tabId !== "references");
+
+  let visibleTabIds: ProfileTabId[] = [];
+  let showLockedPrivateTabs = false;
+
+  if (isOwnerView) {
+    visibleTabIds = OWNER_TABS;
+  } else if (visitorPreview) {
+    showLockedPrivateTabs = true;
+    visibleTabIds = LOCKED_PREVIEW_TABS;
+  } else if (isBasicExternalView) {
+    showLockedPrivateTabs = true;
+    visibleTabIds = LOCKED_PREVIEW_TABS;
+  } else if (isConnectedExternalView) {
+    visibleTabIds = hasReferenceAccess
+      ? CONNECTED_EXTERNAL_TABS
+      : CONNECTED_EXTERNAL_TABS.filter((tabId) => tabId !== "references");
+  }
 
   return {
     showContactDetails: showPrivateDetails,
@@ -77,7 +75,8 @@ export function resolveProfileVisibility(
     showVisitorBanner: visitorPreview,
     showRestrictedNotice: isBasicExternalView,
     showConnectInHeader: isExternalView && !visitorPreview,
-    showConnectPreview: visitorPreview,
+    showConnectPreview: isBasicExternalView && !visitorPreview,
+    showLockedPrivateTabs,
     visibleTabIds,
   };
 }

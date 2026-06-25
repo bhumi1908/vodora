@@ -157,6 +157,7 @@ export type Database = {
           profession: string | null;
           profile_picture_url: string | null;
           summary: string | null;
+          spotlight_blocks: Json;
           total_years_experience: number | null;
           updated_at: string;
           user_id: string;
@@ -187,6 +188,7 @@ export type Database = {
           profession?: string | null;
           profile_picture_url?: string | null;
           summary?: string | null;
+          spotlight_blocks?: Json;
           total_years_experience?: number | null;
           updated_at?: string;
           user_id: string;
@@ -217,6 +219,7 @@ export type Database = {
           profession?: string | null;
           profile_picture_url?: string | null;
           summary?: string | null;
+          spotlight_blocks?: Json;
           total_years_experience?: number | null;
           updated_at?: string;
           user_id?: string;
@@ -904,6 +907,7 @@ export type Database = {
       };
       reference_responses: {
         Row: {
+          allow_profile_creation: boolean;
           attestation_confirmed: boolean;
           employment_confirmed: boolean;
           employment_dates_confirmed: boolean;
@@ -913,14 +917,18 @@ export type Database = {
           position_held: string | null;
           questionnaire_responses: Json | null;
           reference_request_id: string;
+          referee_linkedin: string | null;
           rehire_recommendation: boolean | null;
           reliability_rating: number | null;
+          signature_date: string | null;
+          signature_name: string | null;
           submitted_at: string;
           submitted_by_user_id: string;
           teamwork_rating: number | null;
           written_comments: string | null;
         };
         Insert: {
+          allow_profile_creation?: boolean;
           attestation_confirmed?: boolean;
           employment_confirmed?: boolean;
           employment_dates_confirmed?: boolean;
@@ -930,14 +938,18 @@ export type Database = {
           position_held?: string | null;
           questionnaire_responses?: Json | null;
           reference_request_id: string;
+          referee_linkedin?: string | null;
           rehire_recommendation?: boolean | null;
           reliability_rating?: number | null;
+          signature_date?: string | null;
+          signature_name?: string | null;
           submitted_at?: string;
           submitted_by_user_id: string;
           teamwork_rating?: number | null;
           written_comments?: string | null;
         };
         Update: {
+          allow_profile_creation?: boolean;
           attestation_confirmed?: boolean;
           employment_confirmed?: boolean;
           employment_dates_confirmed?: boolean;
@@ -947,8 +959,11 @@ export type Database = {
           position_held?: string | null;
           questionnaire_responses?: Json | null;
           reference_request_id?: string;
+          referee_linkedin?: string | null;
           rehire_recommendation?: boolean | null;
           reliability_rating?: number | null;
+          signature_date?: string | null;
+          signature_name?: string | null;
           submitted_at?: string;
           submitted_by_user_id?: string;
           teamwork_rating?: number | null;

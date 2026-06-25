@@ -22,6 +22,10 @@ import {
 } from "@/lib/profile/validation";
 import { useSaveOverviewMutation } from "@/lib/query/use-profile-mutations";
 import {
+  showProfileSectionSaveErrorToast,
+  showProfileSectionSavedToast,
+} from "@/lib/profile/profile-edit-toast";
+import {
   AVAILABILITY_START_OPTIONS,
   AVAILABILITY_STATUS_OPTIONS,
 } from "@/lib/profile/availability";
@@ -77,14 +81,18 @@ export function OverviewEditSection({
       const result = await saveMutation.mutateAsync(value);
 
       if (!result.success) {
-        setError(result.error ?? "Failed to save overview.");
+        const message = result.error ?? "Failed to save overview.";
+        setError(message);
+        showProfileSectionSaveErrorToast("overview", message);
         return;
       }
 
       setSuccess("Overview saved.");
+      showProfileSectionSavedToast("overview");
       onSaved?.();
     } catch {
       setError("Failed to save overview.");
+      showProfileSectionSaveErrorToast("overview");
     }
   }
 

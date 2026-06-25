@@ -105,5 +105,9 @@ export async function POST(request: Request) {
   return NextResponse.json({
     success: true,
     status: result.status,
+    responseId: result.responseId,
+    ...(result.welcomeRedirectTo
+      ? { welcomeRedirectTo: result.welcomeRedirectTo }
+      : {}),
   });
 }

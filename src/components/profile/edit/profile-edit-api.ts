@@ -191,3 +191,25 @@ export async function deleteProfileDocument(
 
   return parseApiResult(response);
 }
+
+export async function saveSpotlightSection(
+  blocks: Array<{
+    id: string;
+    type: string;
+    text?: string;
+    title?: string;
+    code?: string;
+    language?: string;
+    videoUrl?: string;
+    videoTitle?: string;
+    tags?: string[];
+  }>,
+): Promise<ApiResult> {
+  const response = await fetch("/api/profile/spotlight", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ blocks }),
+  });
+
+  return parseApiResult(response);
+}

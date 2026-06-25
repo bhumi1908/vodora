@@ -24,6 +24,10 @@ import {
   getSkillsFieldErrors,
   PROFILE_FIELD_LIMITS,
 } from "@/lib/profile/validation";
+import {
+  showProfileSectionSaveErrorToast,
+  showProfileSectionSavedToast,
+} from "@/lib/profile/profile-edit-toast";
 import { useSaveSkillsMutation } from "@/lib/query/use-profile-mutations";
 
 type SkillsEditSectionProps = {
@@ -88,14 +92,18 @@ export function SkillsEditSection({
       const result = await saveMutation.mutateAsync(entries);
 
       if (!result.success) {
-        setError(result.error ?? "Failed to save skills.");
+        const message = result.error ?? "Failed to save skills.";
+        setError(message);
+        showProfileSectionSaveErrorToast("skills", message);
         return;
       }
 
       setSuccess("Skills saved.");
+      showProfileSectionSavedToast("skills");
       onSaved?.();
     } catch {
       setError("Failed to save skills.");
+      showProfileSectionSaveErrorToast("skills");
     }
   }
 

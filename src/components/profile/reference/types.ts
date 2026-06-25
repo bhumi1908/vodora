@@ -51,6 +51,11 @@ export type ReferenceResponseFormData = {
   writtenAssessmentAnswers: WrittenAssessmentAnswers;
   questionnaireAnswers: QuestionnaireAnswers;
   attestationConfirmed: boolean;
+  signatureName: string;
+  signatureDate: string;
+  refereePhone: string;
+  refereeLinkedIn: string;
+  allowProfileCreation: boolean;
 };
 
 export function createEmptyReferenceRequest(): RequestReferenceFormData {
@@ -70,7 +75,9 @@ export function createEmptyReferenceRequest(): RequestReferenceFormData {
   };
 }
 
-export function createEmptyReferenceResponse(): ReferenceResponseFormData {
+export function createEmptyReferenceResponse(
+  overrides?: Partial<ReferenceResponseFormData>,
+): ReferenceResponseFormData {
   return {
     employmentConfirmed: false,
     positionHeld: "",
@@ -78,6 +85,12 @@ export function createEmptyReferenceResponse(): ReferenceResponseFormData {
     writtenAssessmentAnswers: createEmptyWrittenAssessmentAnswers(),
     questionnaireAnswers: createEmptyQuestionnaireAnswers(),
     attestationConfirmed: false,
+    signatureName: "",
+    signatureDate: new Date().toISOString().split("T")[0],
+    refereePhone: "",
+    refereeLinkedIn: "",
+    allowProfileCreation: false,
+    ...overrides,
   };
 }
 

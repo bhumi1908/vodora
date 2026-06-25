@@ -19,6 +19,10 @@ import type { EditableEducation } from "@/components/profile/edit/types";
 import { useFieldErrors } from "@/hooks/useFieldErrors";
 import { entryFieldKey, hasFieldErrors } from "@/lib/form/field-errors";
 import { getEducationFieldErrors } from "@/lib/profile/validation";
+import {
+  showProfileSectionSaveErrorToast,
+  showProfileSectionSavedToast,
+} from "@/lib/profile/profile-edit-toast";
 import { useSaveEducationMutation } from "@/lib/query/use-profile-mutations";
 
 type EducationEditSectionProps = {
@@ -83,14 +87,18 @@ export function EducationEditSection({
       const result = await saveMutation.mutateAsync(entries);
 
       if (!result.success) {
-        setError(result.error ?? "Failed to save education.");
+        const message = result.error ?? "Failed to save education.";
+        setError(message);
+        showProfileSectionSaveErrorToast("education", message);
         return;
       }
 
       setSuccess("Education saved.");
+      showProfileSectionSavedToast("education");
       onSaved?.();
     } catch {
       setError("Failed to save education.");
+      showProfileSectionSaveErrorToast("education");
     }
   }
 

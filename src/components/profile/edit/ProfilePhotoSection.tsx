@@ -6,6 +6,10 @@ import { useRef, useState } from "react";
 import { FormError, FormSuccess } from "@/components/auth/shared/FormFields";
 import { ProfileEditSection } from "@/components/profile/edit/ProfileEditSection";
 import { SectionSaveButton } from "@/components/profile/edit/SectionSaveButton";
+import {
+  showProfilePhotoSaveErrorToast,
+  showProfilePhotoSavedToast,
+} from "@/lib/profile/profile-edit-toast";
 import { useUploadProfilePhotoMutation } from "@/lib/query/use-profile-mutations";
 import {
   MAX_PROFILE_FILE_SIZE_LABEL,
@@ -70,6 +74,7 @@ export function ProfilePhotoSection({
 
       if (!result.success) {
         setError(result.error);
+        showProfilePhotoSaveErrorToast(result.error);
         setPreviewUrl(profilePictureUrl);
         return;
       }
@@ -77,8 +82,10 @@ export function ProfilePhotoSection({
       setPreviewUrl(result.profilePictureUrl);
       onPhotoSaved(result.profilePictureUrl);
       setSuccess("Profile photo updated.");
+      showProfilePhotoSavedToast();
     } catch {
       setError("Failed to upload photo.");
+      showProfilePhotoSaveErrorToast();
       setPreviewUrl(profilePictureUrl);
     }
   }

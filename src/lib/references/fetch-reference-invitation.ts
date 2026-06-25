@@ -1,14 +1,20 @@
 import { createAdminClient } from "@/lib/supabase/admin";
-import { getRelationshipLabel } from "@/components/profile/reference/types";
+import { getRelationshipLabel, getRefereeInitials } from "@/components/profile/reference/types";
+import { formatDateRange } from "@/lib/profile/format";
 
 export type ReferenceInvitationDetails = {
   id: string;
   invitationToken: string;
   candidateName: string;
+  candidateInitials: string;
+  candidateTitle: string | null;
+  candidateCompany: string | null;
+  employmentPeriod: string | null;
   refereeName: string;
   refereeTitle: string;
   refereeCompany: string;
   refereeEmail: string;
+  refereePhone: string | null;
   relationship: string;
   relationshipLabel: string;
   employmentStart: string | null;
@@ -39,10 +45,12 @@ export async function fetchReferenceInvitationByToken(
       id,
       invitation_token,
       candidate_id,
+      employment_history_id,
       referee_name,
       referee_title,
       referee_company,
       referee_email,
+      referee_phone,
       relationship,
       employment_start,
       employment_end,
@@ -71,6 +79,8 @@ export async function fetchReferenceInvitationByToken(
     .maybeSingle();
 
   let candidateName = "the candidate";
+  let candidateTitle: string | null = null;
+  let candidateCompany: string | null = null;
 
   if (candidate?.user_id) {
     const { data: user } = await admin
@@ -83,6 +93,43 @@ export async function fetchReferenceInvitationByToken(
       candidateName = `${user.first_name} ${user.last_name}`.trim();
     }
   }
+
+  if (data.employment_history_id) {
+    const { data: employment } = await admin
+      .from("employment_history")
+      .select("job_title, company_name, start_date, end_date, is_current")
+      .eq("id", data.employment_history_id)
+      .maybeSingle();
+
+    if (employment) {
+      candidateTitle = employment.job_title;
+      candidateCompany = employment.company_name;
+    }
+  }
+
+  if (!candidateTitle || !candidateCompany) {
+    const { data: candidateProfile } = await admin
+      .from("candidates")
+      .select("current_position, headline, profession, current_company_name")
+      .eq("id", data.candidate_id)
+      .maybeSingle();
+
+    if (candidateProfile) {
+      candidateTitle =
+        candidateTitle ??
+        candidateProfile.current_position?.trim() ??
+        candidateProfile.headline?.trim() ??
+        candidateProfile.profession?.trim() ??
+        null;
+      candidateCompany =
+        candidateCompany ?? candidateProfile.current_company_name?.trim() ?? null;
+    }
+  }
+
+  const employmentPeriod =
+    data.employment_start || data.employment_end
+      ? formatDateRange(data.employment_start, data.employment_end)
+      : null;
 
   const isExpired =
     data.status === "expired" ||
@@ -97,10 +144,15 @@ export async function fetchReferenceInvitationByToken(
       id: data.id,
       invitationToken: data.invitation_token,
       candidateName,
+      candidateInitials: getRefereeInitials(candidateName),
+      candidateTitle,
+      candidateCompany,
+      employmentPeriod,
       refereeName: data.referee_name,
       refereeTitle: data.referee_title,
       refereeCompany: data.referee_company,
       refereeEmail: data.referee_email,
+      refereePhone: data.referee_phone,
       relationship: data.relationship,
       relationshipLabel: getRelationshipLabel(data.relationship),
       employmentStart: data.employment_start,

@@ -1,9 +1,10 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 
 import { isRecruiterAccount } from "@/lib/auth/account-type";
 import { EMAIL_FEATURES_ENABLED } from "@/lib/auth/email-features";
 import { getVerifyEmailPath } from "@/lib/auth/email-verification-status";
 import { getAuthErrorMessage } from "@/lib/auth/errors";
+import type { PostLoginContext } from "@/lib/auth/post-login-redirect";
 import { resolvePostLoginRedirect } from "@/lib/auth/safe-redirect";
 import { completePendingSignupForUser } from "@/lib/auth/signup-flow";
 import type { LoginApiResponse } from "@/lib/auth/types";
@@ -22,6 +23,12 @@ type LoginRequest = {
   accountType?: "candidate" | "recruiter";
   redirect?: string;
   rememberMe?: boolean;
+};
+
+type LoginUserRow = {
+  login_count: number | null;
+  email: string | null;
+  email_verified_at?: string | null;
 };
 
 export async function POST(request: Request) {
@@ -99,27 +106,36 @@ export async function POST(request: Request) {
     );
   }
 
-  if (EMAIL_FEATURES_ENABLED) {
-    const { data: userRow, error: userLookupError } = await supabase
-      .from("users")
-      .select("email_verified_at")
-      .eq("id", data.user.id)
-      .maybeSingle();
+  const userFields = EMAIL_FEATURES_ENABLED
+    ? "email_verified_at, login_count, email"
+    : "login_count, email";
 
-    if (userLookupError || !userRow?.email_verified_at) {
-      await supabase.auth.signOut();
-      return NextResponse.json(
-        {
-          success: false,
-          needsEmailVerification: true,
-          redirectTo: getVerifyEmailPath(email),
-        } satisfies LoginApiResponse,
-        { status: 403 },
-      );
-    }
+  const [{ data: userRow, error: userLookupError }, isRecruiter] =
+    await Promise.all([
+      supabase
+        .from("users")
+        .select(userFields)
+        .eq("id", data.user.id)
+        .maybeSingle(),
+      isRecruiterAccount(supabase, data.user),
+    ]);
+
+  const typedUserRow = userRow as LoginUserRow | null;
+
+  if (
+    EMAIL_FEATURES_ENABLED &&
+    (userLookupError || !typedUserRow?.email_verified_at)
+  ) {
+    await supabase.auth.signOut();
+    return NextResponse.json(
+      {
+        success: false,
+        needsEmailVerification: true,
+        redirectTo: getVerifyEmailPath(email),
+      } satisfies LoginApiResponse,
+      { status: 403 },
+    );
   }
-
-  const isRecruiter = await isRecruiterAccount(supabase, data.user);
 
   if (body.accountType === "recruiter" && !isRecruiter) {
     await supabase.auth.signOut();
@@ -144,15 +160,24 @@ export async function POST(request: Request) {
     }
   }
 
-  await completePendingSignupForUser(supabase, data.user);
+  const loginContext: PostLoginContext = {
+    accountType: isRecruiter ? "recruiter" : "candidate",
+    loginCount: typedUserRow?.login_count ?? 0,
+    email: typedUserRow?.email ?? data.user.email ?? "",
+  };
 
-  const redirectTo = await resolvePostLoginRedirect(
-    supabase,
-    data.user,
-    body.redirect,
-  );
+  const [redirectTo] = await Promise.all([
+    resolvePostLoginRedirect(supabase, data.user, body.redirect, loginContext),
+    completePendingSignupForUser(supabase, data.user),
+  ]);
 
-  await supabase.rpc("record_user_login");
+  after(async () => {
+    try {
+      await supabase.rpc("record_user_login");
+    } catch (recordError) {
+      console.error("Failed to record user login:", recordError);
+    }
+  });
 
   return NextResponse.json({
     success: true,

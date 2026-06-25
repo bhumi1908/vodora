@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 import type { ReferenceResponseFormData } from "@/components/profile/reference/types";
 import { normalizeReferenceType } from "@/components/profile/reference/types";
+import { CANDIDATE_WELCOME_PATH } from "@/lib/auth/routes";
 import {
   getReferenceResponseFieldErrors,
   hasReferenceResponseFieldErrors,
@@ -15,6 +16,8 @@ export type SubmitReferenceResponseResult =
   | {
       success: true;
       status: "verified" | "submitted";
+      responseId: string;
+      welcomeRedirectTo?: string;
     }
   | {
       success: false;
@@ -58,9 +61,11 @@ export async function submitReferenceResponse(
     referenceType,
   });
 
-  const { error } = await supabase
+  const { data: inserted, error } = await supabase
     .from("reference_responses")
-    .insert(insertPayload);
+    .insert(insertPayload)
+    .select("id")
+    .single();
 
   if (error) {
     if (error.message.includes("not open for submission")) {
@@ -84,6 +89,13 @@ export async function submitReferenceResponse(
     };
   }
 
+  if (params.input.refereePhone.trim()) {
+    await supabase
+      .from("reference_requests")
+      .update({ referee_phone: params.input.refereePhone.trim() })
+      .eq("id", params.referenceRequestId);
+  }
+
   const { data: requestRow } = await supabase
     .from("reference_requests")
     .select("status")
@@ -93,5 +105,9 @@ export async function submitReferenceResponse(
   return {
     success: true,
     status: requestRow?.status === "verified" ? "verified" : "submitted",
+    responseId: inserted.id,
+    ...(params.input.allowProfileCreation
+      ? { welcomeRedirectTo: CANDIDATE_WELCOME_PATH }
+      : {}),
   };
 }

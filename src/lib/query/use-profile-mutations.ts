@@ -8,6 +8,7 @@ import {
   saveExperienceSection,
   saveOverviewSection,
   saveSkillsSection,
+  saveSpotlightSection,
   uploadProfileDocument,
   uploadProfilePhoto,
 } from "@/components/profile/edit/profile-edit-api";
@@ -77,4 +78,8 @@ export function useUploadProfileDocumentMutation() {
 
 export function useDeleteProfileDocumentMutation() {
   return useProfileMutation(deleteProfileDocument);
+}
+
+export function useSaveSpotlightMutation() {
+  return useProfileMutation(saveSpotlightSection);
 }
