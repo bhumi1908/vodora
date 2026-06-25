@@ -2,6 +2,8 @@ import { getRelationshipLabel } from "@/components/profile/reference/types";
 
 import type { CandidateReferenceItem } from "@/lib/references/fetch-candidate-references";
 import type { QuestionnaireAnswers } from "@/lib/references/reference-questionnaire";
+import type { WrittenAssessmentAnswers } from "@/lib/references/written-reference-assessment";
+import { isWrittenAssessmentAnswers } from "@/lib/references/written-reference-assessment";
 
 export type ReferenceRpcRow = {
   id: string;
@@ -49,7 +51,14 @@ export function mapReferenceRpcRows(
     submittedAt: row.submitted_at,
     verifiedAt: row.verified_at,
     writtenComments: row.written_comments,
-    questionnaireResponses: parseQuestionnaireResponses(row.questionnaire_responses),
+    questionnaireResponses: parseQuestionnaireResponses(
+      row.questionnaire_responses,
+      row.reference_type,
+    ),
+    writtenAssessmentResponses: parseWrittenAssessmentResponses(
+      row.questionnaire_responses,
+      row.reference_type,
+    ),
     performanceRating: row.performance_rating,
     reliabilityRating: row.reliability_rating,
     teamworkRating: row.teamwork_rating,
@@ -62,12 +71,32 @@ export function mapReferenceRpcRows(
 
 function parseQuestionnaireResponses(
   value: unknown,
+  referenceType: string,
 ): QuestionnaireAnswers | null {
+  if (referenceType !== "questionnaire") {
+    return null;
+  }
+
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     return null;
   }
 
   return value as QuestionnaireAnswers;
+}
+
+function parseWrittenAssessmentResponses(
+  value: unknown,
+  referenceType: string,
+): WrittenAssessmentAnswers | null {
+  if (referenceType === "questionnaire") {
+    return null;
+  }
+
+  if (!isWrittenAssessmentAnswers(value)) {
+    return null;
+  }
+
+  return value;
 }
 
 export function parseReferenceRpcRows(value: unknown): ReferenceRpcRow[] {

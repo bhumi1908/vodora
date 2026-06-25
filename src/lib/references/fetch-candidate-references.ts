@@ -4,6 +4,8 @@ import { getRelationshipLabel } from "@/components/profile/reference/types";
 import type { Database } from "@/lib/supabase/database.types";
 
 import type { QuestionnaireAnswers } from "@/lib/references/reference-questionnaire";
+import type { WrittenAssessmentAnswers } from "@/lib/references/written-reference-assessment";
+import { isWrittenAssessmentAnswers } from "@/lib/references/written-reference-assessment";
 
 type Supabase = SupabaseClient<Database>;
 
@@ -25,6 +27,7 @@ export type CandidateReferenceItem = {
   verifiedAt: string | null;
   writtenComments: string | null;
   questionnaireResponses: QuestionnaireAnswers | null;
+  writtenAssessmentResponses: WrittenAssessmentAnswers | null;
   performanceRating: number | null;
   reliabilityRating: number | null;
   teamworkRating: number | null;
@@ -105,6 +108,11 @@ export async function fetchCandidateReferences(
       writtenComments: response?.written_comments ?? null,
       questionnaireResponses: parseQuestionnaireResponses(
         response?.questionnaire_responses,
+        row.reference_type,
+      ),
+      writtenAssessmentResponses: parseWrittenAssessmentResponses(
+        response?.questionnaire_responses,
+        row.reference_type,
       ),
       performanceRating: response?.performance_rating ?? null,
       reliabilityRating: response?.reliability_rating ?? null,
@@ -121,12 +129,32 @@ export async function fetchCandidateReferences(
 
 function parseQuestionnaireResponses(
   value: unknown,
+  referenceType: string,
 ): QuestionnaireAnswers | null {
+  if (referenceType !== "questionnaire") {
+    return null;
+  }
+
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     return null;
   }
 
   return value as QuestionnaireAnswers;
+}
+
+function parseWrittenAssessmentResponses(
+  value: unknown,
+  referenceType: string,
+): WrittenAssessmentAnswers | null {
+  if (referenceType === "questionnaire") {
+    return null;
+  }
+
+  if (!isWrittenAssessmentAnswers(value)) {
+    return null;
+  }
+
+  return value;
 }
 
 export async function cancelReferenceRequest(

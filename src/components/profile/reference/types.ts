@@ -23,6 +23,10 @@ export function normalizeReferenceType(value: string): ReferenceType {
 }
 
 import { createEmptyQuestionnaireAnswers, type QuestionnaireAnswers } from "@/lib/references/reference-questionnaire";
+import {
+  createEmptyWrittenAssessmentAnswers,
+  type WrittenAssessmentAnswers,
+} from "@/lib/references/written-reference-assessment";
 
 export type RequestReferenceFormData = {
   name: string;
@@ -44,12 +48,7 @@ export type ReferenceResponseFormData = {
   employmentConfirmed: boolean;
   positionHeld: string;
   employmentDatesConfirmed: boolean;
-  performanceRating: string;
-  reliabilityRating: string;
-  teamworkRating: string;
-  leadershipRating: string;
-  rehireRecommendation: "" | "yes" | "no";
-  writtenComments: string;
+  writtenAssessmentAnswers: WrittenAssessmentAnswers;
   questionnaireAnswers: QuestionnaireAnswers;
   attestationConfirmed: boolean;
 };
@@ -76,12 +75,7 @@ export function createEmptyReferenceResponse(): ReferenceResponseFormData {
     employmentConfirmed: false,
     positionHeld: "",
     employmentDatesConfirmed: false,
-    performanceRating: "",
-    reliabilityRating: "",
-    teamworkRating: "",
-    leadershipRating: "",
-    rehireRecommendation: "",
-    writtenComments: "",
+    writtenAssessmentAnswers: createEmptyWrittenAssessmentAnswers(),
     questionnaireAnswers: createEmptyQuestionnaireAnswers(),
     attestationConfirmed: false,
   };

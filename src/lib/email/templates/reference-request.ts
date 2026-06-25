@@ -5,6 +5,7 @@ type ReferenceRequestEmailParams = {
   inviteUrl: string;
   candidateName: string;
   refereeName: string;
+  refereeEmail: string;
   refereeCompany: string;
   relationshipLabel: string;
   message?: string | null;
@@ -14,6 +15,7 @@ export function buildReferenceRequestHtml({
   inviteUrl,
   candidateName,
   refereeName,
+  refereeEmail,
   refereeCompany,
   relationshipLabel,
   message,
@@ -46,8 +48,11 @@ export function buildReferenceRequestHtml({
             <td style="padding:0 32px 8px;text-align:center;">
               <div style="width:64px;height:64px;margin:0 auto 20px;background-color:#dbeafe;border-radius:50%;line-height:64px;font-size:28px;">&#128221;</div>
               <h1 style="margin:0 0 12px;font-size:24px;font-weight:600;color:#111827;">Reference request</h1>
+              <p style="margin:0 0 8px;font-size:15px;line-height:1.6;color:#4b5563;">
+                Hi ${escapeHtml(refereeName)},
+              </p>
               <p style="margin:0 0 24px;font-size:15px;line-height:1.6;color:#4b5563;">
-                Hi ${escapeHtml(refereeName)}, <strong>${escapeHtml(candidateName)}</strong> has requested a professional reference from you on Vodora.
+                <strong>${escapeHtml(candidateName)}</strong> has requested a professional reference from you on Vodora.
               </p>
             </td>
           </tr>
@@ -71,7 +76,7 @@ export function buildReferenceRequestHtml({
               </a>
               ${buildEmailFallbackLinkHtml(inviteUrl)}
               <p style="margin:16px 0 0;font-size:12px;line-height:1.5;color:#9ca3af;">
-                This link expires in 30 days. You will need to sign in or create a free Vodora candidate account using this email address.
+                This link expires in 30 days. Please sign in or create a free Vodora candidate account using the email address <strong style="color:#6b7280;">${escapeHtml(refereeEmail)}</strong>.
               </p>
             </td>
           </tr>
@@ -94,6 +99,7 @@ export function buildReferenceRequestText({
   inviteUrl,
   candidateName,
   refereeName,
+  refereeEmail,
   refereeCompany,
   relationshipLabel,
   message,
@@ -108,10 +114,12 @@ ${candidateName} has requested a professional reference from you on Vodora.
 
 Your role: ${relationshipLabel} at ${refereeCompany}
 ${personalMessage}
+Completing this reference takes about 5 minutes. Once verified, it is stored in ${candidateName}'s Reference Passport and can be reused with their permission.
+
 Complete the reference using this link (expires in 30 days):
 ${inviteUrl}
 
-You will need to sign in or create a free Vodora candidate account using the invited email address.
+Please sign in or create a free Vodora candidate account using the email address ${refereeEmail}.
 
 If you were not expecting this request, you can safely ignore this email.
 

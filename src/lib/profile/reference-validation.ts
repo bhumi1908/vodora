@@ -14,6 +14,11 @@ import {
   REFERENCE_QUESTIONNAIRE,
   type QuestionnaireQuestionId,
 } from "@/lib/references/reference-questionnaire";
+import {
+  WRITTEN_REFERENCE_ASSESSMENT,
+  type WrittenAssessmentQuestionId,
+  mapWrittenAssessmentToLegacyRatings,
+} from "@/lib/references/written-reference-assessment";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -23,18 +28,23 @@ export type ReferenceResponseFieldErrors = FieldErrors<
   keyof ReferenceResponseFormData
 > & {
   questionnaire?: Partial<Record<QuestionnaireQuestionId, string>>;
+  writtenAssessment?: Partial<Record<WrittenAssessmentQuestionId, string>>;
 };
 
 export function hasReferenceResponseFieldErrors(
   errors: ReferenceResponseFieldErrors,
 ): boolean {
-  const { questionnaire, ...fieldErrors } = errors;
+  const { questionnaire, writtenAssessment, ...fieldErrors } = errors;
 
   if (hasFieldErrors(fieldErrors)) {
     return true;
   }
 
-  return hasFieldErrors(questionnaire ?? {});
+  if (hasFieldErrors(questionnaire ?? {})) {
+    return true;
+  }
+
+  return hasFieldErrors(writtenAssessment ?? {});
 }
 
 function parseOptionalMonth(value: string): string | null {
@@ -137,26 +147,32 @@ function validateSharedEmploymentFields(
   }
 }
 
-function validateWrittenRatings(
+function validateWrittenAssessmentAnswers(
   input: Partial<ReferenceResponseFormData>,
   errors: ReferenceResponseFieldErrors,
 ) {
-  for (const field of [
-    "performanceRating",
-    "reliabilityRating",
-    "teamworkRating",
-    "leadershipRating",
-  ] as const) {
-    const value = input[field];
-    if (!value) {
-      errors[field] = "Rating is required.";
-    } else if (!/^[1-5]$/.test(value)) {
-      errors[field] = "Choose a rating from 1 to 5.";
+  const writtenAssessmentErrors: Partial<
+    Record<WrittenAssessmentQuestionId, string>
+  > = {};
+
+  for (const question of WRITTEN_REFERENCE_ASSESSMENT) {
+    const value = input.writtenAssessmentAnswers?.[question.id]?.trim() ?? "";
+
+    if (question.required && !value) {
+      writtenAssessmentErrors[question.id] = "This answer is required.";
+      continue;
+    }
+
+    if (question.type === "select" && value) {
+      const isValid = question.options.some((option) => option.value === value);
+      if (!isValid) {
+        writtenAssessmentErrors[question.id] = "Choose a valid option.";
+      }
     }
   }
 
-  if (!input.rehireRecommendation) {
-    errors.rehireRecommendation = "Rehire recommendation is required.";
+  if (Object.keys(writtenAssessmentErrors).length > 0) {
+    errors.writtenAssessment = writtenAssessmentErrors;
   }
 }
 
@@ -200,7 +216,7 @@ export function getReferenceResponseFieldErrors(
   if (referenceType === "questionnaire") {
     validateQuestionnaireAnswers(input, errors);
   } else {
-    validateWrittenRatings(input, errors);
+    validateWrittenAssessmentAnswers(input, errors);
   }
 
   return errors;
@@ -251,6 +267,9 @@ export function mapReferenceResponseToInsert(
   },
 ) {
   const isQuestionnaire = context.referenceType === "questionnaire";
+  const legacyRatings = !isQuestionnaire
+    ? mapWrittenAssessmentToLegacyRatings(input.writtenAssessmentAnswers)
+    : null;
 
   return {
     reference_request_id: context.referenceRequestId,
@@ -258,37 +277,31 @@ export function mapReferenceResponseToInsert(
     employment_confirmed: input.employmentConfirmed,
     position_held: input.positionHeld.trim(),
     employment_dates_confirmed: input.employmentDatesConfirmed,
-    performance_rating:
-      !isQuestionnaire && input.performanceRating
-        ? Number(input.performanceRating)
-        : null,
-    reliability_rating:
-      !isQuestionnaire && input.reliabilityRating
-        ? Number(input.reliabilityRating)
-        : null,
-    teamwork_rating:
-      !isQuestionnaire && input.teamworkRating
-        ? Number(input.teamworkRating)
-        : null,
-    leadership_rating:
-      !isQuestionnaire && input.leadershipRating
-        ? Number(input.leadershipRating)
-        : null,
+    performance_rating: isQuestionnaire
+      ? null
+      : legacyRatings?.performanceRating ?? null,
+    reliability_rating: isQuestionnaire
+      ? null
+      : legacyRatings?.reliabilityRating ?? null,
+    teamwork_rating: isQuestionnaire
+      ? null
+      : legacyRatings?.teamworkRating ?? null,
+    leadership_rating: isQuestionnaire
+      ? null
+      : legacyRatings?.leadershipRating ?? null,
     rehire_recommendation: isQuestionnaire
       ? input.questionnaireAnswers.would_rehire === "yes"
         ? true
         : input.questionnaireAnswers.would_rehire === "no"
           ? false
           : null
-      : input.rehireRecommendation === "yes"
-        ? true
-        : input.rehireRecommendation === "no"
-          ? false
-          : null,
+      : legacyRatings?.rehireRecommendation ?? null,
     written_comments: isQuestionnaire
       ? input.questionnaireAnswers.additional_comments.trim() || null
-      : input.writtenComments.trim() || null,
-    questionnaire_responses: isQuestionnaire ? input.questionnaireAnswers : null,
+      : input.writtenAssessmentAnswers.greatest_strengths.trim() || null,
+    questionnaire_responses: isQuestionnaire
+      ? input.questionnaireAnswers
+      : input.writtenAssessmentAnswers,
     attestation_confirmed: true,
   };
 }

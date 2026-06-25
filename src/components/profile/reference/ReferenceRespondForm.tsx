@@ -3,13 +3,11 @@
 import { useState } from "react";
 
 import {
-  AuthFormGrid,
   FormError,
   FormField,
-  FormSelect,
-  FormTextarea,
 } from "@/components/auth/shared/FormFields";
 import { ReferenceQuestionnaireFields } from "@/components/profile/reference/ReferenceQuestionnaireFields";
+import { WrittenReferenceAssessmentFields } from "@/components/profile/reference/WrittenReferenceAssessmentFields";
 import {
   createEmptyReferenceResponse,
   normalizeReferenceType,
@@ -22,7 +20,6 @@ import {
   hasReferenceResponseFieldErrors,
   type ReferenceResponseFieldErrors,
 } from "@/lib/profile/reference-validation";
-import { REFERENCE_RATING_OPTIONS } from "@/lib/references/reference-questionnaire";
 import type { ReferenceInvitationDetails } from "@/lib/references/fetch-reference-invitation";
 import {
   showReferenceSubmitErrorToast,
@@ -44,6 +41,9 @@ export function ReferenceRespondForm({
   const { errors, setErrors, clearField } =
     useFieldErrors<keyof ReferenceResponseFieldErrors>();
   const [questionnaireErrors, setQuestionnaireErrors] = useState<
+    Partial<Record<string, string>>
+  >({});
+  const [writtenAssessmentErrors, setWrittenAssessmentErrors] = useState<
     Partial<Record<string, string>>
   >({});
   const [error, setError] = useState("");
@@ -84,13 +84,30 @@ export function ReferenceRespondForm({
     setError("");
   }
 
+  function updateWrittenAssessmentAnswer(questionId: string, value: string) {
+    setForm((current) => ({
+      ...current,
+      writtenAssessmentAnswers: {
+        ...current.writtenAssessmentAnswers,
+        [questionId]: value,
+      },
+    }));
+    setWrittenAssessmentErrors((current) => {
+      const next = { ...current };
+      delete next[questionId];
+      return next;
+    });
+    setError("");
+  }
+
   async function handleSubmit() {
     const fieldErrors = getReferenceResponseFieldErrors(form, referenceType);
 
     if (hasReferenceResponseFieldErrors(fieldErrors)) {
-      const { questionnaire, ...rest } = fieldErrors;
+      const { questionnaire, writtenAssessment, ...rest } = fieldErrors;
       setErrors(rest);
       setQuestionnaireErrors(questionnaire ?? {});
+      setWrittenAssessmentErrors(writtenAssessment ?? {});
       return;
     }
 
@@ -113,9 +130,10 @@ export function ReferenceRespondForm({
 
       if (!response.ok || !result.success) {
         if (result.fieldErrors) {
-          const { questionnaire, ...rest } = result.fieldErrors;
+          const { questionnaire, writtenAssessment, ...rest } = result.fieldErrors;
           setErrors(rest);
           setQuestionnaireErrors(questionnaire ?? {});
+          setWrittenAssessmentErrors(writtenAssessment ?? {});
         }
 
         const message = result.error ?? "Unable to submit reference.";
@@ -151,13 +169,13 @@ export function ReferenceRespondForm({
           {invitation.refereeCompany}.
         </p>
         <p className="mt-2 text-blue-800">
-          Reference type:{" "}
-          <strong>
-            {isQuestionnaire ? "Structured questionnaire" : "Written reference"}
-          </strong>
+          Thank you for taking the time to provide a professional reference. Your
+          feedback helps verify the candidate&apos;s professional history and is
+          securely stored within Vodora.
         </p>
         {invitation.candidateMessage ? (
           <p className="mt-3 border-t border-blue-100 pt-3 text-blue-800">
+            <span className="font-medium">Message: </span>
             &ldquo;{invitation.candidateMessage}&rdquo;
           </p>
         ) : null}
@@ -165,7 +183,7 @@ export function ReferenceRespondForm({
 
       <div className="space-y-4">
         <div>
-          <p className="text-sm font-medium text-gray-900">Employment confirmation</p>
+          <p className="text-sm font-medium text-gray-900">Employment verification</p>
           <label className="mt-2 flex items-start gap-3">
             <input
               type="checkbox"
@@ -176,7 +194,8 @@ export function ReferenceRespondForm({
               className="mt-1 h-4 w-4 rounded text-blue-600"
             />
             <span className="text-sm text-gray-700">
-              I confirm {invitation.candidateName} was employed in the role described.
+              Did this person work with you? I confirm {invitation.candidateName}{" "}
+              was employed in the role described.
             </span>
           </label>
           {errors.employmentConfirmed ? (
@@ -233,91 +252,11 @@ export function ReferenceRespondForm({
           onAnswerChange={updateQuestionnaireAnswer}
         />
       ) : (
-        <>
-          <div className="space-y-4">
-            <p className="text-sm font-medium text-gray-900">Performance ratings</p>
-            <AuthFormGrid>
-              <FormSelect
-                id="performance-rating"
-                label="Performance"
-                required
-                value={form.performanceRating}
-                onChange={(event) =>
-                  updateField("performanceRating", event.target.value)
-                }
-                placeholder="Select rating"
-                options={[...REFERENCE_RATING_OPTIONS]}
-                error={errors.performanceRating}
-              />
-              <FormSelect
-                id="reliability-rating"
-                label="Reliability"
-                required
-                value={form.reliabilityRating}
-                onChange={(event) =>
-                  updateField("reliabilityRating", event.target.value)
-                }
-                placeholder="Select rating"
-                options={[...REFERENCE_RATING_OPTIONS]}
-                error={errors.reliabilityRating}
-              />
-            </AuthFormGrid>
-            <AuthFormGrid>
-              <FormSelect
-                id="teamwork-rating"
-                label="Teamwork"
-                required
-                value={form.teamworkRating}
-                onChange={(event) =>
-                  updateField("teamworkRating", event.target.value)
-                }
-                placeholder="Select rating"
-                options={[...REFERENCE_RATING_OPTIONS]}
-                error={errors.teamworkRating}
-              />
-              <FormSelect
-                id="leadership-rating"
-                label="Leadership"
-                required
-                value={form.leadershipRating}
-                onChange={(event) =>
-                  updateField("leadershipRating", event.target.value)
-                }
-                placeholder="Select rating"
-                options={[...REFERENCE_RATING_OPTIONS]}
-                error={errors.leadershipRating}
-              />
-            </AuthFormGrid>
-            <FormSelect
-              id="rehire-recommendation"
-              label="Rehire recommendation"
-              required
-              value={form.rehireRecommendation}
-              onChange={(event) =>
-                updateField(
-                  "rehireRecommendation",
-                  event.target.value as ReferenceResponseFormData["rehireRecommendation"],
-                )
-              }
-              placeholder="Select an option"
-              options={[
-                { value: "yes", label: "Yes" },
-                { value: "no", label: "No" },
-              ]}
-              error={errors.rehireRecommendation}
-            />
-          </div>
-
-          <FormTextarea
-            id="written-comments"
-            label="Comments"
-            value={form.writtenComments}
-            onChange={(event) => updateField("writtenComments", event.target.value)}
-            placeholder="Share your professional assessment of this candidate..."
-            rows={6}
-            error={errors.writtenComments}
-          />
-        </>
+        <WrittenReferenceAssessmentFields
+          answers={form.writtenAssessmentAnswers}
+          errors={writtenAssessmentErrors}
+          onAnswerChange={updateWrittenAssessmentAnswer}
+        />
       )}
 
       <label className="flex items-start gap-3 rounded-lg border border-gray-200 bg-gray-50 p-4">
@@ -330,8 +269,10 @@ export function ReferenceRespondForm({
           className="mt-1 h-4 w-4 rounded text-blue-600"
         />
         <span className="text-sm text-gray-700">
-          I confirm that the information provided in this reference is accurate
-          to the best of my knowledge.
+          I confirm that I know the candidate professionally, the information
+          provided is true and accurate to the best of my knowledge, and I
+          understand this reference will be stored within the candidate&apos;s Vodora
+          Trust Profile.
           {errors.attestationConfirmed ? (
             <span className="mt-1 block text-red-600">
               {errors.attestationConfirmed}

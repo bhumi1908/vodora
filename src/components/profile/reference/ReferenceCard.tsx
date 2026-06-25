@@ -13,6 +13,12 @@ import {
   formatQuestionnaireAnswerValue,
   REFERENCE_QUESTIONNAIRE,
 } from "@/lib/references/reference-questionnaire";
+import {
+  formatWrittenAssessmentAnswerValue,
+  getWrittenAssessmentQuestion,
+  WRITTEN_REFERENCE_ASSESSMENT,
+  WRITTEN_REFERENCE_SUMMARY_FIELDS,
+} from "@/lib/references/written-reference-assessment";
 
 type ReferenceCardProps = {
   reference: CandidateReferenceItem;
@@ -115,11 +121,19 @@ export function ReferenceCard({
     : null;
   const isQuestionnaire =
     normalizeReferenceType(reference.referenceType) === "questionnaire";
+  const hasWrittenAssessment = Boolean(reference.writtenAssessmentResponses);
   const showWrittenQuote =
     showWrittenComments &&
     reference.status === "verified" &&
     !isQuestionnaire &&
+    !hasWrittenAssessment &&
     Boolean(reference.writtenComments);
+  const showWrittenAssessmentSummary =
+    showWrittenComments &&
+    reference.status === "verified" &&
+    !isQuestionnaire &&
+    hasWrittenAssessment &&
+    Boolean(reference.writtenAssessmentResponses);
   const showQuestionnaire =
     showWrittenComments &&
     reference.status === "verified" &&
@@ -128,6 +142,7 @@ export function ReferenceCard({
   const showRatingsSection =
     showRatings &&
     reference.status === "verified" &&
+    !hasWrittenAssessment &&
     hasReferenceRatings(reference);
   const showEmploymentDetails =
     showEmploymentConfirmation &&
@@ -204,6 +219,84 @@ export function ReferenceCard({
             <blockquote className="mt-4 border-l-4 border-blue-200 pl-4 text-sm italic leading-relaxed text-gray-700">
               &ldquo;{reference.writtenComments}&rdquo;
             </blockquote>
+          ) : null}
+
+          {showWrittenAssessmentSummary && reference.writtenAssessmentResponses ? (
+            <div className="mt-4 space-y-4 border-t border-gray-100 pt-4">
+              {reference.writtenComments ? (
+                <blockquote className="border-l-4 border-blue-200 pl-4 text-sm italic leading-relaxed text-gray-700">
+                  &ldquo;{reference.writtenComments}&rdquo;
+                </blockquote>
+              ) : null}
+
+              <div className="rounded-lg border border-gray-100 bg-gray-50 p-4">
+                <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                  Referee summary
+                </p>
+                <dl className="mt-3 space-y-2">
+                  {WRITTEN_REFERENCE_SUMMARY_FIELDS.map((field) => {
+                    const question = getWrittenAssessmentQuestion(field.id);
+                    const rawValue =
+                      reference.writtenAssessmentResponses?.[field.id] ?? "";
+                    const formatted = question
+                      ? formatWrittenAssessmentAnswerValue(question, rawValue)
+                      : rawValue;
+
+                    if (!formatted) {
+                      return null;
+                    }
+
+                    return (
+                      <div
+                        key={field.id}
+                        className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-3"
+                      >
+                        <dt className="text-xs text-gray-500">{field.label}</dt>
+                        <dd className="text-sm font-medium text-gray-800">
+                          {formatted}
+                        </dd>
+                      </div>
+                    );
+                  })}
+                </dl>
+              </div>
+
+              <dl className="space-y-3">
+                {WRITTEN_REFERENCE_ASSESSMENT.filter(
+                  (question) =>
+                    question.id !== "greatest_strengths" &&
+                    !WRITTEN_REFERENCE_SUMMARY_FIELDS.some(
+                      (field) => field.id === question.id,
+                    ),
+                ).map((question) => {
+                  const rawValue =
+                    reference.writtenAssessmentResponses?.[question.id] ?? "";
+                  const formatted = formatWrittenAssessmentAnswerValue(
+                    question,
+                    rawValue,
+                  );
+
+                  if (!formatted) {
+                    return null;
+                  }
+
+                  return (
+                    <div key={question.id}>
+                      <dt className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                        {question.label}
+                      </dt>
+                      <dd className="mt-1 text-sm text-gray-700">
+                        {question.type === "textarea" ? (
+                          <span className="whitespace-pre-wrap">{formatted}</span>
+                        ) : (
+                          formatted
+                        )}
+                      </dd>
+                    </div>
+                  );
+                })}
+              </dl>
+            </div>
           ) : null}
 
           {showRatingsSection ? (
