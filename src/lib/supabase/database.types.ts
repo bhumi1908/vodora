@@ -1336,6 +1336,18 @@ export type Database = {
         };
         Returns: Json;
       };
+      get_reference_collection_candidate_details_batch: {
+        Args: {
+          p_candidate_ids: string[];
+        };
+        Returns: Json;
+      };
+      get_recruiter_candidate_profiles_batch: {
+        Args: {
+          p_vodora_ids: string[];
+        };
+        Returns: Json;
+      };
       recruiter_has_reference_grant: {
         Args: {
           p_candidate_id: string;
@@ -1526,6 +1538,12 @@ export type Database = {
           p_candidate_id: string;
         };
         Returns: number;
+      };
+      count_verified_references_batch: {
+        Args: {
+          p_candidate_ids: string[];
+        };
+        Returns: Json;
       };
       is_platform_admin: {
         Args: Record<PropertyKey, never>;

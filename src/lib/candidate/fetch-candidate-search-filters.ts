@@ -2,6 +2,10 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { cache } from "react";
 
 import type { CandidatePeerSearchFilters } from "@/lib/candidate/candidate-peer-search.types";
+import {
+  getCachedActiveIndustryCategories,
+  getCachedActiveWorkTypes,
+} from "@/lib/lookup/fetch-active-lookup-tables";
 import type { Database } from "@/lib/supabase/database.types";
 
 type Supabase = SupabaseClient<Database>;
@@ -14,22 +18,11 @@ type SearchMetadata = {
 async function fetchCandidateSearchFilters(
   supabase: Supabase,
 ): Promise<CandidatePeerSearchFilters> {
-  const [{ data: categories }, { data: workTypes }, { data: metadata }] =
-    await Promise.all([
-      supabase
-        .from("industry_categories")
-        .select("id, name")
-        .eq("is_active", true)
-        .order("sort_order")
-        .order("name"),
-      supabase
-        .from("work_types")
-        .select("code, name")
-        .eq("is_active", true)
-        .order("sort_order")
-        .order("name"),
-      supabase.rpc("get_candidate_search_metadata"),
-    ]);
+  const [{ data: metadata }, categories, workTypes] = await Promise.all([
+    supabase.rpc("get_candidate_search_metadata"),
+    getCachedActiveIndustryCategories(),
+    getCachedActiveWorkTypes(),
+  ]);
 
   const meta =
     metadata && typeof metadata === "object" && !Array.isArray(metadata)

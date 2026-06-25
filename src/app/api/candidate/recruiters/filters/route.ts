@@ -27,7 +27,7 @@ export async function GET() {
   }
 
   try {
-    const filters = await fetchRecruiterDirectoryFilters(supabase);
+    const filters = await fetchRecruiterDirectoryFilters();
 
     return NextResponse.json({
       success: true,

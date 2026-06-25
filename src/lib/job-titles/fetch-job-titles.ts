@@ -1,6 +1,10 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { cache } from "react";
 
+import {
+  createDataCache,
+  LOOKUP_REVALIDATE_SECONDS,
+} from "@/lib/cache/unstable-data-cache";
 import { groupJobTitleOptions } from "@/lib/job-titles/group-job-title-options";
 import type { JobTitleOptionGroup, JobTitleRecord } from "@/lib/job-titles/types";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -111,4 +115,12 @@ async function fetchPublicJobTitleOptionGroups(): Promise<JobTitleOptionGroup[]>
   return fetchJobTitleOptionGroups(supabase);
 }
 
-export const getCachedJobTitleOptionGroups = cache(fetchPublicJobTitleOptionGroups);
+const getCrossRequestJobTitleOptionGroups = createDataCache(
+  fetchPublicJobTitleOptionGroups,
+  ["lookup", "job-title-option-groups"],
+  LOOKUP_REVALIDATE_SECONDS,
+);
+
+export const getCachedJobTitleOptionGroups = cache(
+  getCrossRequestJobTitleOptionGroups,
+);

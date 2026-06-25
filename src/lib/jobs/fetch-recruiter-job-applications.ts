@@ -1,6 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-import type { JobApplicationStatus } from "@/lib/jobs/candidate-jobs.types";
 import { formatRelativePosted } from "@/lib/jobs/format-job-posting";
 import {
   mapApplicationStatus,
@@ -13,10 +12,11 @@ import type {
   RecruiterJobApplicantsJobSummary,
   RecruiterJobApplicantsResponse,
 } from "@/lib/jobs/recruiter-job-applications.types";
+import type { JobApplicationStatus } from "@/lib/jobs/candidate-jobs.types";
 import { formatLocation, getInitials } from "@/lib/profile/format";
-import type { CandidateProfileDocument } from "@/lib/profile/types";
+import type { CandidateProfileData, CandidateProfileDocument } from "@/lib/profile/types";
 import { fetchRecruiterCandidateReferences } from "@/lib/references/fetch-recruiter-candidate-references";
-import { fetchRecruiterCandidateProfile } from "@/lib/recruiter/fetch-recruiter-candidate-profile";
+import { fetchRecruiterCandidateProfilesBatch } from "@/lib/recruiter/fetch-recruiter-candidate-profile";
 import type { Database } from "@/lib/supabase/database.types";
 
 type Supabase = SupabaseClient<Database>;
@@ -33,34 +33,91 @@ type RpcCandidateDetailsRow = {
 
 type JobApplicationRow = Database["public"]["Tables"]["job_applications"]["Row"];
 
-async function fetchCandidateDetailsFromRpc(
+function parseCandidateDetailsBatch(data: unknown): RpcCandidateDetailsRow[] {
+  if (!Array.isArray(data)) {
+    return [];
+  }
+
+  return data.flatMap((item) => {
+    if (!item || typeof item !== "object") {
+      return [];
+    }
+
+    const row = item as Partial<RpcCandidateDetailsRow>;
+
+    if (
+      !row.candidate_id ||
+      !row.vodora_id ||
+      !row.first_name ||
+      !row.last_name ||
+      !row.email?.trim()
+    ) {
+      return [];
+    }
+
+    return [row as RpcCandidateDetailsRow];
+  });
+}
+
+function parseVerifiedReferenceCountsBatch(
+  data: unknown,
+): Map<string, number> {
+  const counts = new Map<string, number>();
+
+  if (!data || typeof data !== "object" || Array.isArray(data)) {
+    return counts;
+  }
+
+  for (const [candidateId, count] of Object.entries(data)) {
+    if (typeof count === "number" && Number.isFinite(count)) {
+      counts.set(candidateId, count);
+    }
+  }
+
+  return counts;
+}
+
+async function fetchCandidateDetailsBatch(
   supabase: Supabase,
-  candidateId: string,
-): Promise<RpcCandidateDetailsRow | null> {
+  candidateIds: string[],
+): Promise<Map<string, RpcCandidateDetailsRow>> {
+  if (candidateIds.length === 0) {
+    return new Map();
+  }
+
   const { data, error } = await supabase.rpc(
-    "get_reference_collection_candidate_details",
+    "get_reference_collection_candidate_details_batch",
     {
-      p_candidate_id: candidateId,
+      p_candidate_ids: candidateIds,
     },
   );
 
-  if (error || !data || typeof data !== "object") {
-    return null;
+  if (error) {
+    return new Map();
   }
 
-  const row = data as Partial<RpcCandidateDetailsRow>;
+  return new Map(
+    parseCandidateDetailsBatch(data).map((row) => [row.candidate_id, row]),
+  );
+}
 
-  if (
-    !row.candidate_id ||
-    !row.vodora_id ||
-    !row.first_name ||
-    !row.last_name ||
-    !row.email?.trim()
-  ) {
-    return null;
+async function fetchVerifiedReferenceCountsBatch(
+  supabase: Supabase,
+  candidateIds: string[],
+): Promise<Map<string, number>> {
+  if (candidateIds.length === 0) {
+    return new Map();
   }
 
-  return row as RpcCandidateDetailsRow;
+  const { data, error } = await supabase.rpc("count_verified_references_batch", {
+    p_candidate_ids: candidateIds,
+  });
+
+  if (error) {
+    return new Map();
+  }
+
+  return parseVerifiedReferenceCountsBatch(data);
 }
 
 function toApplicationDocument(
@@ -90,24 +147,12 @@ function findDocumentById(
   return documents.find((document) => document.id === documentId);
 }
 
-async function buildApplicantSummary(
-  supabase: Supabase,
+function buildApplicantSummary(
   application: JobApplicationRow,
-): Promise<RecruiterJobApplicantSummary | null> {
-  const candidateDetails = await fetchCandidateDetailsFromRpc(
-    supabase,
-    application.candidate_id,
-  );
-
-  if (!candidateDetails) {
-    return null;
-  }
-
-  const profile = await fetchRecruiterCandidateProfile(
-    supabase,
-    candidateDetails.vodora_id,
-  );
-
+  candidateDetails: RpcCandidateDetailsRow,
+  profile: CandidateProfileData | null,
+  verifiedReferenceCount: number,
+): RecruiterJobApplicantSummary {
   const documents = profile?.documents ?? [];
   const resume = toApplicationDocument(
     findDocumentById(documents, application.resume_document_id),
@@ -117,9 +162,7 @@ async function buildApplicantSummary(
   );
 
   const name = `${candidateDetails.first_name} ${candidateDetails.last_name}`.trim();
-  const location = profile
-    ? formatLocation(profile.location, null)
-    : null;
+  const location = profile ? formatLocation(profile.location, null) : null;
 
   let referenceCount = 0;
 
@@ -127,13 +170,7 @@ async function buildApplicantSummary(
     if (application.included_reference_ids.length > 0) {
       referenceCount = application.included_reference_ids.length;
     } else {
-      const referencesResult = await fetchRecruiterCandidateReferences(
-        supabase,
-        application.candidate_id,
-      );
-      referenceCount = referencesResult.references.filter(
-        (reference) => reference.status === "verified",
-      ).length;
+      referenceCount = verifiedReferenceCount;
     }
   }
 
@@ -148,10 +185,9 @@ async function buildApplicantSummary(
     phone: profile?.phone ?? null,
     location,
     profilePictureUrl: profile?.profilePictureUrl ?? null,
-    avatarInitials: profile?.avatarInitials ?? getInitials(
-      candidateDetails.first_name,
-      candidateDetails.last_name,
-    ),
+    avatarInitials:
+      profile?.avatarInitials ??
+      getInitials(candidateDetails.first_name, candidateDetails.last_name),
     status: mapApplicationStatus(application.status),
     appliedAt: application.applied_at,
     appliedLabel: formatRelativePosted(application.applied_at),
@@ -226,13 +262,56 @@ export async function fetchRecruiterJobApplicants(
     return { data: null, error: error.message };
   }
 
-  const applicants = (
-    await Promise.all(
-      (applicationRows ?? []).map((application) =>
-        buildApplicantSummary(supabase, application),
-      ),
+  const applications = applicationRows ?? [];
+
+  if (applications.length === 0) {
+    return {
+      data: {
+        job,
+        applicants: [],
+      },
+      error: null,
+    };
+  }
+
+  const candidateIds = applications.map((application) => application.candidate_id);
+  const referenceCountCandidateIds = applications
+    .filter(
+      (application) =>
+        application.references_attached &&
+        application.included_reference_ids.length === 0,
     )
-  ).filter((applicant): applicant is RecruiterJobApplicantSummary => applicant !== null);
+    .map((application) => application.candidate_id);
+
+  const [candidateDetailsById, verifiedReferenceCounts] = await Promise.all([
+    fetchCandidateDetailsBatch(supabase, candidateIds),
+    fetchVerifiedReferenceCountsBatch(supabase, referenceCountCandidateIds),
+  ]);
+
+  const vodoraIds = [...candidateDetailsById.values()].map((row) => row.vodora_id);
+  const profilesByVodoraId = await fetchRecruiterCandidateProfilesBatch(
+    supabase,
+    vodoraIds,
+  );
+
+  const applicants = applications.flatMap((application) => {
+    const candidateDetails = candidateDetailsById.get(application.candidate_id);
+
+    if (!candidateDetails) {
+      return [];
+    }
+
+    const profile = profilesByVodoraId.get(candidateDetails.vodora_id) ?? null;
+
+    return [
+      buildApplicantSummary(
+        application,
+        candidateDetails,
+        profile,
+        verifiedReferenceCounts.get(application.candidate_id) ?? 0,
+      ),
+    ];
+  });
 
   return {
     data: {
@@ -270,11 +349,38 @@ export async function fetchRecruiterJobApplicantDetail(
     return { data: null, error: "Application not found." };
   }
 
-  const summary = await buildApplicantSummary(supabase, application);
+  const candidateDetailsById = await fetchCandidateDetailsBatch(supabase, [
+    application.candidate_id,
+  ]);
+  const candidateDetails = candidateDetailsById.get(application.candidate_id);
 
-  if (!summary) {
+  if (!candidateDetails) {
     return { data: null, error: "Candidate not found." };
   }
+
+  const profilesByVodoraId = await fetchRecruiterCandidateProfilesBatch(supabase, [
+    candidateDetails.vodora_id,
+  ]);
+  const profile = profilesByVodoraId.get(candidateDetails.vodora_id) ?? null;
+
+  let verifiedReferenceCount = 0;
+
+  if (
+    application.references_attached &&
+    application.included_reference_ids.length === 0
+  ) {
+    const counts = await fetchVerifiedReferenceCountsBatch(supabase, [
+      application.candidate_id,
+    ]);
+    verifiedReferenceCount = counts.get(application.candidate_id) ?? 0;
+  }
+
+  const summary = buildApplicantSummary(
+    application,
+    candidateDetails,
+    profile,
+    verifiedReferenceCount,
+  );
 
   let references: RecruiterJobApplicantDetail["references"] = [];
 

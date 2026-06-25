@@ -293,6 +293,8 @@ export function ProfileHeader({
     completionPercent !== undefined &&
     completionItems !== undefined;
 
+  const showQuoteArea = Boolean(quote) || visibility.showOwnerActions;
+
   const actionProps = {
     visibility,
     profile,
@@ -308,38 +310,40 @@ export function ProfileHeader({
   return (
     <div className="relative z-10 mb-4 rounded-xl border border-gray-200 bg-white">
       <div className="relative flex h-36 items-center overflow-hidden rounded-t-xl bg-gradient-to-r from-gray-900 via-blue-950 to-gray-900 px-4 py-4 sm:px-8">
-        <div className="relative ml-28 max-w-md pl-6 sm:ml-auto sm:max-w-xl lg:max-w-2xl">
-          <span
-            className="pointer-events-none absolute top-0 left-0 font-serif text-3xl leading-none text-white/25 select-none"
-            aria-hidden="true"
-          >
-            &ldquo;
-          </span>
-          {quote ? (
-            <div className="group/quote relative pr-8">
-              <p
-                className="line-clamp-3 text-sm leading-snug font-medium text-white/90 italic"
-                title={quote}
-              >
-                {quote}
-              </p>
-              {onEditQuote ? (
-                <button
-                  type="button"
-                  onClick={onEditQuote}
-                  aria-label="Edit personal quote"
-                  className="absolute top-0 right-0 rounded-md p-1 text-white/70 opacity-100 transition-colors hover:bg-white/10 hover:text-white sm:opacity-0 sm:group-hover/quote:opacity-100"
+        {showQuoteArea ? (
+          <div className="relative ml-28 max-w-md pl-6 sm:ml-auto sm:max-w-xl lg:max-w-2xl">
+            <span
+              className="pointer-events-none absolute top-0 left-0 font-serif text-3xl leading-none text-white/25 select-none"
+              aria-hidden="true"
+            >
+              &ldquo;
+            </span>
+            {quote ? (
+              <div className="group/quote relative pr-8">
+                <p
+                  className="line-clamp-3 text-sm leading-snug font-medium text-white/90 italic"
+                  title={quote}
                 >
-                  <Edit className="h-3.5 w-3.5" />
-                </button>
-              ) : null}
-            </div>
-          ) : visibility.showOwnerActions ? (
-            <p className="text-sm leading-snug text-white/50 italic">
-              Add a personal quote in Personal Spotlight to display it here.
-            </p>
-          ) : null}
-        </div>
+                  {quote}
+                </p>
+                {onEditQuote ? (
+                  <button
+                    type="button"
+                    onClick={onEditQuote}
+                    aria-label="Edit personal quote"
+                    className="absolute top-0 right-0 rounded-md p-1 text-white/70 opacity-100 transition-colors hover:bg-white/10 hover:text-white sm:opacity-0 sm:group-hover/quote:opacity-100"
+                  >
+                    <Edit className="h-3.5 w-3.5" />
+                  </button>
+                ) : null}
+              </div>
+            ) : (
+              <p className="text-sm leading-snug text-white/50 italic">
+                Add a personal quote in Personal Spotlight to display it here.
+              </p>
+            )}
+          </div>
+        ) : null}
       </div>
 
       <div className="relative z-10 px-4 pb-6 sm:px-6">

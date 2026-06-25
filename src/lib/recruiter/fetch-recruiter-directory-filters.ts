@@ -1,34 +1,46 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
-
+import {
+  createDataCache,
+  FILTER_REVALIDATE_SECONDS,
+} from "@/lib/cache/unstable-data-cache";
 import type { RecruiterDirectoryFilters } from "@/lib/recruiter/recruiter-directory.types";
-import type { Database } from "@/lib/supabase/database.types";
+import { createAdminClient } from "@/lib/supabase/admin";
 
-type Supabase = SupabaseClient<Database>;
-
-type RpcFiltersResponse = {
-  specialisations?: string[];
-};
-
-export async function fetchRecruiterDirectoryFilters(
-  supabase: Supabase,
-): Promise<RecruiterDirectoryFilters> {
-  const { data, error } = await supabase.rpc("get_recruiter_directory_filters");
+async function loadRecruiterSpecialisations(): Promise<string[]> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("recruiters")
+    .select("specialisations, users!inner(is_active)")
+    .eq("users.is_active", true);
 
   if (error) {
     throw new Error(error.message);
   }
 
-  const payload =
-    data && typeof data === "object" && !Array.isArray(data)
-      ? (data as RpcFiltersResponse)
-      : null;
+  const values = new Set<string>();
 
-  const specialisations = Array.isArray(payload?.specialisations)
-    ? payload.specialisations.filter(
-        (value): value is string =>
-          typeof value === "string" && value.trim().length > 0,
-      )
-    : [];
+  for (const row of data ?? []) {
+    const specialisations = row.specialisations ?? [];
+
+    for (const value of specialisations) {
+      const trimmed = value.trim();
+
+      if (trimmed.length > 0) {
+        values.add(trimmed);
+      }
+    }
+  }
+
+  return [...values].sort((left, right) => left.localeCompare(right));
+}
+
+const getCachedRecruiterSpecialisations = createDataCache(
+  loadRecruiterSpecialisations,
+  ["lookup", "recruiter-specialisations"],
+  FILTER_REVALIDATE_SECONDS,
+);
+
+export async function fetchRecruiterDirectoryFilters(): Promise<RecruiterDirectoryFilters> {
+  const specialisations = await getCachedRecruiterSpecialisations();
 
   return { specialisations };
 }
