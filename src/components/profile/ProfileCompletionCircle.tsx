@@ -107,50 +107,58 @@ export function ProfileCompletionCircle({
       </button>
 
       {showDetails ? (
-        <div
-          id={detailsId}
-          role="region"
-          aria-label="Profile completion checklist"
-          className="absolute top-[5.75rem] right-0 z-30 w-[min(18rem,calc(100vw-2rem))] rounded-2xl border border-gray-200 bg-white p-5 shadow-xl max-sm:left-0 max-sm:right-auto"
-        >
-          <h3 className="mb-3 font-semibold text-gray-900">
-            Profile Completion
-          </h3>
-          <div className="mb-4 flex items-center gap-3">
-            <div className="h-2 flex-1 rounded-full bg-gray-100">
-              <div
-                className="h-2 rounded-full bg-green-500"
-                style={{ width: `${percent}%` }}
-              />
-            </div>
-            <span className="shrink-0 text-sm font-bold text-green-700">
-              {percent}%
-            </span>
-          </div>
-          <div className="space-y-2.5">
-            {items.map((item) => (
-              <div key={item.label} className="flex items-center gap-2">
-                <CheckCircle
-                  className={`h-4 w-4 shrink-0 ${
-                    item.done ? "text-green-500" : "text-gray-200"
-                  }`}
+        <>
+          <button
+            type="button"
+            aria-label="Close profile completion details"
+            className="fixed inset-0 z-40 bg-black/25 sm:hidden"
+            onClick={() => setShowDetails(false)}
+          />
+          <div
+            id={detailsId}
+            role="region"
+            aria-label="Profile completion checklist"
+            className="fixed inset-x-4 top-1/2 z-50 max-h-[min(80vh,28rem)] w-auto -translate-y-1/2 overflow-y-auto rounded-2xl border border-gray-200 bg-white p-5 shadow-xl sm:absolute sm:inset-x-auto sm:top-[5.75rem] sm:right-0 sm:left-auto sm:max-h-none sm:w-72 sm:translate-y-0"
+          >
+            <h3 className="mb-3 font-semibold text-gray-900">
+              Profile Completion
+            </h3>
+            <div className="mb-4 flex items-center gap-3">
+              <div className="h-2 min-w-0 flex-1 rounded-full bg-gray-100">
+                <div
+                  className="h-2 rounded-full bg-green-500"
+                  style={{ width: `${percent}%` }}
                 />
-                <span
-                  className={`text-xs ${
-                    item.done ? "text-gray-600" : "text-gray-400"
-                  }`}
-                >
-                  {item.label}
-                </span>
-                {!item.done ? (
-                  <span className="ml-auto text-xs font-medium text-blue-600">
-                    +{item.weight}%
-                  </span>
-                ) : null}
               </div>
-            ))}
+              <span className="shrink-0 text-sm font-bold text-green-700">
+                {percent}%
+              </span>
+            </div>
+            <div className="space-y-2.5">
+              {items.map((item) => (
+                <div key={item.label} className="flex items-start gap-2">
+                  <CheckCircle
+                    className={`mt-0.5 h-4 w-4 shrink-0 ${
+                      item.done ? "text-green-500" : "text-gray-200"
+                    }`}
+                  />
+                  <span
+                    className={`min-w-0 flex-1 text-xs leading-snug ${
+                      item.done ? "text-gray-600" : "text-gray-400"
+                    }`}
+                  >
+                    {item.label}
+                  </span>
+                  {!item.done ? (
+                    <span className="shrink-0 text-xs font-medium text-blue-600">
+                      +{item.weight}%
+                    </span>
+                  ) : null}
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
+        </>
       ) : null}
     </div>
   );

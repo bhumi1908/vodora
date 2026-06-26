@@ -117,7 +117,7 @@ function ProfileHeaderActions({
 }) {
   const isMobile = placement === "mobile";
   const rowClass = isMobile
-    ? "grid grid-cols-2 gap-2"
+    ? "flex flex-col gap-2"
     : "flex flex-row flex-wrap items-center justify-end gap-2";
   const buttonClass = isMobile
     ? "flex min-h-10 w-full items-center justify-center gap-1.5 rounded-full px-3 py-2 text-xs font-medium transition-colors"
@@ -145,38 +145,34 @@ function ProfileHeaderActions({
 
     if (isMobile) {
       return (
-        <div className="flex flex-col gap-2">
-          <div className="grid grid-cols-2 gap-2">
-            {editButton}
-            <button
-              type="button"
-              onClick={onShareClick}
-              className={`${buttonClass} bg-blue-600 text-white hover:bg-blue-700`}
-            >
-              <Share2 className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-              Share References
-            </button>
-          </div>
-          <div className={rowClass}>
-            <Link
-              href={CANDIDATE_JOBS_PATH}
-              className={`${buttonClass} border border-green-200 bg-green-50 text-green-700 hover:bg-green-100`}
-            >
-              <Briefcase className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-              Search for Jobs
-            </Link>
-            <Link
-              href={CANDIDATE_FIND_RECRUITERS_PATH}
-              className={`${buttonClass} border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100`}
-            >
-              <Search className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-              Find Recruiters
-            </Link>
-          </div>
+        <div className={rowClass}>
+          {editButton}
+          <button
+            type="button"
+            onClick={onShareClick}
+            className={`${buttonClass} bg-blue-600 text-white hover:bg-blue-700`}
+          >
+            <Share2 className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+            Share References
+          </button>
+          <Link
+            href={CANDIDATE_JOBS_PATH}
+            className={`${buttonClass} border border-green-200 bg-green-50 text-green-700 hover:bg-green-100`}
+          >
+            <Briefcase className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+            Search for Jobs
+          </Link>
+          <Link
+            href={CANDIDATE_FIND_RECRUITERS_PATH}
+            className={`${buttonClass} border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100`}
+          >
+            <Search className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+            Find Recruiters
+          </Link>
           <button
             type="button"
             onClick={onEnterVisitorPreview}
-            className={`${buttonClass} col-span-2 border border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100`}
+            className={`${buttonClass} border border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100`}
           >
             <Eye className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
             Preview as Visitor
@@ -308,7 +304,7 @@ export function ProfileHeader({
   };
 
   return (
-    <div className="relative z-10 mb-4 rounded-xl border border-gray-200 bg-white">
+    <div className="relative z-10 mb-4 overflow-x-hidden rounded-xl border border-gray-200 bg-white">
       <div className="relative flex h-36 items-center overflow-hidden rounded-t-xl bg-gradient-to-r from-gray-900 via-blue-950 to-gray-900 px-4 py-4 sm:px-8">
         {showQuoteArea ? (
           <div className="relative ml-28 max-w-md pl-6 sm:ml-auto sm:max-w-xl lg:max-w-2xl">
@@ -454,7 +450,7 @@ export function ProfileHeader({
           </div>
 
           {showCompletion ? (
-            <div className="flex justify-end sm:justify-start">
+            <div className="flex justify-center sm:justify-start">
               <ProfileCompletionCircle
                 percent={completionPercent}
                 items={completionItems}
