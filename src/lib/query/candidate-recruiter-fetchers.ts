@@ -1,5 +1,6 @@
 import { RECRUITER_DIRECTORY_PAGE_SIZE } from "@/lib/recruiter/recruiter-directory-options";
 import type { ConnectionStatus } from "@/lib/connections/connection.types";
+import type { CandidateRecruiterProfileData } from "@/lib/recruiter/candidate-recruiter-profile.types";
 import type { RecruiterDirectoryEntry } from "@/lib/recruiter/recruiter-directory.types";
 import type { RecruiterDirectoryQueryParams } from "@/lib/query/candidate-recruiter-keys";
 
@@ -114,4 +115,23 @@ export async function sendRecruiterConnectionRequest(
     status: payload.status,
     alreadyExists: payload.alreadyExists ?? false,
   };
+}
+
+export async function fetchCandidateRecruiterProfile(
+  recruiterId: string,
+): Promise<CandidateRecruiterProfileData> {
+  const response = await fetch(
+    `/api/candidate/recruiters/${encodeURIComponent(recruiterId)}/profile`,
+  );
+  const payload = (await response.json()) as {
+    success?: boolean;
+    error?: string;
+    profile?: CandidateRecruiterProfileData;
+  };
+
+  if (!response.ok || !payload.success || !payload.profile) {
+    throw new Error(payload.error ?? "Could not load recruiter profile.");
+  }
+
+  return payload.profile;
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -18,7 +19,7 @@ import {
 
 import { RecruiterDirectorySkeleton } from "@/components/recruiter-directory/RecruiterDirectorySkeleton";
 import { getTotalPages, Pagination } from "@/components/ui/Pagination";
-import { getCandidateJobPath } from "@/lib/auth/routes";
+import { getCandidateJobPath, getCandidateRecruiterProfilePath } from "@/lib/auth/routes";
 import { showConnectionRequestErrorToast, showConnectionRequestSentToast } from "@/lib/connections/connection-toast";
 import {
   RECRUITER_DIRECTORY_ALL_FILTER,
@@ -232,7 +233,19 @@ function isMissingRpcError(message: string): boolean {
   );
 }
 
+function navigateOnCardActivation(
+  router: ReturnType<typeof useRouter>,
+  href: string,
+  event: React.KeyboardEvent,
+) {
+  if (event.key === "Enter" || event.key === " ") {
+    event.preventDefault();
+    router.push(href);
+  }
+}
+
 export function RecruiterDirectory() {
+  const router = useRouter();
   const queryClient = useQueryClient();
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
@@ -424,10 +437,21 @@ export function RecruiterDirectory() {
       ) : (
         <>
           <div className="space-y-4 sm:space-y-5">
-            {recruiters.map((recruiter) => (
+            {recruiters.map((recruiter) => {
+              const recruiterProfilePath = getCandidateRecruiterProfilePath(
+                recruiter.id,
+              );
+
+              return (
               <div
                 key={recruiter.id}
-                className="overflow-hidden rounded-xl border border-gray-200 bg-white transition-shadow hover:shadow-md sm:rounded-2xl"
+                role="link"
+                tabIndex={0}
+                onClick={() => router.push(recruiterProfilePath)}
+                onKeyDown={(event) =>
+                  navigateOnCardActivation(router, recruiterProfilePath, event)
+                }
+                className="cursor-pointer overflow-hidden rounded-xl border border-gray-200 bg-white transition-shadow hover:shadow-md sm:rounded-2xl"
               >
                 <div className="flex items-start gap-3 p-4 sm:gap-5 sm:p-6">
                   <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-100 to-blue-200 sm:h-16 sm:w-16 sm:rounded-2xl">
@@ -449,9 +473,9 @@ export function RecruiterDirectory() {
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
                       <div className="min-w-0">
                         <div className="mb-0.5 flex flex-wrap items-center gap-2">
-                          <h3 className="text-base font-semibold text-gray-900 sm:text-lg">
+                          <span className="text-base font-semibold text-gray-900 sm:text-lg">
                             {recruiter.name}
-                          </h3>
+                          </span>
                           {recruiter.verified ? (
                             <span className="inline-flex items-center gap-1 rounded-full border border-green-200 bg-green-50 px-2 py-0.5 text-[11px] text-green-700 sm:text-xs">
                               <CheckCircle className="h-3 w-3 shrink-0" />
@@ -480,7 +504,10 @@ export function RecruiterDirectory() {
                         </div>
                       </div>
 
-                      <div className="shrink-0 self-stretch sm:self-auto">
+                      <div
+                        className="shrink-0 self-stretch sm:self-auto"
+                        onClick={(event) => event.stopPropagation()}
+                      >
                         {recruiter.connectionStatus === "connected" ? (
                           <span className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl border border-green-200 bg-green-50 px-4 py-2 text-sm font-semibold text-green-700 sm:w-auto sm:px-5 sm:py-2.5">
                             <CheckCircle className="h-4 w-4 shrink-0" /> Connected
@@ -492,7 +519,10 @@ export function RecruiterDirectory() {
                         ) : (
                           <button
                             type="button"
-                            onClick={() => handleConnect(recruiter)}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              handleConnect(recruiter);
+                            }}
                             className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700 sm:w-auto sm:px-5 sm:py-2.5"
                           >
                             <UserCheck className="h-4 w-4 shrink-0" />
@@ -541,6 +571,7 @@ export function RecruiterDirectory() {
                         <Link
                           key={role.id}
                           href={getCandidateJobPath(role.id)}
+                          onClick={(event) => event.stopPropagation()}
                           className="group flex w-full min-w-0 cursor-pointer items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white px-3 py-2.5 transition-all hover:border-blue-300 hover:shadow-sm sm:w-auto sm:max-w-full sm:px-4"
                         >
                           <div className="min-w-0">
@@ -566,7 +597,8 @@ export function RecruiterDirectory() {
                   </div>
                 ) : null}
               </div>
-            ))}
+              );
+            })}
           </div>
 
           {!showInitialSkeleton && recruiters.length === 0 ? (

@@ -13,6 +13,8 @@ export const candidateRecruiterKeys = {
   filters: () => [...candidateRecruiterKeys.all, "filters"] as const,
   list: (params: RecruiterDirectoryQueryParams) =>
     [...candidateRecruiterKeys.all, "list", params] as const,
+  profile: (recruiterId: string) =>
+    [...candidateRecruiterKeys.all, "profile", recruiterId] as const,
 };
 
 export function buildRecruiterDirectorySearchParams(

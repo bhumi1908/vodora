@@ -16,4 +16,6 @@ export const connectionKeys = {
     [...connectionKeys.all, "profile-status", candidateId] as const,
   peerProfileStatus: (candidateId: string) =>
     [...connectionKeys.all, "peer-profile-status", candidateId] as const,
+  recruiterProfileStatus: (recruiterId: string) =>
+    [...connectionKeys.all, "recruiter-profile-status", recruiterId] as const,
 };

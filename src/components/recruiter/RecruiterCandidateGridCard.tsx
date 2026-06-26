@@ -1,7 +1,7 @@
 "use client";
 
 import { CheckCircle, MapPin, Shield } from "lucide-react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 import { CandidateSaveButton } from "@/components/recruiter/CandidateSaveButton";
 import { getRecruiterCandidateProfilePath } from "@/lib/auth/routes";
@@ -18,6 +18,7 @@ export function RecruiterCandidateGridCard({
   candidate,
   onSavedChange,
 }: RecruiterCandidateGridCardProps) {
+  const router = useRouter();
   const fullName = `${candidate.firstName} ${candidate.lastName}`.trim();
   const location = formatLocation(candidate.city, candidate.country);
   const availability = formatCandidateAvailability(
@@ -26,9 +27,21 @@ export function RecruiterCandidateGridCard({
     candidate.workTypes,
   );
   const initials = getInitials(candidate.firstName, candidate.lastName);
+  const profilePath = getRecruiterCandidateProfilePath(candidate.vodoraId);
 
   return (
-    <article className="overflow-hidden rounded-2xl border border-gray-200 bg-white transition-shadow hover:shadow-md">
+    <article
+      role="link"
+      tabIndex={0}
+      onClick={() => router.push(profilePath)}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          router.push(profilePath);
+        }
+      }}
+      className="cursor-pointer overflow-hidden rounded-2xl border border-gray-200 bg-white transition-shadow hover:shadow-md"
+    >
       <div className="h-14 bg-gradient-to-r from-blue-500 to-blue-600" />
       <div className="-mt-7 px-5 pb-5">
         <div className="mb-3 flex items-end justify-between">
@@ -44,13 +57,15 @@ export function RecruiterCandidateGridCard({
               <span className="text-lg font-semibold text-blue-700">{initials}</span>
             )}
           </div>
-          <CandidateSaveButton
-            candidateId={candidate.id}
-            initialSaved={candidate.isSaved}
-            candidateName={fullName}
-            onSavedChange={onSavedChange}
-            variant="grid"
-          />
+          <div onClick={(event) => event.stopPropagation()}>
+            <CandidateSaveButton
+              candidateId={candidate.id}
+              initialSaved={candidate.isSaved}
+              candidateName={fullName}
+              onSavedChange={onSavedChange}
+              variant="grid"
+            />
+          </div>
         </div>
         <div className="mb-0.5 flex items-center gap-1.5">
           <h3 className="text-sm font-semibold text-gray-900">{fullName}</h3>
@@ -74,12 +89,6 @@ export function RecruiterCandidateGridCard({
           </span>
           <span className="text-xs font-medium text-green-600">{availability}</span>
         </div>
-        <Link
-          href={getRecruiterCandidateProfilePath(candidate.vodoraId)}
-          className="block rounded-lg bg-blue-600 py-2 text-center text-xs font-semibold text-white transition-colors hover:bg-blue-700"
-        >
-          View Profile
-        </Link>
       </div>
     </article>
   );
