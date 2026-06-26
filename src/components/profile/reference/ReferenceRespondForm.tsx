@@ -11,7 +11,7 @@ import {
   Lock,
   Shield,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { ReferenceQuestionnaireFields } from "@/components/profile/reference/ReferenceQuestionnaireFields";
 import {
@@ -20,6 +20,10 @@ import {
   type ReferenceResponseFormData,
 } from "@/components/profile/reference/types";
 import { useFieldErrors } from "@/hooks/useFieldErrors";
+import { useSessionFormDraft } from "@/hooks/useSessionFormDraft";
+import {
+  buildSessionFormDraftKey,
+} from "@/lib/form/session-form-draft";
 import {
   getReferenceResponseFieldErrors,
   hasReferenceResponseFieldErrors,
@@ -125,7 +129,11 @@ function TextInput({
         placeholder={placeholder}
         className={`w-full rounded-xl border px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
           error ? "border-red-500" : "border-gray-300"
-        } ${readOnly ? "bg-gray-50 text-gray-600" : ""}`}
+        } ${readOnly ? "bg-gray-50 text-gray-600" : ""} ${
+          readOnly && type === "date"
+            ? "[&::-webkit-calendar-picker-indicator]:pointer-events-none [&::-webkit-calendar-picker-indicator]:opacity-0"
+            : ""
+        }`}
       />
       {error ? <p className="mt-1 text-sm text-red-600">{error}</p> : null}
     </div>
@@ -155,18 +163,66 @@ const REHIRE_QUESTIONS = WRITTEN_REFERENCE_ASSESSMENT.filter(
   (question) => question.section === "rehire",
 );
 
+type ReferenceRespondDraft = {
+  form: ReferenceResponseFormData;
+  workedTogether: "yes" | "no" | "";
+};
+
+function createInitialReferenceResponse(
+  invitation: ReferenceInvitationDetails,
+): ReferenceResponseFormData {
+  return createEmptyReferenceResponse({
+    positionHeld: invitation.candidateTitle?.trim() || "Not specified",
+    refereePhone: invitation.refereePhone ?? "",
+  });
+}
+
+function isReferenceRespondDraftEmpty(draft: ReferenceRespondDraft): boolean {
+  if (draft.workedTogether !== "") {
+    return false;
+  }
+
+  if (draft.form.attestationConfirmed || draft.form.allowProfileCreation) {
+    return false;
+  }
+
+  if (
+    draft.form.refereePhone.trim() ||
+    draft.form.refereeLinkedIn.trim() ||
+    draft.form.signatureName.trim()
+  ) {
+    return false;
+  }
+
+  const hasWrittenAnswers = Object.values(
+    draft.form.writtenAssessmentAnswers,
+  ).some((value) => value.trim() !== "");
+
+  if (hasWrittenAnswers) {
+    return false;
+  }
+
+  return !Object.values(draft.form.questionnaireAnswers).some(
+    (value) => value.trim() !== "",
+  );
+}
+
 export function ReferenceRespondForm({
   invitation,
   token,
   onSubmitted,
 }: ReferenceRespondFormProps) {
-  const [form, setForm] = useState(() =>
-    createEmptyReferenceResponse({
-      positionHeld: invitation.candidateTitle?.trim() || "Not specified",
-      refereePhone: invitation.refereePhone ?? "",
-    }),
-  );
+  const [form, setForm] = useState(() => createInitialReferenceResponse(invitation));
   const [workedTogether, setWorkedTogether] = useState<"yes" | "no" | "">("");
+  const draftData = useMemo<ReferenceRespondDraft>(
+    () => ({ form, workedTogether }),
+    [form, workedTogether],
+  );
+  const { restoreDraft, clearDraft, markHydrated } = useSessionFormDraft({
+    storageKey: buildSessionFormDraftKey("reference-respond", token),
+    data: draftData,
+    isEmpty: isReferenceRespondDraftEmpty,
+  });
   const { errors, setErrors, clearField } =
     useFieldErrors<keyof ReferenceResponseFieldErrors>();
   const [questionnaireErrors, setQuestionnaireErrors] = useState<
@@ -177,6 +233,17 @@ export function ReferenceRespondForm({
   >({});
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    const draft = restoreDraft();
+
+    if (draft) {
+      setForm(draft.form);
+      setWorkedTogether(draft.workedTogether);
+    }
+
+    markHydrated();
+  }, [markHydrated, restoreDraft, token]);
 
   const referenceType = normalizeReferenceType(invitation.referenceType);
   const isQuestionnaire = referenceType === "questionnaire";
@@ -316,6 +383,7 @@ export function ReferenceRespondForm({
       }
 
       showReferenceSubmitSuccessToast(result.status === "verified");
+      clearDraft();
       onSubmitted({
         status: result.status ?? "submitted",
         responseId: result.responseId,
@@ -641,7 +709,8 @@ export function ReferenceRespondForm({
               label="Date"
               type="date"
               value={form.signatureDate}
-              onChange={(value) => updateField("signatureDate", value)}
+              onChange={() => undefined}
+              readOnly
               required
             />
           </div>

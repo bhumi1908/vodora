@@ -19,6 +19,7 @@ import { useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 
 import { CollectReferenceTab } from "@/components/recruiter/CollectReferenceTab";
+import { RecruiterReferenceHistoryTab } from "@/components/recruiter/RecruiterReferenceHistoryTab";
 import { ProfileConnectionStats } from "@/components/connections/ProfileConnectionStats";
 import { RecruiterActiveRolesTab } from "@/components/recruiter/RecruiterActiveRolesTab";
 import {
@@ -51,12 +52,16 @@ import {
 import { transformOwnRecruiterProfileToView } from "@/lib/recruiter/transform-own-recruiter-profile";
 import { transformOwnRecruiterProfileToEdit } from "@/lib/recruiter/transform-own-recruiter-profile-to-edit";
 
-type RecruiterProfileTab = "overview" | "roles" | "collect";
+type RecruiterProfileTab = "overview" | "roles" | "collect" | "history";
 
 function getInitialProfileTab(
   tabParam: string | null,
 ): RecruiterProfileTab {
-  if (tabParam === "roles" || tabParam === "collect") {
+  if (
+    tabParam === "roles" ||
+    tabParam === "collect" ||
+    tabParam === "history"
+  ) {
     return tabParam;
   }
 
@@ -296,7 +301,12 @@ export function RecruiterProfilePage() {
                 {
                   id: "collect",
                   label: "Collect a Reference",
-                  shortLabel: "Reference",
+                  shortLabel: "Collect",
+                },
+                {
+                  id: "history",
+                  label: "Reference History",
+                  shortLabel: "History",
                 },
               ] as const
             ).map((tab) => (
@@ -465,8 +475,15 @@ export function RecruiterProfilePage() {
 
           {activeTab === "collect" ? (
             <CollectReferenceTab
+              recruiterUserId={rawProfile.user.id}
               recruiterName={profile.name}
               companyName={profile.company}
+            />
+          ) : null}
+
+          {activeTab === "history" ? (
+            <RecruiterReferenceHistoryTab
+              onCollectReference={() => setActiveTab("collect")}
             />
           ) : null}
         </div>

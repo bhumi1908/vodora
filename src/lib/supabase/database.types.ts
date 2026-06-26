@@ -149,6 +149,7 @@ export type Database = {
           headline: string | null;
           id: string;
           industry_category_id: string | null;
+          invited_by_recruiter_id: string | null;
           is_profile_complete: boolean;
           job_title_id: string | null;
           linkedin_import_data: Json | null;
@@ -180,6 +181,7 @@ export type Database = {
           headline?: string | null;
           id?: string;
           industry_category_id?: string | null;
+          invited_by_recruiter_id?: string | null;
           is_profile_complete?: boolean;
           job_title_id?: string | null;
           linkedin_import_data?: Json | null;
@@ -211,6 +213,7 @@ export type Database = {
           headline?: string | null;
           id?: string;
           industry_category_id?: string | null;
+          invited_by_recruiter_id?: string | null;
           is_profile_complete?: boolean;
           job_title_id?: string | null;
           linkedin_import_data?: Json | null;

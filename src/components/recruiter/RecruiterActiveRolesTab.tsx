@@ -3,6 +3,7 @@
 import { Briefcase, MapPin, Plus } from "lucide-react";
 
 import { RecruiterActiveRolesSkeleton } from "@/components/recruiter/RecruiterActiveRolesSkeleton";
+import { useRequiredMyRecruiterProfileData } from "@/components/recruiter/MyRecruiterProfileDataProvider";
 import { RecruiterCreateJobModal } from "@/components/recruiter/RecruiterCreateJobModal";
 import { RecruiterEditJobModal } from "@/components/recruiter/RecruiterEditJobModal";
 import { RecruiterJobCard } from "@/components/recruiter/RecruiterJobCard";
@@ -16,6 +17,7 @@ type RecruiterActiveRolesTabProps = {
 export function RecruiterActiveRolesTab({
   defaultCompanyName,
 }: RecruiterActiveRolesTabProps) {
+  const rawProfile = useRequiredMyRecruiterProfileData();
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [editingJobId, setEditingJobId] = useState<string | null>(null);
   const { data, isPending, isError, error } = useRecruiterJobsQuery();
@@ -85,6 +87,7 @@ export function RecruiterActiveRolesTab({
         open={createModalOpen}
         onClose={() => setCreateModalOpen(false)}
         defaultCompanyName={defaultCompanyName}
+        recruiterUserId={rawProfile.user.id}
         workTypes={workTypes}
       />
 

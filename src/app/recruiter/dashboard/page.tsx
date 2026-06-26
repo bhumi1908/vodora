@@ -40,6 +40,7 @@ export default async function RecruiterDashboardPage() {
     <RecruiterDashboardWithCache
       initialData={data}
       initialDataUpdatedAt={Date.now()}
+      recruiterUserId={user!.id}
     />
   );
 }

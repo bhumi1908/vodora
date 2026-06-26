@@ -17,6 +17,7 @@ import { useRecruiterJobsQuery } from "@/lib/query/use-job-queries";
 
 type RecruiterDashboardProps = {
   data: RecruiterDashboardData;
+  recruiterUserId: string;
 };
 
 const EMPTY_JOB_STATS = {
@@ -28,7 +29,7 @@ const EMPTY_JOB_STATS = {
   hoursSavedThisMonth: 0,
 };
 
-export function RecruiterDashboard({ data }: RecruiterDashboardProps) {
+export function RecruiterDashboard({ data, recruiterUserId }: RecruiterDashboardProps) {
   const { context, candidates, candidatesError, savedCount } = data;
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const { data: jobsData, isPending: isJobsPending } = useRecruiterJobsQuery();
@@ -87,6 +88,7 @@ export function RecruiterDashboard({ data }: RecruiterDashboardProps) {
         open={createModalOpen}
         onClose={() => setCreateModalOpen(false)}
         defaultCompanyName={context.companyName ?? ""}
+        recruiterUserId={recruiterUserId}
         workTypes={jobsData?.workTypes ?? []}
       />
     </div>

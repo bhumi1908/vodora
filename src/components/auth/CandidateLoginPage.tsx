@@ -40,7 +40,8 @@ function LoginFormContent({ emailFeaturesEnabled }: LoginFormContentProps) {
   const authCallbackFailed = searchParams.get("error") === "auth_callback_failed";
   const isRecruiterLogin = searchParams.get("type") === "recruiter";
   const redirectAfterLogin = searchParams.get("redirect");
-  const [email, setEmail] = useState("");
+  const initialEmail = searchParams.get("email")?.trim() ?? "";
+  const [email, setEmail] = useState(initialEmail);
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(true);
   const { errors, setErrors, clearField } = useFieldErrors<"email" | "password">();
@@ -64,6 +65,12 @@ function LoginFormContent({ emailFeaturesEnabled }: LoginFormContentProps) {
       showRegistrationSuccessToast();
     }
   }, [justRegistered]);
+
+  useEffect(() => {
+    if (initialEmail) {
+      setEmail(initialEmail);
+    }
+  }, [initialEmail]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();

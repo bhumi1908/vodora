@@ -6,6 +6,7 @@ import {
   buildResetPasswordEmailHtml,
   buildResetPasswordEmailText,
 } from "@/lib/email/templates/reset-password";
+import { clearInvitedCandidateFlags } from "@/lib/recruiter/provision-invited-candidate";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const RESET_TOKEN_BYTES = 32;
@@ -87,17 +88,12 @@ type PasswordResetEmailPayload = {
   resetUrl: string;
 };
 
-async function buildPasswordResetEmailPayload(
+export async function createPasswordResetTokenForEmail(
   email: string,
-  origin: string,
-): Promise<PasswordResetEmailPayload | null> {
+): Promise<{ token: string; recipientName: string } | null> {
   const user = await findUserByEmail(email);
 
   if (!user) {
-    return null;
-  }
-
-  if (!EMAIL_FEATURES_ENABLED) {
     return null;
   }
 
@@ -105,9 +101,29 @@ async function buildPasswordResetEmailPayload(
   await storeResetToken(user.id, tokenHash);
 
   return {
-    email: user.email,
+    token,
     recipientName: `${user.first_name} ${user.last_name}`.trim(),
-    resetUrl: buildResetPasswordUrl(origin, token),
+  };
+}
+
+async function buildPasswordResetEmailPayload(
+  email: string,
+  origin: string,
+): Promise<PasswordResetEmailPayload | null> {
+  if (!EMAIL_FEATURES_ENABLED) {
+    return null;
+  }
+
+  const tokenPayload = await createPasswordResetTokenForEmail(email);
+
+  if (!tokenPayload) {
+    return null;
+  }
+
+  return {
+    email: email.trim().toLowerCase(),
+    recipientName: tokenPayload.recipientName,
+    resetUrl: buildResetPasswordUrl(origin, tokenPayload.token),
   };
 }
 
@@ -194,7 +210,9 @@ export async function validateResetToken(
 export async function resetPasswordWithToken(
   token: string,
   newPassword: string,
-): Promise<{ success: true } | { success: false; error: string }> {
+): Promise<
+  { success: true; email: string | null } | { success: false; error: string }
+> {
   const tokenData = await validateResetToken(token);
 
   if (!tokenData) {
@@ -231,5 +249,13 @@ export async function resetPasswordWithToken(
     .eq("user_id", tokenData.userId)
     .is("used_at", null);
 
-  return { success: true };
+  await clearInvitedCandidateFlags(tokenData.userId);
+
+  const { data: userRow } = await admin
+    .from("users")
+    .select("email")
+    .eq("id", tokenData.userId)
+    .maybeSingle();
+
+  return { success: true, email: userRow?.email ?? null };
 }

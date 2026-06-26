@@ -120,9 +120,10 @@ export function ReferencesTab({
     return (
       <div>
         <ReferencesTabSkeleton />
-        {isOwnProfile ? (
+        {isOwnProfile && profile?.userId ? (
           <RequestReferenceModal
             open={modalOpen}
+            candidateUserId={profile.userId}
             onClose={() => setModalOpen(false)}
             onSubmitted={handleSubmitted}
             employmentHistoryOptions={employmentHistoryOptions}
@@ -206,14 +207,15 @@ export function ReferencesTab({
         </div>
       )}
 
-      {isOwnProfile ? (
-        <RequestReferenceModal
-          open={modalOpen}
-          onClose={() => setModalOpen(false)}
-          onSubmitted={handleSubmitted}
-          employmentHistoryOptions={employmentHistoryOptions}
-        />
-      ) : null}
+        {isOwnProfile && profile?.userId ? (
+          <RequestReferenceModal
+            open={modalOpen}
+            candidateUserId={profile.userId}
+            onClose={() => setModalOpen(false)}
+            onSubmitted={handleSubmitted}
+            employmentHistoryOptions={employmentHistoryOptions}
+          />
+        ) : null}
     </div>
   );
 }

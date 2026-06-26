@@ -37,6 +37,8 @@ type ReferenceRequestEmailParams = {
   refereeCompany: string;
   relationshipLabel: string;
   message?: string | null;
+  recruiterName?: string | null;
+  recruiterCompany?: string | null;
 };
 
 async function sendReferenceRequestEmail(
@@ -44,7 +46,9 @@ async function sendReferenceRequestEmail(
 ): Promise<void> {
   const emailResult = await sendEmail({
     to: params.refereeEmail,
-    subject: `Reference request from ${params.candidateName} on Vodora`,
+    subject: params.recruiterName?.trim()
+      ? `Reference request for ${params.candidateName} on Vodora`
+      : `Reference request from ${params.candidateName} on Vodora`,
     html: buildReferenceRequestHtml({
       inviteUrl: params.inviteUrl,
       candidateName: params.candidateName,
@@ -53,6 +57,8 @@ async function sendReferenceRequestEmail(
       refereeCompany: params.refereeCompany,
       relationshipLabel: params.relationshipLabel,
       message: params.message,
+      recruiterName: params.recruiterName,
+      recruiterCompany: params.recruiterCompany,
     }),
     text: buildReferenceRequestText({
       inviteUrl: params.inviteUrl,
@@ -62,6 +68,8 @@ async function sendReferenceRequestEmail(
       refereeCompany: params.refereeCompany,
       relationshipLabel: params.relationshipLabel,
       message: params.message,
+      recruiterName: params.recruiterName,
+      recruiterCompany: params.recruiterCompany,
     }),
   });
 
@@ -136,6 +144,8 @@ export async function createReferenceRequest(
     refereeCompany: input.company.trim(),
     relationshipLabel: getRelationshipLabel(input.relationship),
     message: input.message,
+    recruiterName: context.recruiterName,
+    recruiterCompany: context.recruiterCompany,
   });
 
   return {

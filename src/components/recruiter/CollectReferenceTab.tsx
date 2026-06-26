@@ -1,32 +1,49 @@
 "use client";
 
 import { CheckCircle, FileText, Send, Users } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-import { FormError } from "@/components/auth/shared/FormFields";
+import { AuthFormGrid, FormError, FormField } from "@/components/auth/shared/FormFields";
 import { ReferenceRequestFormFields } from "@/components/profile/reference/ReferenceRequestFormFields";
 import {
   createEmptyReferenceRequest,
   type RequestReferenceFormData,
 } from "@/components/profile/reference/types";
 import { useFieldErrors } from "@/hooks/useFieldErrors";
+import { useSessionFormDraft } from "@/hooks/useSessionFormDraft";
 import { hasFieldErrors } from "@/lib/form/field-errors";
 import {
+  buildSessionFormDraftKey,
+  isRecordEqualToEmpty,
+} from "@/lib/form/session-form-draft";
+import {
+  getRecruiterReferenceCollectionCandidateFieldErrors,
   getReferenceFieldErrors,
+  type RecruiterReferenceCollectionCandidateFieldErrors,
   type ReferenceFieldErrors,
 } from "@/lib/profile/reference-validation";
-import type {
-  ReferenceCollectionCandidateDetails,
-  ReferenceCollectionCandidateOption,
-} from "@/lib/recruiter/fetch-reference-collection-candidates";
 import {
   showReferenceRequestErrorToast,
   showReferenceRequestSentToast,
 } from "@/lib/references/reference-toast";
+import { useInvalidateCandidateReferences } from "@/lib/query/use-reference-queries";
 
 type CollectReferenceTabProps = {
+  recruiterUserId: string;
   recruiterName: string;
   companyName: string | null;
+};
+
+type CollectReferenceDraft = {
+  candidateForm: CandidateFormData;
+  referenceForm: RequestReferenceFormData;
+};
+
+type CandidateFormData = {
+  name: string;
+  title: string;
+  company: string;
+  email: string;
 };
 
 type SentState = {
@@ -34,121 +51,72 @@ type SentState = {
   refereeName: string;
 };
 
+const emptyCandidateForm = (): CandidateFormData => ({
+  name: "",
+  title: "",
+  company: "",
+  email: "",
+});
+
+function isCollectReferenceDraftEmpty(draft: CollectReferenceDraft): boolean {
+  return (
+    isRecordEqualToEmpty(draft.candidateForm, emptyCandidateForm()) &&
+    isRecordEqualToEmpty(draft.referenceForm, createEmptyReferenceRequest())
+  );
+}
+
 export function CollectReferenceTab({
+  recruiterUserId,
   recruiterName: _recruiterName,
   companyName: _companyName,
 }: CollectReferenceTabProps) {
-  const [candidateOptions, setCandidateOptions] = useState<
-    ReferenceCollectionCandidateOption[]
-  >([]);
-  const [candidatesError, setCandidatesError] = useState("");
-  const [isLoadingCandidates, setIsLoadingCandidates] = useState(true);
-  const [selectedCandidateId, setSelectedCandidateId] = useState("");
-  const [candidateDetails, setCandidateDetails] =
-    useState<ReferenceCollectionCandidateDetails | null>(null);
-  const [isLoadingCandidateDetails, setIsLoadingCandidateDetails] =
-    useState(false);
-  const [candidateDetailsError, setCandidateDetailsError] = useState("");
+  const [candidateForm, setCandidateForm] = useState<CandidateFormData>(
+    emptyCandidateForm,
+  );
   const [form, setForm] = useState(createEmptyReferenceRequest);
+  const [sent, setSent] = useState<SentState | null>(null);
+  const draftData = useMemo<CollectReferenceDraft>(
+    () => ({ candidateForm, referenceForm: form }),
+    [candidateForm, form],
+  );
+  const { restoreDraft, clearDraft, markHydrated } = useSessionFormDraft({
+    storageKey: buildSessionFormDraftKey(
+      "recruiter-collect-reference",
+      recruiterUserId,
+    ),
+    data: draftData,
+    enabled: sent === null,
+    isEmpty: isCollectReferenceDraftEmpty,
+  });
   const { errors, setErrors, clearField } =
     useFieldErrors<keyof ReferenceFieldErrors>();
+  const {
+    errors: candidateErrors,
+    setErrors: setCandidateErrors,
+    clearField: clearCandidateField,
+  } = useFieldErrors<keyof RecruiterReferenceCollectionCandidateFieldErrors>();
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [sent, setSent] = useState<SentState | null>(null);
+  const invalidateReferences = useInvalidateCandidateReferences();
 
   useEffect(() => {
-    let cancelled = false;
+    const draft = restoreDraft();
 
-    async function loadCandidates() {
-      setIsLoadingCandidates(true);
-      setCandidatesError("");
-
-      try {
-        const response = await fetch("/api/recruiter/references");
-        const result = (await response.json()) as {
-          success: boolean;
-          candidates?: ReferenceCollectionCandidateOption[];
-          error?: string;
-        };
-
-        if (!response.ok || !result.success) {
-          throw new Error(result.error ?? "Could not load candidates.");
-        }
-
-        if (!cancelled) {
-          setCandidateOptions(result.candidates ?? []);
-        }
-      } catch (loadError) {
-        if (!cancelled) {
-          setCandidatesError(
-            loadError instanceof Error
-              ? loadError.message
-              : "Could not load candidates.",
-          );
-        }
-      } finally {
-        if (!cancelled) {
-          setIsLoadingCandidates(false);
-        }
-      }
+    if (draft) {
+      setCandidateForm(draft.candidateForm);
+      setForm(draft.referenceForm);
     }
 
-    void loadCandidates();
+    markHydrated();
+  }, [markHydrated, recruiterUserId, restoreDraft]);
 
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  const loadCandidateDetails = useCallback(
-    async (candidateId: string, vodoraId?: string) => {
-      if (!candidateId) {
-        setCandidateDetails(null);
-        setCandidateDetailsError("");
-        return;
-      }
-
-      setIsLoadingCandidateDetails(true);
-      setCandidateDetailsError("");
-
-      try {
-        const query = vodoraId
-          ? `?vodoraId=${encodeURIComponent(vodoraId)}`
-          : "";
-        const response = await fetch(
-          `/api/recruiter/references/candidates/${encodeURIComponent(candidateId)}${query}`,
-        );
-        const result = (await response.json()) as {
-          success: boolean;
-          candidate?: ReferenceCollectionCandidateDetails;
-          error?: string;
-        };
-
-        if (!response.ok || !result.success || !result.candidate) {
-          throw new Error(result.error ?? "Could not load candidate details.");
-        }
-
-        setCandidateDetails(result.candidate);
-      } catch (loadError) {
-      setCandidateDetails(null);
-      setCandidateDetailsError(
-        loadError instanceof Error
-          ? loadError.message
-          : "Could not load candidate details.",
-      );
-    } finally {
-      setIsLoadingCandidateDetails(false);
-    }
-  },
-    [],
-  );
-
-  function handleCandidateChange(candidateId: string) {
-    const option = candidateOptions.find(
-      (candidate) => candidate.candidateId === candidateId,
-    );
-    setSelectedCandidateId(candidateId);
-    void loadCandidateDetails(candidateId, option?.vodoraId);
+  function updateCandidateField<K extends keyof CandidateFormData>(
+    field: K,
+    value: CandidateFormData[K],
+  ) {
+    setCandidateForm((current) => ({ ...current, [field]: value }));
+    clearCandidateField(field);
+    setError("");
   }
 
   function updateField<K extends keyof RequestReferenceFormData>(
@@ -161,25 +129,28 @@ export function CollectReferenceTab({
   }
 
   async function handleSubmit() {
-    if (!selectedCandidateId) {
-      setError("Select a candidate before sending the reference request.");
-      return;
-    }
-
-    if (!candidateDetails) {
-      setError("Candidate details could not be loaded. Please try again.");
-      return;
-    }
-
+    const candidateFieldErrors =
+      getRecruiterReferenceCollectionCandidateFieldErrors(candidateForm);
     const fieldErrors = getReferenceFieldErrors(form);
+
+    if (hasFieldErrors(candidateFieldErrors)) {
+      setCandidateErrors(candidateFieldErrors);
+    }
 
     if (hasFieldErrors(fieldErrors)) {
       setErrors(fieldErrors);
+    }
+
+    if (
+      hasFieldErrors(candidateFieldErrors) ||
+      hasFieldErrors(fieldErrors)
+    ) {
       return;
     }
 
     setIsSubmitting(true);
     setErrors({});
+    setCandidateErrors({});
     setError("");
 
     try {
@@ -187,7 +158,7 @@ export function CollectReferenceTab({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          candidateId: selectedCandidateId,
+          candidate: candidateForm,
           ...form,
         }),
       });
@@ -196,10 +167,15 @@ export function CollectReferenceTab({
         success: boolean;
         error?: string;
         fieldErrors?: ReferenceFieldErrors;
+        candidateFieldErrors?: RecruiterReferenceCollectionCandidateFieldErrors;
         candidateName?: string;
       };
 
       if (!response.ok || !result.success) {
+        if (result.candidateFieldErrors) {
+          setCandidateErrors(result.candidateFieldErrors);
+        }
+
         if (result.fieldErrors) {
           setErrors(result.fieldErrors);
         }
@@ -212,12 +188,13 @@ export function CollectReferenceTab({
       }
 
       showReferenceRequestSentToast(form.name);
+      invalidateReferences();
+      clearDraft();
       setSent({
-        candidateName: result.candidateName ?? candidateDetails.name,
+        candidateName: result.candidateName ?? candidateForm.name.trim(),
         refereeName: form.name,
       });
-      setSelectedCandidateId("");
-      setCandidateDetails(null);
+      setCandidateForm(emptyCandidateForm());
       setForm(createEmptyReferenceRequest());
     } catch {
       const message = "Unable to send reference request. Please try again.";
@@ -229,11 +206,12 @@ export function CollectReferenceTab({
   }
 
   function reset() {
+    clearDraft();
     setSent(null);
-    setSelectedCandidateId("");
-    setCandidateDetails(null);
+    setCandidateForm(emptyCandidateForm());
     setForm(createEmptyReferenceRequest());
     setErrors({});
+    setCandidateErrors({});
     setError("");
   }
 
@@ -250,6 +228,7 @@ export function CollectReferenceTab({
           An email has been sent to{" "}
           <strong>{sent.refereeName}</strong> with a secure link to complete a
           reference for <strong>{sent.candidateName}</strong>.
+          {" "}The candidate will also receive an email with next steps.
         </p>
         <button
           type="button"
@@ -269,9 +248,9 @@ export function CollectReferenceTab({
           Collect a Reference
         </h2>
         <p className="text-sm text-gray-500">
-          Select a verified candidate and enter referee details. Vodora will email
-          the referee a secure link to complete a verified reference on the
-          candidate&apos;s behalf.
+          Enter candidate and referee details. Vodora will email the referee a
+          secure link to complete a verified reference, and notify the candidate
+          to access or claim their Reference Passport.
         </p>
       </div>
 
@@ -291,78 +270,64 @@ export function CollectReferenceTab({
             <h3 className="font-semibold text-gray-900">Candidate Details</h3>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div className="sm:col-span-2">
-              <label
-                htmlFor="collect-reference-candidate"
-                className="mb-1.5 block text-xs font-medium text-gray-600"
-              >
-                Full Name <span className="text-red-500">*</span>
-              </label>
-              <select
-                id="collect-reference-candidate"
-                value={selectedCandidateId}
-                onChange={(event) => handleCandidateChange(event.target.value)}
-                disabled={isLoadingCandidates}
-                className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:cursor-not-allowed disabled:bg-gray-50"
-              >
-                <option value="">
-                  {isLoadingCandidates
-                    ? "Loading verified candidates…"
-                    : "Select a verified candidate…"}
-                </option>
-                {candidateOptions.map((candidate) => (
-                  <option key={candidate.candidateId} value={candidate.candidateId}>
-                    {candidate.name}
-                    {candidate.title ? ` — ${candidate.title}` : ""}
-                  </option>
-                ))}
-              </select>
-              {candidatesError ? (
-                <p className="mt-1.5 text-xs text-red-600">{candidatesError}</p>
-              ) : null}
-            </div>
-
-            <CollectReferenceReadOnlyField
-              label="Job Title"
-              value={
-                isLoadingCandidateDetails
-                  ? "Loading…"
-                  : (candidateDetails?.title ?? "")
-              }
-              placeholder="Select a candidate"
-            />
-            <CollectReferenceReadOnlyField
-              label="Company"
-              value={
-                isLoadingCandidateDetails
-                  ? "Loading…"
-                  : (candidateDetails?.company ?? "")
-              }
-              placeholder="Select a candidate"
-            />
-            <CollectReferenceReadOnlyField
-              label="Candidate Email"
+          <div className="space-y-4">
+            <FormField
+              id="collect-reference-candidate-name"
+              label="Full Name"
               required
-              value={
-                isLoadingCandidateDetails
-                  ? "Loading…"
-                  : (candidateDetails?.email ?? "")
+              value={candidateForm.name}
+              onChange={(event) =>
+                updateCandidateField("name", event.target.value)
               }
-              placeholder="Select a candidate"
+              placeholder="Jane Doe"
+              error={candidateErrors.name}
+            />
+
+            <AuthFormGrid>
+              <FormField
+                id="collect-reference-candidate-title"
+                label="Job Title"
+                required
+                value={candidateForm.title}
+                onChange={(event) =>
+                  updateCandidateField("title", event.target.value)
+                }
+                placeholder="Software Engineer"
+                error={candidateErrors.title}
+              />
+              <FormField
+                id="collect-reference-candidate-company"
+                label="Company"
+                required
+                value={candidateForm.company}
+                onChange={(event) =>
+                  updateCandidateField("company", event.target.value)
+                }
+                placeholder="Company Name"
+                error={candidateErrors.company}
+              />
+            </AuthFormGrid>
+
+            <FormField
+              id="collect-reference-candidate-email"
+              label="Candidate Email"
+              type="email"
+              required
+              value={candidateForm.email}
+              onChange={(event) =>
+                updateCandidateField("email", event.target.value)
+              }
+              placeholder="candidate@email.com"
+              error={candidateErrors.email}
             />
           </div>
-
-          {candidateDetailsError ? (
-            <p className="mt-3 text-xs text-red-600">{candidateDetailsError}</p>
-          ) : null}
 
           <div className="mt-3 flex items-start gap-2 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3">
             <FileText className="mt-0.5 h-4 w-4 shrink-0 text-blue-500" />
             <p className="text-xs text-blue-700">
-              The candidate will receive an email notifying them that a reference
-              is being collected on their behalf, and an invitation to create a
-              free Vodora profile to permanently own and reuse this reference.
+              If the candidate is not on Vodora yet, we will create a profile for
+              them and email a password setup link. If they already have an
+              account, they will receive a notification instead.
             </p>
           </div>
         </section>
@@ -385,13 +350,7 @@ export function CollectReferenceTab({
           </p>
           <button
             type="submit"
-            disabled={
-              isSubmitting ||
-              isLoadingCandidates ||
-              isLoadingCandidateDetails ||
-              !selectedCandidateId ||
-              !candidateDetails
-            }
+            disabled={isSubmitting}
             className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-8 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
           >
             <Send className="h-4 w-4" />
@@ -399,35 +358,6 @@ export function CollectReferenceTab({
           </button>
         </div>
       </form>
-    </div>
-  );
-}
-
-type CollectReferenceReadOnlyFieldProps = {
-  label: string;
-  value: string;
-  placeholder?: string;
-  required?: boolean;
-};
-
-function CollectReferenceReadOnlyField({
-  label,
-  value,
-  placeholder,
-  required = false,
-}: CollectReferenceReadOnlyFieldProps) {
-  return (
-    <div>
-      <label className="mb-1.5 block text-xs font-medium text-gray-600">
-        {label} {required ? <span className="text-red-500">*</span> : null}
-      </label>
-      <input
-        type="text"
-        readOnly
-        value={value}
-        placeholder={placeholder}
-        className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-700"
-      />
     </div>
   );
 }

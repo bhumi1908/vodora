@@ -35,7 +35,7 @@ function ReferenceCardSkeleton() {
   );
 }
 
-export function ReferencesTabSkeleton() {
+export function ReferencesTabSkeleton({ showAction = true }: { showAction?: boolean }) {
   return (
     <div aria-busy="true" aria-label="Loading references">
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -44,7 +44,7 @@ export function ReferencesTabSkeleton() {
           <Skeleton className="h-4 w-40" />
         </div>
 
-        <Skeleton className="h-10 w-44 rounded-lg" />
+        {showAction ? <Skeleton className="h-10 w-44 rounded-lg" /> : null}
       </div>
 
       <div className="space-y-4">

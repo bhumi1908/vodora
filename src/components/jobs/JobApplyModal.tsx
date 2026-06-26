@@ -9,9 +9,11 @@ import {
   Upload,
   X,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { Modal } from "@/components/ui/Modal";
+import { useSessionFormDraft } from "@/hooks/useSessionFormDraft";
+import { buildSessionFormDraftKey } from "@/lib/form/session-form-draft";
 import { formatFileSize } from "@/lib/jobs/format-file-size";
 import {
   showJobAppliedSuccessToast,
@@ -45,6 +47,23 @@ function formatUploadedDate(value: string): string {
   });
 }
 
+type JobApplyDraft = {
+  coverText: string;
+  coverLetterDocumentId: string | null;
+  coverFileName: string;
+  shareReferences: boolean;
+  selectedReferenceIds: string[];
+};
+
+function isJobApplyDraftEmpty(draft: JobApplyDraft): boolean {
+  return (
+    !draft.coverText.trim() &&
+    !draft.coverFileName.trim() &&
+    !draft.shareReferences &&
+    draft.selectedReferenceIds.length === 0
+  );
+}
+
 export function JobApplyModal({
   job,
   open,
@@ -62,6 +81,29 @@ export function JobApplyModal({
   const [selectedReferenceIds, setSelectedReferenceIds] = useState<string[]>(
     [],
   );
+  const [initialized, setInitialized] = useState(false);
+  const draftData = useMemo<JobApplyDraft>(
+    () => ({
+      coverText,
+      coverLetterDocumentId,
+      coverFileName,
+      shareReferences,
+      selectedReferenceIds,
+    }),
+    [
+      coverText,
+      coverLetterDocumentId,
+      coverFileName,
+      shareReferences,
+      selectedReferenceIds,
+    ],
+  );
+  const { restoreDraft, clearDraft, markHydrated } = useSessionFormDraft({
+    storageKey: buildSessionFormDraftKey("job-apply", job.id),
+    data: draftData,
+    enabled: open && step === "form" && initialized,
+    isEmpty: isJobApplyDraftEmpty,
+  });
 
   const {
     data: applyContext,
@@ -77,26 +119,42 @@ export function JobApplyModal({
   useEffect(() => {
     if (!open) {
       setStep("form");
-      setCoverText("");
-      setCoverLetterDocumentId(null);
-      setCoverFileName("");
-      setPendingCoverFile(null);
-      setShareReferences(false);
-      setSelectedReferenceIds([]);
+      setInitialized(false);
       return;
     }
 
-    if (applyContext) {
+    if (!applyContext || applyContext.alreadyApplied || initialized) {
+      return;
+    }
+
+    const draft = restoreDraft();
+
+    if (draft) {
+      setCoverText(draft.coverText);
+      setCoverLetterDocumentId(draft.coverLetterDocumentId);
+      setCoverFileName(draft.coverFileName);
+      setShareReferences(draft.shareReferences);
+      setSelectedReferenceIds(draft.selectedReferenceIds);
+    } else {
       setCoverText(applyContext.coverLetter);
       setCoverLetterDocumentId(applyContext.coverLetterDocument?.id ?? null);
       setCoverFileName(applyContext.coverLetterDocument?.fileName ?? "");
-      setPendingCoverFile(null);
       setShareReferences(false);
       setSelectedReferenceIds(
         applyContext.verifiedReferences.map((reference) => reference.id),
       );
     }
-  }, [open, applyContext]);
+
+    setPendingCoverFile(null);
+    setInitialized(true);
+    markHydrated();
+  }, [
+    applyContext,
+    initialized,
+    markHydrated,
+    open,
+    restoreDraft,
+  ]);
 
   const handleClose = () => {
     setStep("form");
@@ -163,6 +221,7 @@ export function JobApplyModal({
       }
 
       showJobAppliedSuccessToast(job.title);
+      clearDraft();
       setStep("success");
       onApplied();
     } catch (error) {

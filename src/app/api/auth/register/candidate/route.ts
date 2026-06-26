@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { buildCandidateSignupProfile } from "@/lib/auth/registration";
+import { getSignupEmailStatus } from "@/lib/auth/check-signup-email";
 import {
   getRequestOrigin,
   runSignupFlow,
@@ -86,6 +87,50 @@ export async function POST(request: Request) {
     origin,
     redirect: body.redirect,
   });
+
+  if (!result.success) {
+    const normalizedError = result.error?.toLowerCase() ?? "";
+
+    if (normalizedError.includes("already exists")) {
+      const status = await getSignupEmailStatus(body.email!);
+
+      if (status.code === "invited_reference_stub") {
+        return NextResponse.json(
+          {
+            success: false,
+            code: "invited_reference_stub",
+            recruiterName: status.recruiterName,
+            companyName: status.companyName,
+            error:
+              "A Vodora profile was already started for this email when a recruiter began collecting your reference.",
+          },
+          { status: 409 },
+        );
+      }
+
+      if (status.code === "recruiter_account") {
+        return NextResponse.json(
+          {
+            success: false,
+            code: "recruiter_account",
+            error:
+              "This email is registered as a recruiter account. Sign in as a recruiter instead.",
+          },
+          { status: 409 },
+        );
+      }
+
+      return NextResponse.json(
+        {
+          success: false,
+          code: "email_already_registered",
+          error:
+            "An account with this email already exists. Sign in instead.",
+        },
+        { status: 409 },
+      );
+    }
+  }
 
   return NextResponse.json(result, { status: result.success ? 200 : 400 });
 }

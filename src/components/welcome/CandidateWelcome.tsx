@@ -211,6 +211,7 @@ export function CandidateWelcome({ profile }: CandidateWelcomeProps) {
 
         <RequestReferenceModal
           open={referenceModalOpen}
+          candidateUserId={profile.userId}
           onClose={() => setReferenceModalOpen(false)}
           employmentHistoryOptions={employmentHistoryOptions}
         />

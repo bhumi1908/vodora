@@ -24,6 +24,7 @@ import {
 type ReferenceCardProps = {
   reference: CandidateReferenceItem;
   isOwnProfile: boolean;
+  candidateName?: string;
   showRefereeContact?: boolean;
   showVerificationStatus?: boolean;
   showRatings?: boolean;
@@ -109,6 +110,7 @@ function hasReferenceRatings(reference: CandidateReferenceItem): boolean {
 export function ReferenceCard({
   reference,
   isOwnProfile,
+  candidateName,
   showRefereeContact = isOwnProfile,
   showVerificationStatus = true,
   showRatings = true,
@@ -170,6 +172,11 @@ export function ReferenceCard({
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
+              {candidateName ? (
+                <p className="mb-1 text-xs font-medium uppercase tracking-wide text-blue-600">
+                  Candidate: {candidateName}
+                </p>
+              ) : null}
               <h3 className="text-base font-semibold text-gray-900 sm:text-lg">
                 {reference.refereeName}
               </h3>
