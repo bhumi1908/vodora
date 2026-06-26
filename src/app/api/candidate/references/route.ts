@@ -75,10 +75,7 @@ export async function POST(request: Request) {
       userId: context.userId,
       candidateName,
     },
-    {
-      ...body,
-      requireCompanyEmail: body.requireCompanyEmail ?? true,
-    },
+    body,
     getRequestOrigin(request),
   );
 

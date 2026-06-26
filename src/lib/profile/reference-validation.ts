@@ -1,3 +1,4 @@
+import { isPersonalEmail } from "@/lib/auth/validation";
 import { type FieldErrors, firstFieldError, hasFieldErrors } from "@/lib/form/field-errors";
 import {
   isMonthRangeInvalid,
@@ -21,6 +22,9 @@ import {
 } from "@/lib/references/written-reference-assessment";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const REFEREE_COMPANY_EMAIL_ERROR =
+  "Please use a company email address. Personal providers such as Gmail and Yahoo are not allowed.";
 
 export type RecruiterReferenceCollectionCandidateFieldErrors = FieldErrors<
   "name" | "title" | "company" | "email"
@@ -87,6 +91,8 @@ export function getReferenceFieldErrors(
     errors.email = "Email is required.";
   } else if (!EMAIL_PATTERN.test(input.email.trim())) {
     errors.email = "Enter a valid email address.";
+  } else if (isPersonalEmail(input.email)) {
+    errors.email = REFEREE_COMPANY_EMAIL_ERROR;
   }
 
   if (!input.relationship) {
@@ -294,7 +300,7 @@ export function mapReferenceRequestToInsert(
     employment_end: parseOptionalMonth(input.employmentEnd),
     reference_type: input.referenceType,
     candidate_message: input.message.trim() || null,
-    require_company_email: input.requireCompanyEmail,
+    require_company_email: true,
     employment_history_id: input.employmentHistoryId.trim() || null,
   };
 }

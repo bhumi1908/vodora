@@ -161,10 +161,7 @@ export async function POST(request: Request) {
       recruiterName: emailContext.recruiterName,
       recruiterCompany: emailContext.companyName,
     },
-    {
-      ...referenceForm,
-      requireCompanyEmail: referenceForm.requireCompanyEmail ?? true,
-    },
+    referenceForm,
     getRequestOrigin(request),
   );
 
