@@ -19,8 +19,6 @@ import { ProfileConnectionStats } from "@/components/connections/ProfileConnecti
 import { CandidateProfilePeerConnectButton } from "@/components/connections/CandidateProfilePeerConnectButton";
 import { RecruiterProfileConnectButton } from "@/components/connections/RecruiterProfileConnectButton";
 import { ProfileCompletionCircle } from "@/components/profile/ProfileCompletionCircle";
-import { ProfileSectionEditButton } from "@/components/profile/edit/ProfileSectionEditButton";
-import { candidateSectionHasContent } from "@/components/profile/edit/profile-section-content";
 import {
   CANDIDATE_FIND_RECRUITERS_PATH,
   CANDIDATE_JOBS_PATH,
@@ -304,7 +302,7 @@ export function ProfileHeader({
   };
 
   return (
-    <div className="relative z-10 mb-4 overflow-x-hidden rounded-xl border border-gray-200 bg-white">
+    <div className="relative z-10 mb-4 overflow-visible rounded-xl border border-gray-200 bg-white">
       <div className="relative flex h-36 items-center overflow-hidden rounded-t-xl bg-gradient-to-r from-gray-900 via-blue-950 to-gray-900 px-4 py-4 sm:px-8">
         {showQuoteArea ? (
           <div className="relative ml-28 max-w-md pl-6 sm:ml-auto sm:max-w-xl lg:max-w-2xl">
@@ -343,37 +341,27 @@ export function ProfileHeader({
       </div>
 
       <div className="relative z-10 px-4 pb-6 sm:px-6">
-        <div className="-mt-12 mb-4 flex items-end justify-between gap-4">
+        <div className="-mt-12 mb-4 flex gap-4">
           <ProfileAvatar profile={profile} onEditPhoto={onEditPhoto} />
           {showActions ? (
-            <div className="mb-1 hidden min-w-0 flex-1 md:block">
+            <div className="hidden min-w-0 flex-1 pt-12 md:flex md:items-center md:justify-end">
               <ProfileHeaderActions {...actionProps} placement="desktop" />
             </div>
           ) : null}
         </div>
 
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
+        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between md:gap-6">
           <div className="min-w-0 flex-1">
-            <div className="mb-3 flex items-start justify-between gap-3">
-              <div className="min-w-0 flex-1">
-                <h1 className="mb-0.5 text-2xl font-semibold text-gray-900">
-                  {profile.name}
-                </h1>
-                {profile.title ? (
-                  <p className="mb-1 font-medium text-gray-700">{profile.title}</p>
-                ) : visibility.showOwnerActions ? (
-                  <p className="mb-1 text-sm text-gray-500">
-                    Add a headline or current position to complete your profile.
-                  </p>
-                ) : null}
-              </div>
-              {visibility.showOwnerActions && onEditDetails ? (
-                <ProfileSectionEditButton
-                  hasContent={candidateSectionHasContent("overview", profile)}
-                  sectionLabel="Details"
-                  onClick={onEditDetails}
-                  className="shrink-0 min-h-10 md:hidden"
-                />
+            <div className="mb-3">
+              <h1 className="mb-0.5 text-2xl font-semibold text-gray-900">
+                {profile.name}
+              </h1>
+              {profile.title ? (
+                <p className="mb-1 font-medium text-gray-700">{profile.title}</p>
+              ) : visibility.showOwnerActions ? (
+                <p className="mb-1 text-sm text-gray-500">
+                  Add a headline or current position to complete your profile.
+                </p>
               ) : null}
             </div>
 
@@ -450,7 +438,7 @@ export function ProfileHeader({
           </div>
 
           {showCompletion ? (
-            <div className="flex justify-center sm:justify-start">
+            <div className="hidden shrink-0 md:flex md:justify-center">
               <ProfileCompletionCircle
                 percent={completionPercent}
                 items={completionItems}
@@ -458,6 +446,15 @@ export function ProfileHeader({
             </div>
           ) : null}
         </div>
+
+        {showCompletion ? (
+          <div className="mt-4 flex justify-center md:hidden">
+            <ProfileCompletionCircle
+              percent={completionPercent}
+              items={completionItems}
+            />
+          </div>
+        ) : null}
 
         {showActions ? (
           <div className="mt-4 md:hidden">

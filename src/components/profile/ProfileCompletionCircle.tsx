@@ -91,7 +91,10 @@ export function ProfileCompletionCircle({
   const detailsId = "profile-completion-details";
 
   return (
-    <div ref={containerRef} className="relative shrink-0">
+    <div
+      ref={containerRef}
+      className={`relative shrink-0 ${showDetails ? "z-50" : ""}`}
+    >
       <button
         type="button"
         onClick={() => setShowDetails((open) => !open)}
@@ -111,14 +114,14 @@ export function ProfileCompletionCircle({
           <button
             type="button"
             aria-label="Close profile completion details"
-            className="fixed inset-0 z-40 bg-black/25 sm:hidden"
+            className="fixed inset-0 z-40 bg-black/25 md:hidden"
             onClick={() => setShowDetails(false)}
           />
           <div
             id={detailsId}
             role="region"
             aria-label="Profile completion checklist"
-            className="fixed inset-x-4 top-1/2 z-50 max-h-[min(80vh,28rem)] w-auto -translate-y-1/2 overflow-y-auto rounded-2xl border border-gray-200 bg-white p-5 shadow-xl sm:absolute sm:inset-x-auto sm:top-[5.75rem] sm:right-0 sm:left-auto sm:max-h-none sm:w-72 sm:translate-y-0"
+            className="fixed inset-x-4 top-1/2 z-50 max-h-[min(80vh,28rem)] w-auto -translate-y-1/2 overflow-y-auto rounded-2xl border border-gray-200 bg-white p-5 shadow-xl md:absolute md:inset-x-auto md:top-full md:right-0 md:left-auto md:mt-2 md:max-h-[min(80vh,24rem)] md:w-72 md:translate-y-0"
           >
             <h3 className="mb-3 font-semibold text-gray-900">
               Profile Completion
