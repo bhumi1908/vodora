@@ -33,4 +33,5 @@ export type RecruiterDashboardData = {
   candidates: RecruiterDashboardCandidate[];
   candidatesError?: string | null;
   savedCount: number;
+  candidatesViewedCount: number;
 };

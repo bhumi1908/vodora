@@ -11,6 +11,10 @@ import Link from "next/link";
 
 import { Skeleton } from "@/components/ui/Skeleton";
 import {
+  DashboardStatCard,
+  DashboardStatGrid,
+} from "@/components/ui/DashboardStatCard";
+import {
   RECRUITER_PROFILE_PATH,
   RECRUITER_PROFILE_ROLES_PATH,
   RECRUITER_SAVED_PATH,
@@ -23,7 +27,6 @@ import type { RecruiterDashboardContext } from "@/lib/recruiter/dashboard.types"
 
 const CANDIDATES_VIEWED_STAT = {
   label: "Candidates Viewed",
-  value: "148",
   icon: Eye,
   color: "bg-purple-50 text-purple-600",
 } as const;
@@ -39,92 +42,49 @@ type RecruiterDashboardSidebarProps = {
 
 type RecruiterDashboardStatsProps = {
   savedCount: number;
+  candidatesViewedCount: number;
   activeJobPosts: string;
   avgTimeToHire: string;
   isJobsPending: boolean;
 };
 
-type DashboardStatItem = {
-  label: string;
-  value: string;
-  icon: typeof Briefcase;
-  color: string;
-  href?: string;
-  isLoading?: boolean;
-};
-
 export function RecruiterDashboardStats({
   savedCount,
+  candidatesViewedCount,
   activeJobPosts,
   avgTimeToHire,
   isJobsPending,
 }: RecruiterDashboardStatsProps) {
-  const stats: DashboardStatItem[] = [
-    {
-      label: "Active Job Posts",
-      value: activeJobPosts,
-      icon: Briefcase,
-      color: "bg-blue-50 text-blue-600",
-      isLoading: isJobsPending,
-    },
-    { ...CANDIDATES_VIEWED_STAT },
-    {
-      label: "Saved Profiles",
-      value: String(savedCount),
-      icon: Bookmark,
-      color: "bg-amber-50 text-amber-600",
-      href: RECRUITER_SAVED_PATH,
-    },
-    {
-      label: "Avg. Time to Hire",
-      value: avgTimeToHire,
-      icon: Clock,
-      color: "bg-green-50 text-green-600",
-      isLoading: isJobsPending,
-    },
-  ];
-
   return (
-    <div className="mb-8 grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
-      {stats.map(({ label, value, icon: Icon, color, href, isLoading }) => {
-        const content = (
-          <>
-            <div
-              className={`mb-4 flex h-10 w-10 items-center justify-center rounded-xl ${color}`}
-            >
-              <Icon className="h-5 w-5" />
-            </div>
-            {isLoading ? (
-              <Skeleton className="mb-1 h-9 w-16" />
-            ) : (
-              <p className="text-3xl font-bold text-gray-900">{value}</p>
-            )}
-            <p className="mt-1 text-sm text-gray-500">{label}</p>
-          </>
-        );
-
-        if (href) {
-          return (
-            <Link
-              key={label}
-              href={href}
-              className="rounded-2xl border border-gray-200 bg-white p-6 transition-shadow hover:shadow-md"
-            >
-              {content}
-            </Link>
-          );
-        }
-
-        return (
-          <div
-            key={label}
-            className="rounded-2xl border border-gray-200 bg-white p-6"
-          >
-            {content}
-          </div>
-        );
-      })}
-    </div>
+    <DashboardStatGrid>
+      <DashboardStatCard
+        label="Active Job Posts"
+        value={activeJobPosts}
+        icon={Briefcase}
+        color="bg-blue-50 text-blue-600"
+        isLoading={isJobsPending}
+      />
+      <DashboardStatCard
+        label={CANDIDATES_VIEWED_STAT.label}
+        value={String(candidatesViewedCount)}
+        icon={CANDIDATES_VIEWED_STAT.icon}
+        color={CANDIDATES_VIEWED_STAT.color}
+      />
+      <DashboardStatCard
+        label="Saved Profiles"
+        value={String(savedCount)}
+        icon={Bookmark}
+        color="bg-amber-50 text-amber-600"
+        href={RECRUITER_SAVED_PATH}
+      />
+      <DashboardStatCard
+        label="Avg. Time to Hire"
+        value={avgTimeToHire}
+        icon={Clock}
+        color="bg-green-50 text-green-600"
+        isLoading={isJobsPending}
+      />
+    </DashboardStatGrid>
   );
 }
 

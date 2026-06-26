@@ -7,7 +7,7 @@ import type {
   RecruiterDashboardData,
 } from "@/lib/recruiter/dashboard.types";
 import type { Database } from "@/lib/supabase/database.types";
-import { fetchRecruiterSavedCount } from "@/lib/recruiter/fetch-recruiter-saved-candidates";
+import { fetchRecruiterDashboardCounts } from "@/lib/recruiter/recruiter-candidate-profile-views";
 
 type Supabase = SupabaseClient<Database>;
 
@@ -143,10 +143,10 @@ async function fetchRecruiterDashboardData(
     return null;
   }
 
-  const [context, candidateResult, savedCount] = await Promise.all([
+  const [context, candidateResult, dashboardCounts] = await Promise.all([
     fetchRecruiterDashboardContext(supabase, resolvedUserId),
     fetchRecruiterDashboardCandidates(supabase),
-    fetchRecruiterSavedCount(supabase),
+    fetchRecruiterDashboardCounts(supabase),
   ]);
 
   if (!context) {
@@ -157,7 +157,8 @@ async function fetchRecruiterDashboardData(
     context,
     candidates: candidateResult.candidates,
     candidatesError: candidateResult.error,
-    savedCount,
+    savedCount: dashboardCounts.savedCount,
+    candidatesViewedCount: dashboardCounts.candidatesViewedCount,
   };
 }
 

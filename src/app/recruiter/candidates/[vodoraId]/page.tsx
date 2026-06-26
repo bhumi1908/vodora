@@ -1,7 +1,9 @@
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { after } from "next/server";
 import { notFound, redirect } from "next/navigation";
 
+import { RecruiterCandidateProfileViewTracker } from "@/components/recruiter/RecruiterCandidateProfileViewTracker";
 import { RecruiterCandidateProfileWithCache } from "@/components/recruiter/RecruiterCandidateProfileWithCache";
 import { getCandidateDashboardAccessDeniedRedirect } from "@/lib/auth/access-denied";
 import { getAccountType } from "@/lib/auth/account-type";
@@ -17,6 +19,7 @@ import {
   resolveProfileVisibility,
 } from "@/lib/profile/profile-visibility";
 import { getCachedRecruiterCandidateProfile } from "@/lib/recruiter/fetch-recruiter-candidate-profile";
+import { recordRecruiterCandidateProfileView } from "@/lib/recruiter/recruiter-candidate-profile-views";
 import { createClient } from "@/lib/supabase/server";
 
 type RecruiterCandidateProfilePageProps = {
@@ -91,8 +94,19 @@ export default async function RecruiterCandidateProfilePage({
     visibility.showContactDetails,
   );
 
+  if (profile.candidateId) {
+    after(async () => {
+      try {
+        await recordRecruiterCandidateProfileView(supabase, profile.candidateId!);
+      } catch (recordError) {
+        console.error("Failed to record candidate profile view:", recordError);
+      }
+    });
+  }
+
   return (
     <>
+      <RecruiterCandidateProfileViewTracker />
       <div className="mx-auto max-w-5xl px-3 pt-4 sm:px-6 sm:pt-6">
         <Link
           href={RECRUITER_DASHBOARD_PATH}

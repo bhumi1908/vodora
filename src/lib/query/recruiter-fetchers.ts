@@ -148,6 +148,7 @@ export async function fetchRecruiterDashboardData(): Promise<RecruiterDashboardD
     candidates: payload.candidates,
     candidatesError: payload.candidatesError,
     savedCount: payload.savedCount,
+    candidatesViewedCount: payload.candidatesViewedCount,
   };
 }
 

@@ -30,7 +30,7 @@ const EMPTY_JOB_STATS = {
 };
 
 export function RecruiterDashboard({ data, recruiterUserId }: RecruiterDashboardProps) {
-  const { context, candidates, candidatesError, savedCount } = data;
+  const { context, candidates, candidatesError, savedCount, candidatesViewedCount } = data;
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const { data: jobsData, isPending: isJobsPending } = useRecruiterJobsQuery();
 
@@ -56,6 +56,7 @@ export function RecruiterDashboard({ data, recruiterUserId }: RecruiterDashboard
 
       <RecruiterDashboardStats
         savedCount={savedCount}
+        candidatesViewedCount={candidatesViewedCount}
         activeJobPosts={jobStats.activeRoles}
         avgTimeToHire={jobStats.avgTimeToHire}
         isJobsPending={isJobsPending}

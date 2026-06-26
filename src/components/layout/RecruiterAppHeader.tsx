@@ -8,7 +8,6 @@ import {
   Menu,
   Search,
   UserCheck,
-  UserRound,
   X,
 } from "lucide-react";
 import Link from "next/link";
@@ -20,7 +19,6 @@ import { ConnectionNotificationBell } from "@/components/connections/ConnectionN
 import {
   RECRUITER_CONNECTIONS_PATH,
   RECRUITER_DASHBOARD_PATH,
-  RECRUITER_PROFILE_PATH,
   RECRUITER_SAVED_PATH,
   RECRUITER_SEARCH_PATH,
 } from "@/lib/auth/routes";
@@ -35,6 +33,12 @@ const recruiterNavItems = [
       pathname === RECRUITER_DASHBOARD_PATH || pathname === "/recruiter",
   },
   {
+    label: "Connect",
+    href: RECRUITER_CONNECTIONS_PATH,
+    icon: UserCheck,
+    isActive: (pathname: string) => pathname === RECRUITER_CONNECTIONS_PATH,
+  },
+  {
     label: "Find Candidates",
     href: RECRUITER_SEARCH_PATH,
     icon: Search,
@@ -47,18 +51,6 @@ const recruiterNavItems = [
     href: RECRUITER_SAVED_PATH,
     icon: Bookmark,
     isActive: (pathname: string) => pathname === RECRUITER_SAVED_PATH,
-  },
-  {
-    label: "Connections",
-    href: RECRUITER_CONNECTIONS_PATH,
-    icon: UserCheck,
-    isActive: (pathname: string) => pathname === RECRUITER_CONNECTIONS_PATH,
-  },
-  {
-    label: "My Profile",
-    href: RECRUITER_PROFILE_PATH,
-    icon: UserRound,
-    isActive: (pathname: string) => pathname.startsWith(RECRUITER_PROFILE_PATH),
   },
 ] as const;
 

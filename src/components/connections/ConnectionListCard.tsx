@@ -26,21 +26,21 @@ import {
 } from "@/lib/auth/routes";
 type ConnectionListCardProps =
   | {
-      role: "candidate";
-      tab: ConnectionTab;
-      connection: CandidateConnectionEntry;
-      onAccept?: (connectionId: string) => void;
-      onReject?: (connectionId: string) => void;
-      isResponding?: boolean;
-    }
+    role: "candidate";
+    tab: ConnectionTab;
+    connection: CandidateConnectionEntry;
+    onAccept?: (connectionId: string) => void;
+    onReject?: (connectionId: string) => void;
+    isResponding?: boolean;
+  }
   | {
-      role: "recruiter";
-      tab: ConnectionTab;
-      connection: RecruiterConnectionEntry;
-      onAccept?: (connectionId: string) => void;
-      onReject?: (connectionId: string) => void;
-      isResponding?: boolean;
-    };
+    role: "recruiter";
+    tab: ConnectionTab;
+    connection: RecruiterConnectionEntry;
+    onAccept?: (connectionId: string) => void;
+    onReject?: (connectionId: string) => void;
+    isResponding?: boolean;
+  };
 
 function getInitials(name: string): string {
   return name
@@ -178,8 +178,8 @@ export function ConnectionListCard(props: ConnectionListCardProps) {
                 </span>
               ) : null}
               {props.role === "candidate" &&
-              props.connection.connectionType === "candidate_recruiter" &&
-              connection.company ? (
+                props.connection.connectionType === "candidate_recruiter" &&
+                connection.company ? (
                 <span className="flex items-center gap-1">
                   <Building2 className="h-3 w-3 text-blue-500" />
                   {connection.company}

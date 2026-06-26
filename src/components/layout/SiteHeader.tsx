@@ -12,15 +12,16 @@ import {
   CANDIDATE_FIND_CANDIDATES_PATH,
   CANDIDATE_FIND_RECRUITERS_PATH,
   CANDIDATE_JOBS_PATH,
+  RECRUITER_CONNECTIONS_PATH,
+  RECRUITER_DASHBOARD_PATH,
   RECRUITER_PROFILE_PATH,
+  getDashboardPath,
 } from "@/lib/auth/routes";
 import { useAccountType } from "@/lib/auth/use-account-type";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
 
-const appNavItems = [
-  { label: "Connect", href: CANDIDATE_CONNECTIONS_PATH, prefetch: false },
-  { label: "My Profile", href: "/my-profile" },
+const sharedNavItems = [
   { label: "Search for Jobs", href: CANDIDATE_JOBS_PATH, prefetch: false },
   {
     label: "Find Candidates",
@@ -32,7 +33,7 @@ const appNavItems = [
     href: CANDIDATE_FIND_RECRUITERS_PATH,
     prefetch: false,
   },
-];
+] as const;
 
 function AuthButtons({ onNavigate }: { onNavigate?: () => void }) {
   return (
@@ -115,6 +116,16 @@ export function SiteHeader() {
   const notificationRole =
     accountType === "recruiter" ? "recruiter" : "candidate";
   const accountTypeLoading = Boolean(user) && accountType === null;
+  const dashboardHref = getDashboardPath(accountType ?? "candidate");
+  const connectHref =
+    accountType === "recruiter"
+      ? RECRUITER_CONNECTIONS_PATH
+      : CANDIDATE_CONNECTIONS_PATH;
+  const appNavItems = [
+    { label: "Dashboard", href: dashboardHref, prefetch: true },
+    { label: "Connect", href: connectHref, prefetch: false },
+    ...sharedNavItems,
+  ];
 
   if (pathname !== lastPathname) {
     setLastPathname(pathname);
@@ -133,6 +144,14 @@ export function SiteHeader() {
   }
 
   function isActive(path: string) {
+    if (path === dashboardHref) {
+      return (
+        pathname === path ||
+        pathname.startsWith(`${path}/`) ||
+        (accountType === "recruiter" && pathname === "/recruiter")
+      );
+    }
+
     return pathname === path || pathname.startsWith(`${path}/`);
   }
 

@@ -731,6 +731,30 @@ export type Database = {
         };
         Relationships: [];
       };
+      recruiter_candidate_profile_views: {
+        Row: {
+          candidate_id: string;
+          first_viewed_at: string;
+          id: string;
+          last_viewed_at: string;
+          recruiter_id: string;
+        };
+        Insert: {
+          candidate_id: string;
+          first_viewed_at?: string;
+          id?: string;
+          last_viewed_at?: string;
+          recruiter_id: string;
+        };
+        Update: {
+          candidate_id?: string;
+          first_viewed_at?: string;
+          id?: string;
+          last_viewed_at?: string;
+          recruiter_id?: string;
+        };
+        Relationships: [];
+      };
       reference_passport_shares: {
         Row: {
           candidate_id: string;
@@ -1421,6 +1445,28 @@ export type Database = {
       get_recruiter_saved_count: {
         Args: Record<PropertyKey, never>;
         Returns: number;
+      };
+      get_recruiter_candidates_viewed_count: {
+        Args: Record<PropertyKey, never>;
+        Returns: number;
+      };
+      get_recruiter_dashboard_counts: {
+        Args: Record<PropertyKey, never>;
+        Returns: Json;
+      };
+      get_candidate_recruiter_profile_views_count: {
+        Args: Record<PropertyKey, never>;
+        Returns: number;
+      };
+      get_candidate_dashboard_counts: {
+        Args: Record<PropertyKey, never>;
+        Returns: Json;
+      };
+      record_recruiter_candidate_profile_view: {
+        Args: {
+          p_candidate_id: string;
+        };
+        Returns: undefined;
       };
       send_candidate_connection_request: {
         Args: {
