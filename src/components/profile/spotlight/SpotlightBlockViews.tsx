@@ -11,31 +11,35 @@ type BlockViewProps = {
 
 export function BioBlockView({ block }: BlockViewProps) {
   return (
-    <div className="relative pr-16">
+    <div className="relative min-w-0 pr-14 sm:pr-16">
       <h3 className="mb-3 text-sm font-semibold tracking-wide text-gray-500 uppercase">
         Bio / Introduction
       </h3>
-      <p className="text-base leading-relaxed text-gray-700">{block.text}</p>
+      <p className="text-base leading-relaxed break-words text-gray-700">
+        {block.text}
+      </p>
     </div>
   );
 }
 
 export function AchievementBlockView({ block }: BlockViewProps) {
   return (
-    <div>
+    <div className="min-w-0">
       <h3 className="mb-3 text-sm font-semibold tracking-wide text-gray-500 uppercase">
         My Standout Achievement
       </h3>
-      <div className="relative rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50 p-6 pr-16">
-        <div className="flex items-start gap-4">
-          <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-amber-100">
-            <Trophy className="h-6 w-6 text-amber-600" />
+      <div className="relative rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50 p-4 pr-14 sm:p-6 sm:pr-16">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:gap-4">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-100 sm:h-12 sm:w-12">
+            <Trophy className="h-5 w-5 text-amber-600 sm:h-6 sm:w-6" />
           </div>
-          <div>
-            <h4 className="mb-1 text-lg font-semibold text-gray-900">
+          <div className="min-w-0 flex-1">
+            <h4 className="mb-1 text-base font-semibold break-words text-gray-900 sm:text-lg">
               {block.title}
             </h4>
-            <p className="leading-relaxed text-gray-600">{block.text}</p>
+            <p className="leading-relaxed break-words text-gray-600">
+              {block.text}
+            </p>
           </div>
         </div>
       </div>
@@ -45,9 +49,9 @@ export function AchievementBlockView({ block }: BlockViewProps) {
 
 export function QuoteBlockView({ block }: BlockViewProps) {
   return (
-    <div className="relative border-l-4 border-purple-400 py-2 pl-6 pr-16">
+    <div className="relative min-w-0 border-l-4 border-purple-400 py-2 pr-14 pl-6 sm:pr-16">
       <Quote className="mb-2 h-8 w-8 text-purple-200" />
-      <p className="text-xl leading-relaxed font-medium text-gray-800 italic">
+      <p className="text-lg leading-relaxed font-medium break-words text-gray-800 italic sm:text-xl">
         &ldquo;{block.text}&rdquo;
       </p>
     </div>
@@ -56,7 +60,7 @@ export function QuoteBlockView({ block }: BlockViewProps) {
 
 export function PassionsBlockView({ block }: BlockViewProps) {
   return (
-    <div className="relative pr-16">
+    <div className="relative min-w-0 pr-14 sm:pr-16">
       <div className="mb-3 flex items-center gap-2">
         <Flame className="h-4 w-4 text-rose-500" />
         <span className="text-sm font-semibold text-gray-700">

@@ -149,6 +149,7 @@ export type Database = {
           headline: string | null;
           id: string;
           industry_category_id: string | null;
+          invited_by_recruiter_id: string | null;
           is_profile_complete: boolean;
           job_title_id: string | null;
           linkedin_import_data: Json | null;
@@ -180,6 +181,7 @@ export type Database = {
           headline?: string | null;
           id?: string;
           industry_category_id?: string | null;
+          invited_by_recruiter_id?: string | null;
           is_profile_complete?: boolean;
           job_title_id?: string | null;
           linkedin_import_data?: Json | null;
@@ -211,6 +213,7 @@ export type Database = {
           headline?: string | null;
           id?: string;
           industry_category_id?: string | null;
+          invited_by_recruiter_id?: string | null;
           is_profile_complete?: boolean;
           job_title_id?: string | null;
           linkedin_import_data?: Json | null;
@@ -1025,6 +1028,36 @@ export type Database = {
         };
         Relationships: [];
       };
+      contact_submissions: {
+        Row: {
+          client_ip: string | null;
+          created_at: string;
+          email: string;
+          id: string;
+          message: string;
+          name: string;
+          subject: string;
+        };
+        Insert: {
+          client_ip?: string | null;
+          created_at?: string;
+          email: string;
+          id?: string;
+          message: string;
+          name: string;
+          subject: string;
+        };
+        Update: {
+          client_ip?: string | null;
+          created_at?: string;
+          email?: string;
+          id?: string;
+          message?: string;
+          name?: string;
+          subject?: string;
+        };
+        Relationships: [];
+      };
       connections: {
         Row: {
           connected_at: string | null;
@@ -1327,6 +1360,18 @@ export type Database = {
       get_candidate_peer_profile: {
         Args: {
           p_vodora_id: string;
+        };
+        Returns: Json;
+      };
+      get_recruiter_profile_for_candidate: {
+        Args: {
+          p_recruiter_id: string;
+        };
+        Returns: Json;
+      };
+      get_candidate_recruiter_connection_status: {
+        Args: {
+          p_recruiter_id: string;
         };
         Returns: Json;
       };

@@ -9,6 +9,8 @@ type ReferenceRequestEmailParams = {
   refereeCompany: string;
   relationshipLabel: string;
   message?: string | null;
+  recruiterName?: string | null;
+  recruiterCompany?: string | null;
 };
 
 export function buildReferenceRequestHtml({
@@ -19,6 +21,8 @@ export function buildReferenceRequestHtml({
   refereeCompany,
   relationshipLabel,
   message,
+  recruiterName,
+  recruiterCompany,
 }: ReferenceRequestEmailParams): string {
   const personalMessage = message?.trim()
     ? `<div style="margin:20px 0 0;padding:20px 24px;background-color:#f9fafb;border-left:4px solid #2563eb;border-radius:8px;">
@@ -26,6 +30,10 @@ export function buildReferenceRequestHtml({
         <p style="margin:0;font-size:14px;line-height:1.7;color:#374151;">${escapeHtml(message.trim())}</p>
       </div>`
     : "";
+
+  const requestIntro = recruiterName?.trim()
+    ? `<strong>${escapeHtml(recruiterName.trim())}</strong>${recruiterCompany?.trim() ? ` at <strong>${escapeHtml(recruiterCompany.trim())}</strong>` : ""} is collecting a professional reference on behalf of <strong>${escapeHtml(candidateName)}</strong> on Vodora.`
+    : `<strong>${escapeHtml(candidateName)}</strong> has requested a professional reference from you on Vodora.`;
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -52,7 +60,7 @@ export function buildReferenceRequestHtml({
                 Hi ${escapeHtml(refereeName)},
               </p>
               <p style="margin:0 0 24px;font-size:15px;line-height:1.6;color:#4b5563;">
-                <strong>${escapeHtml(candidateName)}</strong> has requested a professional reference from you on Vodora.
+                ${requestIntro}
               </p>
             </td>
           </tr>
@@ -103,14 +111,20 @@ export function buildReferenceRequestText({
   refereeCompany,
   relationshipLabel,
   message,
+  recruiterName,
+  recruiterCompany,
 }: ReferenceRequestEmailParams): string {
   const personalMessage = message?.trim()
     ? `\nPersonal message from ${candidateName}:\n${message.trim()}\n`
     : "";
 
+  const requestIntroText = recruiterName?.trim()
+    ? `${recruiterName.trim()}${recruiterCompany?.trim() ? ` at ${recruiterCompany.trim()}` : ""} is collecting a professional reference on behalf of ${candidateName} on Vodora.`
+    : `${candidateName} has requested a professional reference from you on Vodora.`;
+
   return `Hi ${refereeName},
 
-${candidateName} has requested a professional reference from you on Vodora.
+${requestIntroText}
 
 Your role: ${relationshipLabel} at ${refereeCompany}
 ${personalMessage}

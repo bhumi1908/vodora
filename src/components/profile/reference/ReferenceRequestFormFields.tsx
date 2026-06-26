@@ -84,6 +84,7 @@ export function ReferenceRequestFormFields({
           value={form.email}
           onChange={(event) => onFieldChange("email", event.target.value)}
           placeholder="john@company.com"
+          hint="Must be a company email address"
           error={errors.email}
         />
         <FormField
@@ -175,27 +176,6 @@ export function ReferenceRequestFormFields({
         placeholder="Add a personal message to include in the reference request email..."
         rows={4}
       />
-
-      <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-gray-200 bg-gray-50 p-4">
-        <input
-          type="checkbox"
-          checked={form.requireCompanyEmail}
-          onChange={(event) =>
-            onFieldChange("requireCompanyEmail", event.target.checked)
-          }
-          className="mt-0.5 h-4 w-4 shrink-0 rounded text-blue-600"
-        />
-        <span className="text-sm text-gray-700">
-          <span className="font-medium text-gray-900">
-            Referee has a company email address
-          </span>
-          <span className="mt-1 block text-gray-600">
-            When enabled, references from company email domains are verified
-            automatically after submission. Turn off for testing with personal
-            inboxes such as YOPmail.
-          </span>
-        </span>
-      </label>
     </div>
   );
 }

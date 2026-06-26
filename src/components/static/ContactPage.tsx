@@ -5,6 +5,7 @@ import { FormEvent, useState } from "react";
 
 import {
   AuthSubmitButton,
+  FormError,
   FormField,
   FormSelect,
   FormSuccess,
@@ -21,6 +22,7 @@ import {
   type ContactFieldErrors,
   type ContactFormData,
 } from "@/lib/contact/validation";
+import type { ContactApiResponse } from "@/lib/contact/contact-api.types";
 import { hasFieldErrors } from "@/lib/form/field-errors";
 
 const subjectOptions = [
@@ -38,11 +40,17 @@ const initialData: ContactFormData = {
   message: "",
 };
 
-export function ContactPage() {
+type ContactPageProps = {
+  contactEmails?: string[];
+};
+
+export function ContactPage({ contactEmails = [] }: ContactPageProps) {
   const [formData, setFormData] = useState<ContactFormData>(initialData);
   const { errors, setErrors, clearField } =
     useFieldErrors<keyof ContactFieldErrors>();
   const [successMessage, setSuccessMessage] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   function updateField<K extends keyof ContactFormData>(
     field: K,
@@ -51,11 +59,13 @@ export function ContactPage() {
     setFormData((prev) => ({ ...prev, [field]: value }));
     clearField(field);
     setSuccessMessage("");
+    setSubmitError("");
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSuccessMessage("");
+    setSubmitError("");
 
     const fieldErrors = getContactFieldErrors(formData);
 
@@ -64,9 +74,36 @@ export function ContactPage() {
       return;
     }
 
-    setErrors({});
-    setSuccessMessage("Thanks for reaching out. We'll get back to you soon.");
-    setFormData(initialData);
+    setSubmitting(true);
+
+    try {
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      const data = (await response.json()) as ContactApiResponse;
+
+      if (!response.ok) {
+        if (data.fieldErrors && hasFieldErrors(data.fieldErrors)) {
+          setErrors(data.fieldErrors);
+        }
+
+        setSubmitError(
+          data.error ?? "Something went wrong. Please try again.",
+        );
+        return;
+      }
+
+      setErrors({});
+      setSuccessMessage("Thanks for reaching out. We'll get back to you soon.");
+      setFormData(initialData);
+    } catch {
+      setSubmitError("Something went wrong. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -82,6 +119,8 @@ export function ContactPage() {
           {successMessage ? (
             <FormSuccess title="Message sent" message={successMessage} />
           ) : null}
+
+          {submitError ? <FormError message={submitError} /> : null}
 
           <FormField
             id="contact-name"
@@ -121,15 +160,19 @@ export function ContactPage() {
             placeholder="How can we help?"
             error={errors.message}
           />
-          <AuthSubmitButton>Send Message</AuthSubmitButton>
+          <AuthSubmitButton disabled={submitting}>
+            {submitting ? "Sending..." : "Send Message"}
+          </AuthSubmitButton>
         </form>
 
         <div className="space-y-8">
-          <ContactInfoItem
-            icon={Mail}
-            title="Email"
-            lines={["hello@vodora.com", "support@vodora.com"]}
-          />
+          {contactEmails.length > 0 ? (
+            <ContactInfoItem
+              icon={Mail}
+              title="Email"
+              lines={contactEmails}
+            />
+          ) : null}
           <ContactInfoItem
             icon={MessageSquare}
             title="Live Chat"

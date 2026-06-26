@@ -3,6 +3,8 @@ export const referenceKeys = {
   list: () => [...referenceKeys.all, "list"] as const,
   recruiter: (vodoraId: string) =>
     [...referenceKeys.all, "recruiter", vodoraId] as const,
+  recruiterHistory: () =>
+    [...referenceKeys.all, "recruiter-history"] as const,
   shares: () => [...referenceKeys.all, "shares"] as const,
   grants: () => [...referenceKeys.all, "grants"] as const,
   shareLink: (token: string) =>

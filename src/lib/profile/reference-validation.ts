@@ -1,3 +1,4 @@
+import { isPersonalEmail } from "@/lib/auth/validation";
 import { type FieldErrors, firstFieldError, hasFieldErrors } from "@/lib/form/field-errors";
 import {
   isMonthRangeInvalid,
@@ -21,6 +22,13 @@ import {
 } from "@/lib/references/written-reference-assessment";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const REFEREE_COMPANY_EMAIL_ERROR =
+  "Please use a company email address. Personal providers such as Gmail and Yahoo are not allowed.";
+
+export type RecruiterReferenceCollectionCandidateFieldErrors = FieldErrors<
+  "name" | "title" | "company" | "email"
+>;
 
 export type ReferenceFieldErrors = FieldErrors<keyof RequestReferenceFormData>;
 
@@ -83,6 +91,8 @@ export function getReferenceFieldErrors(
     errors.email = "Email is required.";
   } else if (!EMAIL_PATTERN.test(input.email.trim())) {
     errors.email = "Enter a valid email address.";
+  } else if (isPersonalEmail(input.email)) {
+    errors.email = REFEREE_COMPANY_EMAIL_ERROR;
   }
 
   if (!input.relationship) {
@@ -115,6 +125,37 @@ export function getReferenceFieldErrors(
     isMonthRangeInvalid(input.employmentStart, input.employmentEnd)
   ) {
     errors.employmentEnd = "End date must be on or after the start date.";
+  }
+
+  return errors;
+}
+
+export function getRecruiterReferenceCollectionCandidateFieldErrors(input: {
+  name?: string;
+  title?: string;
+  company?: string;
+  email?: string;
+}): RecruiterReferenceCollectionCandidateFieldErrors {
+  const errors: RecruiterReferenceCollectionCandidateFieldErrors = {};
+
+  if (!input.name?.trim()) {
+    errors.name = "Candidate name is required.";
+  } else if (input.name.trim().length < 2) {
+    errors.name = "Enter the candidate's full name.";
+  }
+
+  if (!input.title?.trim()) {
+    errors.title = "Job title is required.";
+  }
+
+  if (!input.company?.trim()) {
+    errors.company = "Company is required.";
+  }
+
+  if (!input.email?.trim()) {
+    errors.email = "Candidate email is required.";
+  } else if (!EMAIL_PATTERN.test(input.email.trim())) {
+    errors.email = "Enter a valid email address.";
   }
 
   return errors;
@@ -230,6 +271,8 @@ export type ReferenceRequestInsertContext = {
   candidateId: string;
   userId: string;
   recruiterId?: string;
+  recruiterName?: string;
+  recruiterCompany?: string | null;
 };
 
 export function mapReferenceRequestToInsert(
@@ -257,7 +300,7 @@ export function mapReferenceRequestToInsert(
     employment_end: parseOptionalMonth(input.employmentEnd),
     reference_type: input.referenceType,
     candidate_message: input.message.trim() || null,
-    require_company_email: input.requireCompanyEmail,
+    require_company_email: true,
     employment_history_id: input.employmentHistoryId.trim() || null,
   };
 }

@@ -29,7 +29,7 @@ export function ProfileExperienceSection({
                   <div className="mt-2 mb-2 w-0.5 flex-1 bg-gray-100" />
                 ) : null}
               </div>
-              <div className="flex-1 pb-2">
+              <div className="min-w-0 flex-1 pb-2">
                 <h3 className="font-semibold text-gray-900">{entry.title}</h3>
                 <p className="text-sm text-gray-600">{entry.company}</p>
                 <p className="mb-2 text-xs text-gray-400">{entry.period}</p>

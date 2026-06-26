@@ -4,6 +4,7 @@ import {
   cancelCandidateReference,
   fetchCandidateReferences,
   fetchRecruiterCandidateReferences,
+  fetchRecruiterReferenceHistory,
 } from "@/lib/query/reference-fetchers";
 import {
   createReferencePassportShare,
@@ -41,6 +42,16 @@ export function useRecruiterCandidateReferencesQuery(
     queryFn: () => fetchRecruiterCandidateReferences(vodoraId ?? ""),
     staleTime: STALE_TIME_MS,
     enabled: enabled && Boolean(vodoraId),
+    placeholderData: (previous) => previous,
+  });
+}
+
+export function useRecruiterReferenceHistoryQuery(enabled = true) {
+  return useQuery({
+    queryKey: referenceKeys.recruiterHistory(),
+    queryFn: fetchRecruiterReferenceHistory,
+    staleTime: STALE_TIME_MS,
+    enabled,
     placeholderData: (previous) => previous,
   });
 }

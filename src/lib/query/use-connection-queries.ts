@@ -4,6 +4,7 @@ import type { ConnectionTab } from "@/lib/connections/connection.types";
 import {
   fetchCandidateConnectionList,
   fetchCandidatePeerConnectionStatus,
+  fetchCandidateRecruiterConnectionStatus,
   fetchConnectionCounts,
   fetchRecruiterCandidateConnectionStatus,
   fetchRecruiterConnectionList,
@@ -65,6 +66,17 @@ export function useCandidatePeerConnectionStatusQuery(
     queryKey: connectionKeys.peerProfileStatus(candidateId ?? ""),
     queryFn: () => fetchCandidatePeerConnectionStatus(candidateId!),
     enabled: Boolean(candidateId) && enabled,
+  });
+}
+
+export function useCandidateRecruiterConnectionStatusQuery(
+  recruiterId: string | null,
+  enabled = true,
+) {
+  return useQuery({
+    queryKey: connectionKeys.recruiterProfileStatus(recruiterId ?? ""),
+    queryFn: () => fetchCandidateRecruiterConnectionStatus(recruiterId!),
+    enabled: Boolean(recruiterId) && enabled,
   });
 }
 

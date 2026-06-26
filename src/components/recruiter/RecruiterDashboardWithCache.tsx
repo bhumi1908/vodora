@@ -12,11 +12,13 @@ const DASHBOARD_STALE_TIME = 60_000;
 type RecruiterDashboardWithCacheProps = {
   initialData: RecruiterDashboardData;
   initialDataUpdatedAt?: number;
+  recruiterUserId: string;
 };
 
 export function RecruiterDashboardWithCache({
   initialData,
   initialDataUpdatedAt,
+  recruiterUserId,
 }: RecruiterDashboardWithCacheProps) {
   const { data } = useQuery({
     queryKey: recruiterKeys.dashboard(),
@@ -30,5 +32,5 @@ export function RecruiterDashboardWithCache({
     return null;
   }
 
-  return <RecruiterDashboard data={data} />;
+  return <RecruiterDashboard data={data} recruiterUserId={recruiterUserId} />;
 }

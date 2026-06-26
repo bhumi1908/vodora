@@ -71,8 +71,14 @@ export async function POST(request: Request) {
     );
   }
 
+  const loginParams = new URLSearchParams({ reset: "1" });
+
+  if (result.email) {
+    loginParams.set("email", result.email);
+  }
+
   return NextResponse.json({
     success: true,
-    redirectTo: "/login",
+    redirectTo: `/login?${loginParams.toString()}`,
   } satisfies ResetPasswordApiResponse);
 }

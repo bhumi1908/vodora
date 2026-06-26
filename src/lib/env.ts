@@ -19,6 +19,9 @@ export const env = {
   SMTP_PASS: process.env.SMTP_PASS ?? "",
   SMTP_FROM_EMAIL: process.env.SMTP_FROM_EMAIL ?? "",
   SMTP_FROM_NAME: process.env.SMTP_FROM_NAME ?? "Vodora",
+  CONTACT_INBOX_EMAIL: process.env.CONTACT_INBOX_EMAIL ?? "",
+  CONTACT_HELLO_EMAIL: process.env.CONTACT_HELLO_EMAIL ?? "",
+  CONTACT_SUPPORT_EMAIL: process.env.CONTACT_SUPPORT_EMAIL ?? "",
 } as const;
 
 export function validateEnv(): void {

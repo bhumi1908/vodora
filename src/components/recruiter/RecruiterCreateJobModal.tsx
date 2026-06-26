@@ -10,6 +10,7 @@ import {
   FormTextarea,
 } from "@/components/auth/shared/FormFields";
 import { Modal } from "@/components/ui/Modal";
+import { useSessionFormDraft } from "@/hooks/useSessionFormDraft";
 import { parseTextList } from "@/lib/jobs/format-job-posting";
 import { JOB_POSTING_CATEGORIES } from "@/lib/jobs/job-board-options";
 import { showJobCreatedSuccessToast } from "@/lib/jobs/job-toast";
@@ -22,13 +23,21 @@ import type {
   CreateJobPostingPayload,
   WorkTypeOption,
 } from "@/lib/jobs/recruiter-jobs.types";
+import { buildSessionFormDraftKey } from "@/lib/form/session-form-draft";
 import { useCreateRecruiterJobMutation } from "@/lib/query/use-job-queries";
 
 type RecruiterCreateJobModalProps = {
   open: boolean;
   onClose: () => void;
   defaultCompanyName: string;
+  recruiterUserId: string;
   workTypes: WorkTypeOption[];
+};
+
+type CreateJobDraft = {
+  form: CreateJobPostingPayload;
+  responsibilitiesText: string;
+  requirementsText: string;
 };
 
 const EMPTY_FORM: CreateJobPostingPayload = {
@@ -45,10 +54,23 @@ const EMPTY_FORM: CreateJobPostingPayload = {
   publish: true,
 };
 
+function isCreateJobDraftEmpty(draft: CreateJobDraft): boolean {
+  return (
+    !draft.form.title.trim() &&
+    !draft.form.location.trim() &&
+    !draft.form.salaryDisplay.trim() &&
+    !draft.form.description.trim() &&
+    !draft.responsibilitiesText.trim() &&
+    !draft.requirementsText.trim() &&
+    !draft.form.isUrgent
+  );
+}
+
 export function RecruiterCreateJobModal({
   open,
   onClose,
   defaultCompanyName,
+  recruiterUserId,
   workTypes,
 }: RecruiterCreateJobModalProps) {
   const createMutation = useCreateRecruiterJobMutation();
@@ -59,6 +81,20 @@ export function RecruiterCreateJobModal({
     {},
   );
   const [error, setError] = useState("");
+  const draftData: CreateJobDraft = {
+    form,
+    responsibilitiesText,
+    requirementsText,
+  };
+  const { restoreDraft, clearDraft, markHydrated } = useSessionFormDraft({
+    storageKey: buildSessionFormDraftKey(
+      "recruiter-create-job",
+      recruiterUserId,
+    ),
+    data: draftData,
+    enabled: open,
+    isEmpty: isCreateJobDraftEmpty,
+  });
 
   const initialForm = useMemo(
     () => ({
@@ -70,14 +106,26 @@ export function RecruiterCreateJobModal({
   );
 
   useEffect(() => {
-    if (open) {
+    if (!open) {
+      return;
+    }
+
+    const draft = restoreDraft();
+
+    if (draft) {
+      setForm(draft.form);
+      setResponsibilitiesText(draft.responsibilitiesText);
+      setRequirementsText(draft.requirementsText);
+    } else {
       setForm(initialForm);
       setResponsibilitiesText("");
       setRequirementsText("");
-      setFieldErrors({});
-      setError("");
     }
-  }, [open, initialForm]);
+
+    setFieldErrors({});
+    setError("");
+    markHydrated();
+  }, [initialForm, markHydrated, open, restoreDraft]);
 
   function handleClose() {
     onClose();
@@ -122,6 +170,7 @@ export function RecruiterCreateJobModal({
       }
 
       showJobCreatedSuccessToast();
+      clearDraft();
       handleClose();
     } catch {
       setError("Could not create job posting.");

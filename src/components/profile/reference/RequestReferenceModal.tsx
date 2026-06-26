@@ -14,6 +14,7 @@ type EmploymentHistoryOption = {
 
 type RequestReferenceModalProps = {
   open: boolean;
+  candidateUserId: string;
   onClose: () => void;
   onSubmitted?: (data: RequestReferenceFormData) => void;
   employmentHistoryOptions?: EmploymentHistoryOption[];
@@ -109,6 +110,7 @@ function RequestSentSuccess({
 
 export function RequestReferenceModal({
   open,
+  candidateUserId,
   onClose,
   onSubmitted,
   employmentHistoryOptions = [],
@@ -161,6 +163,7 @@ export function RequestReferenceModal({
         <RequestSentSuccess data={submittedData} />
       ) : (
         <RequestReferenceForm
+          candidateUserId={candidateUserId}
           onCancel={handleClose}
           onSubmitted={handleSubmitted}
           employmentHistoryOptions={employmentHistoryOptions}

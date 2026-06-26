@@ -1,4 +1,5 @@
 import type { CandidateReferenceItem } from "@/lib/references/fetch-candidate-references";
+import type { RecruiterInitiatedReferenceItem } from "@/lib/references/fetch-recruiter-initiated-references";
 
 type CandidateReferencesResponse = {
   success: boolean;
@@ -46,6 +47,25 @@ export async function fetchRecruiterCandidateReferences(
 
   if (!response.ok || !result.success) {
     throw new Error(result.error ?? "Unable to load references.");
+  }
+
+  return result.references ?? [];
+}
+
+type RecruiterReferenceHistoryResponse = {
+  success: boolean;
+  error?: string;
+  references?: RecruiterInitiatedReferenceItem[];
+};
+
+export async function fetchRecruiterReferenceHistory(): Promise<
+  RecruiterInitiatedReferenceItem[]
+> {
+  const response = await fetch("/api/recruiter/references");
+  const result = (await response.json()) as RecruiterReferenceHistoryResponse;
+
+  if (!response.ok || !result.success) {
+    throw new Error(result.error ?? "Unable to load reference history.");
   }
 
   return result.references ?? [];

@@ -59,6 +59,12 @@ export type SignupApiResponse = {
   email?: string;
   redirectTo?: string;
   error?: string;
+  code?:
+    | "email_already_registered"
+    | "invited_reference_stub"
+    | "recruiter_account";
+  recruiterName?: string;
+  companyName?: string;
 };
 
 export type ResendVerificationApiResponse = {

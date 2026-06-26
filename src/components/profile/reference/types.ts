@@ -39,7 +39,7 @@ export type RequestReferenceFormData = {
   employmentEnd: string;
   referenceType: ReferenceType;
   message: string;
-  /** When true (default), auto-verify requires a company email domain. */
+  /** Always true; kept for draft compatibility. Company email is required at validation. */
   requireCompanyEmail: boolean;
   employmentHistoryId: string;
 };

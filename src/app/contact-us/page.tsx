@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { ContactPage } from "@/components/static/ContactPage";
+import { getContactDisplayEmails } from "@/lib/contact/contact-emails";
 
 export const metadata: Metadata = {
   title: "Contact Us — Vodora",
@@ -8,5 +9,7 @@ export const metadata: Metadata = {
 };
 
 export default function ContactRoute() {
-  return <ContactPage />;
+  const contactEmails = getContactDisplayEmails();
+
+  return <ContactPage contactEmails={contactEmails} />;
 }

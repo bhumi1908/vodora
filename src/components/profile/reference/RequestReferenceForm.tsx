@@ -1,7 +1,7 @@
 "use client";
 
 import { Mail } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { FormError } from "@/components/auth/shared/FormFields";
 import { ReferenceRequestFormFields } from "@/components/profile/reference/ReferenceRequestFormFields";
@@ -10,7 +10,12 @@ import {
   type RequestReferenceFormData,
 } from "@/components/profile/reference/types";
 import { useFieldErrors } from "@/hooks/useFieldErrors";
+import { useSessionFormDraft } from "@/hooks/useSessionFormDraft";
 import { hasFieldErrors } from "@/lib/form/field-errors";
+import {
+  buildSessionFormDraftKey,
+  isRecordEqualToEmpty,
+} from "@/lib/form/session-form-draft";
 import {
   getReferenceFieldErrors,
   type ReferenceFieldErrors,
@@ -27,6 +32,7 @@ type EmploymentHistoryOption = {
 };
 
 type RequestReferenceFormProps = {
+  candidateUserId: string;
   onCancel?: () => void;
   onSubmitted?: (data: RequestReferenceFormData) => void;
   showActions?: boolean;
@@ -34,17 +40,37 @@ type RequestReferenceFormProps = {
 };
 
 export function RequestReferenceForm({
+  candidateUserId,
   onCancel,
   onSubmitted,
   showActions = true,
   employmentHistoryOptions = [],
 }: RequestReferenceFormProps) {
   const [form, setForm] = useState(createEmptyReferenceRequest);
+  const { restoreDraft, clearDraft, markHydrated } = useSessionFormDraft({
+    storageKey: buildSessionFormDraftKey(
+      "candidate-request-reference",
+      candidateUserId,
+    ),
+    data: form,
+    isEmpty: (data) =>
+      isRecordEqualToEmpty(data, createEmptyReferenceRequest()),
+  });
   const { errors, setErrors, clearField } =
     useFieldErrors<keyof ReferenceFieldErrors>();
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const invalidateReferences = useInvalidateCandidateReferences();
+
+  useEffect(() => {
+    const draft = restoreDraft();
+
+    if (draft) {
+      setForm(draft);
+    }
+
+    markHydrated();
+  }, [candidateUserId, markHydrated, restoreDraft]);
 
   function updateField<K extends keyof RequestReferenceFormData>(
     field: K,
@@ -94,6 +120,7 @@ export function RequestReferenceForm({
 
       showReferenceRequestSentToast(form.name);
       invalidateReferences();
+      clearDraft();
       onSubmitted?.(form);
       setForm(createEmptyReferenceRequest());
     } catch {

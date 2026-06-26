@@ -164,18 +164,22 @@ export function SpotlightSection({
 
   return (
     <div className="mb-4 overflow-hidden rounded-xl border border-gray-200 bg-white">
-      <div className="flex items-center justify-between border-b border-gray-100 px-4 py-4 sm:px-6">
-        <div className="flex items-center gap-2">
-          <div className="h-2 w-2 rounded-full bg-blue-500" />
-          <h2 className="font-semibold text-gray-900">Personal Spotlight</h2>
-          <span className="ml-1 text-xs text-gray-400">— Your story, your way</span>
+      <div className="flex flex-col gap-3 border-b border-gray-100 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+            <div className="flex items-center gap-2">
+              <div className="h-2 w-2 shrink-0 rounded-full bg-blue-500" />
+              <h2 className="font-semibold text-gray-900">Personal Spotlight</h2>
+            </div>
+            <span className="text-xs text-gray-400">— Your story, your way</span>
+          </div>
         </div>
         {editable ? (
           <button
             type="button"
             onClick={() => setShowPicker(true)}
             disabled={saveMutation.isPending}
-            className="flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-600 transition-colors hover:bg-blue-100 disabled:opacity-50"
+            className="flex shrink-0 items-center gap-1.5 self-start rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-600 transition-colors hover:bg-blue-100 disabled:opacity-50 sm:self-auto"
           >
             <Plus className="h-3.5 w-3.5" />
             Add Block
@@ -214,7 +218,10 @@ export function SpotlightSection({
         ) : null}
 
         {blocks.map((block) => (
-          <div key={block.id} className="group relative">
+          <div
+            key={block.id}
+            className={`group relative ${editable ? "pt-10 sm:pt-0" : ""}`}
+          >
             {editable ? (
               <div className="absolute top-1/2 -left-4 flex -translate-y-1/2 flex-col items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
                 <GripVertical className="h-4 w-4 text-gray-300" aria-hidden="true" />

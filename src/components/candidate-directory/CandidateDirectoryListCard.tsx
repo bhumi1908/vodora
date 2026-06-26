@@ -1,7 +1,7 @@
 "use client";
 
 import { CheckCircle, Clock, MapPin, Shield } from "lucide-react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 import { CandidatePeerConnectButton } from "@/components/candidate-directory/CandidatePeerConnectButton";
 import { CandidateSaveButton } from "@/components/recruiter/CandidateSaveButton";
@@ -65,12 +65,24 @@ type CandidateDirectoryListCardProps = {
   onConnect?: (candidate: CandidatePeerSearchCandidate) => void;
 };
 
+function navigateOnCardActivation(
+  router: ReturnType<typeof useRouter>,
+  href: string,
+  event: React.KeyboardEvent,
+) {
+  if (event.key === "Enter" || event.key === " ") {
+    event.preventDefault();
+    router.push(href);
+  }
+}
+
 function CandidateDirectoryListCard({
   candidate,
   variant,
   onSavedChange,
   onConnect,
 }: CandidateDirectoryListCardProps) {
+  const router = useRouter();
   const fullName = `${candidate.firstName} ${candidate.lastName}`.trim();
   const location = formatLocation(candidate.city, candidate.country);
   const availability = formatCandidateAvailability(
@@ -82,9 +94,19 @@ function CandidateDirectoryListCard({
   const initials = getInitials(candidate.firstName, candidate.lastName);
   const peerCandidate =
     variant === "peer" ? (candidate as CandidatePeerSearchCandidate) : null;
+  const profilePath =
+    variant === "recruiter"
+      ? getRecruiterCandidateProfilePath(candidate.vodoraId)
+      : getCandidatePeerProfilePath(candidate.vodoraId);
 
   return (
-    <article className="rounded-2xl border border-gray-200 bg-white p-5 transition-shadow hover:shadow-md">
+    <article
+      role="link"
+      tabIndex={0}
+      onClick={() => router.push(profilePath)}
+      onKeyDown={(event) => navigateOnCardActivation(router, profilePath, event)}
+      className="cursor-pointer rounded-2xl border border-gray-200 bg-white p-5 transition-shadow hover:shadow-md"
+    >
       <div className="flex items-start gap-4">
         <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-blue-100 to-blue-200">
           {candidate.profilePictureUrl ? (
@@ -135,35 +157,22 @@ function CandidateDirectoryListCard({
               </div>
             </div>
 
-            <div className="flex shrink-0 items-center gap-2">
+            <div
+              className="flex shrink-0 items-center gap-2"
+              onClick={(event) => event.stopPropagation()}
+            >
               {variant === "recruiter" ? (
-                <>
-                  <CandidateSaveButton
-                    candidateId={candidate.id}
-                    initialSaved={"isSaved" in candidate ? candidate.isSaved : false}
-                    candidateName={fullName}
-                    onSavedChange={onSavedChange}
-                  />
-                  <Link
-                    href={getRecruiterCandidateProfilePath(candidate.vodoraId)}
-                    className="rounded-lg bg-blue-600 px-4 py-1.5 text-sm font-medium text-white transition-colors hover:bg-blue-700"
-                  >
-                    View Profile
-                  </Link>
-                </>
+                <CandidateSaveButton
+                  candidateId={candidate.id}
+                  initialSaved={"isSaved" in candidate ? candidate.isSaved : false}
+                  candidateName={fullName}
+                  onSavedChange={onSavedChange}
+                />
               ) : peerCandidate && onConnect ? (
-                <>
-                  <CandidatePeerConnectButton
-                    candidate={peerCandidate}
-                    onConnect={onConnect}
-                  />
-                  <Link
-                    href={getCandidatePeerProfilePath(candidate.vodoraId)}
-                    className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-1.5 text-sm font-medium text-blue-700 transition-colors hover:bg-blue-100"
-                  >
-                    View Profile
-                  </Link>
-                </>
+                <CandidatePeerConnectButton
+                  candidate={peerCandidate}
+                  onConnect={onConnect}
+                />
               ) : null}
             </div>
           </div>

@@ -90,6 +90,12 @@ export const AUTH_FORGOT_PASSWORD_EMAIL_RATE_LIMIT: RateLimitConfig = {
   windowMs: 60 * 60 * 1000,
 };
 
+export const CONTACT_IP_RATE_LIMIT: RateLimitConfig = {
+  name: "contact-ip",
+  limit: 3,
+  windowMs: 60 * 60 * 1000,
+};
+
 export function createRateLimitResponse(retryAfterSeconds: number): Response {
   return Response.json(
     {
