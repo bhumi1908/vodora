@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
+import { ReferenceProfileSetupEmailPanel } from "@/components/profile/reference/ReferenceProfileSetupEmailPanel";
 import type { ReferenceResponseFormData } from "@/components/profile/reference/types";
 import {
   formatReferenceId,
@@ -24,8 +25,9 @@ type ReferenceRespondSuccessProps = {
   responseId: string;
   form: ReferenceResponseFormData;
   invitation: ReferenceInvitationDetails;
-  status: "verified" | "submitted";
+  status: "verified" | "submitted" | "rejected";
   welcomeRedirectTo?: string;
+  profileSetupRequested?: boolean;
 };
 
 export function ReferenceRespondSuccess({
@@ -34,7 +36,14 @@ export function ReferenceRespondSuccess({
   invitation,
   status,
   welcomeRedirectTo,
+  profileSetupRequested,
 }: ReferenceRespondSuccessProps) {
+  const showProfileSetupPanel =
+    profileSetupRequested && !welcomeRedirectTo;
+  const recipientName =
+    form.signatureName.trim() ||
+    invitation.refereeName.trim().split(/\s+/)[0] ||
+    "there";
   const summary = WRITTEN_REFERENCE_SUMMARY_FIELDS.map(({ id, label }) => {
     const question = getWrittenAssessmentQuestion(id);
     const rawValue = form.writtenAssessmentAnswers[id] ?? "";
@@ -62,18 +71,29 @@ export function ReferenceRespondSuccess({
 
   const refId = formatReferenceId(responseId);
 
+  const isRejection = status === "rejected";
+
   return (
     <div className="mx-auto max-w-2xl px-4 py-8 sm:py-12">
       <div className="mb-10 text-center">
-        <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-green-100">
-          <CheckCircle className="h-10 w-10 text-green-600" />
+        <div
+          className={`mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full ${
+            isRejection ? "bg-amber-100" : "bg-green-100"
+          }`}
+        >
+          <CheckCircle
+            className={`h-10 w-10 ${isRejection ? "text-amber-600" : "text-green-600"}`}
+          />
         </div>
         <h1 className="mb-2 text-2xl font-semibold text-gray-900 sm:text-3xl">
-          Reference Submitted Successfully
+          {isRejection
+            ? "Response Recorded"
+            : "Reference Submitted Successfully"}
         </h1>
         <p className="text-sm text-gray-500 sm:text-base">
-          Thank you for verifying {invitation.candidateName}. Your reference has
-          been securely recorded.
+          {isRejection
+            ? `You indicated you did not work with ${invitation.candidateName}. Your response has been securely recorded.`
+            : `Thank you for verifying ${invitation.candidateName}. Your reference has been securely recorded.`}
         </p>
         {status === "submitted" ? (
           <p className="mt-2 text-xs text-amber-700">
@@ -90,14 +110,24 @@ export function ReferenceRespondSuccess({
             { icon: CheckCircle, text: "Time stamped", detail: timeStr },
             { icon: CheckCircle, text: "Date stamped", detail: dateStr },
             { icon: Lock, text: "Locked from editing", detail: "Immutable record" },
-            {
-              icon: Shield,
-              text: "Attached to the candidate's Vodora Trust Profile",
-              detail: invitation.candidateName,
-            },
+            isRejection
+              ? {
+                  icon: Shield,
+                  text: "Recorded against the reference request",
+                  detail: invitation.candidateName,
+                }
+              : {
+                  icon: Shield,
+                  text: "Attached to the candidate's Vodora Trust Profile",
+                  detail: invitation.candidateName,
+                },
           ].map(({ icon: Icon, text, detail }) => (
             <div key={text} className="flex items-center gap-3">
-              <Icon className="h-5 w-5 shrink-0 text-green-600" />
+              <Icon
+                className={`h-5 w-5 shrink-0 ${
+                  isRejection ? "text-amber-600" : "text-green-600"
+                }`}
+              />
               <span className="flex-1 text-sm text-gray-700">{text}</span>
               <span className="text-xs text-gray-400">{detail}</span>
             </div>
@@ -144,6 +174,13 @@ export function ReferenceRespondSuccess({
             ))}
           </div>
         </div>
+      ) : null}
+
+      {showProfileSetupPanel ? (
+        <ReferenceProfileSetupEmailPanel
+          email={invitation.refereeEmail}
+          recipientName={recipientName}
+        />
       ) : null}
 
       {welcomeRedirectTo ? (

@@ -94,6 +94,18 @@ export async function POST(request: Request) {
     if (normalizedError.includes("already exists")) {
       const status = await getSignupEmailStatus(body.email!);
 
+      if (status.code === "invited_referee_stub") {
+        return NextResponse.json(
+          {
+            success: false,
+            code: "invited_referee_stub",
+            error:
+              "A Vodora profile was already started for this email when you submitted a reference.",
+          },
+          { status: 409 },
+        );
+      }
+
       if (status.code === "invited_reference_stub") {
         return NextResponse.json(
           {

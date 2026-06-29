@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
+import { CANDIDATE_PROFILE_PATH } from "@/lib/auth/routes";
 import { ProfileConnectionStats } from "@/components/connections/ProfileConnectionStats";
 import { CandidateProfilePeerConnectButton } from "@/components/connections/CandidateProfilePeerConnectButton";
 import { RecruiterProfileConnectButton } from "@/components/connections/RecruiterProfileConnectButton";
@@ -133,7 +134,7 @@ function ProfileHeaderActions({
       </button>
     ) : (
       <Link
-        href="/my-profile/edit"
+        href={CANDIDATE_PROFILE_PATH}
         className={`${buttonClass} border border-gray-300 text-gray-700 hover:bg-gray-50`}
       >
         <Edit className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />

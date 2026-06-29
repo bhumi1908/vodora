@@ -62,6 +62,7 @@ export type SignupApiResponse = {
   code?:
     | "email_already_registered"
     | "invited_reference_stub"
+    | "invited_referee_stub"
     | "recruiter_account";
   recruiterName?: string;
   companyName?: string;

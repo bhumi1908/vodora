@@ -27,6 +27,11 @@ type ReferenceCardProps = {
   candidateName?: string;
   showRefereeContact?: boolean;
   showVerificationStatus?: boolean;
+  showInvitationDelivery?: boolean;
+  invitationSending?: boolean;
+  invitationDeliveryFailed?: boolean;
+  onResendInvitation?: () => void;
+  isResending?: boolean;
   showRatings?: boolean;
   showEmploymentConfirmation?: boolean;
   showWrittenComments?: boolean;
@@ -113,6 +118,11 @@ export function ReferenceCard({
   candidateName,
   showRefereeContact = isOwnProfile,
   showVerificationStatus = true,
+  showInvitationDelivery = false,
+  invitationSending = false,
+  invitationDeliveryFailed = false,
+  onResendInvitation,
+  isResending = false,
   showRatings = true,
   showEmploymentConfirmation = true,
   showWrittenComments = true,
@@ -231,6 +241,33 @@ export function ReferenceCard({
               ) : null}
             </div>
           </div>
+
+          {showInvitationDelivery && invitationSending ? (
+            <div className="mt-4 rounded-lg border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-800">
+              Sending invitation email to the referee...
+            </div>
+          ) : null}
+
+          {showInvitationDelivery && invitationDeliveryFailed ? (
+            <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
+              <p className="text-sm text-amber-900">
+                The invitation email to{" "}
+                <span className="font-medium">{reference.refereeEmail}</span>{" "}
+                could not be delivered. Resend it to give the referee another
+                chance to complete the reference.
+              </p>
+              {onResendInvitation ? (
+                <button
+                  type="button"
+                  onClick={onResendInvitation}
+                  disabled={isResending}
+                  className="mt-3 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {isResending ? "Resending..." : "Resend invitation"}
+                </button>
+              ) : null}
+            </div>
+          ) : null}
 
           {hasCollapsibleDetails ? (
             <button

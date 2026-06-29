@@ -2,9 +2,8 @@ import { NextResponse } from "next/server";
 
 import { getRequestOrigin } from "@/lib/auth/signup-flow";
 import { getSignupEmailStatus } from "@/lib/auth/check-signup-email";
+import { getEmailFormatError } from "@/lib/email/validate-email";
 import { sendInvitedCandidateSetupLinkEmail } from "@/lib/references/queue-reference-collection-candidate-email";
-
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 type SendSetupLinkBody = {
   email?: string;
@@ -24,16 +23,28 @@ export async function POST(request: Request) {
 
   const email = body.email?.trim().toLowerCase() ?? "";
 
-  if (!email || !EMAIL_PATTERN.test(email)) {
+  if (!email) {
     return NextResponse.json(
       { success: false, error: "Enter a valid email address." },
       { status: 400 },
     );
   }
 
+  const formatError = getEmailFormatError(email);
+
+  if (formatError) {
+    return NextResponse.json(
+      { success: false, error: formatError },
+      { status: 400 },
+    );
+  }
+
   const status = await getSignupEmailStatus(email);
 
-  if (status.code !== "invited_reference_stub") {
+  if (
+    status.code !== "invited_reference_stub" &&
+    status.code !== "invited_referee_stub"
+  ) {
     return NextResponse.json(
       {
         success: false,

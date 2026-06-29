@@ -2,10 +2,22 @@
 
 import Link from "next/link";
 import { Plus } from "lucide-react";
+import { useState } from "react";
 
 import { ReferenceCard } from "@/components/profile/reference/ReferenceCard";
 import { ReferencesTabSkeleton } from "@/components/profile/reference/ReferencesTabSkeleton";
-import { useRecruiterReferenceHistoryQuery } from "@/lib/query/use-reference-queries";
+import {
+  showReferenceInvitationResendErrorToast,
+  showReferenceInvitationResentToast,
+} from "@/lib/references/reference-toast";
+import {
+  isReferenceInvitationDeliveryFailed,
+  isReferenceInvitationSending,
+} from "@/lib/references/reference-invitation-delivery";
+import {
+  useRecruiterReferenceHistoryQuery,
+  useResendReferenceInvitationMutation,
+} from "@/lib/query/use-reference-queries";
 
 type RecruiterReferenceHistoryTabProps = {
   onCollectReference?: () => void;
@@ -20,9 +32,16 @@ export function RecruiterReferenceHistoryTab({
     isError,
     error,
   } = useRecruiterReferenceHistoryQuery();
+  const resendInvitation = useResendReferenceInvitationMutation();
+  const [resendingReferenceId, setResendingReferenceId] = useState<string | null>(
+    null,
+  );
 
   const verifiedCount = references.filter(
     (reference) => reference.status === "verified",
+  ).length;
+  const failedDeliveryCount = references.filter((reference) =>
+    isReferenceInvitationDeliveryFailed(reference),
   ).length;
 
   const errorMessage = isError
@@ -30,6 +49,23 @@ export function RecruiterReferenceHistoryTab({
       ? error.message
       : "Unable to load reference history."
     : "";
+
+  async function handleResendInvitation(referenceId: string, refereeName: string) {
+    setResendingReferenceId(referenceId);
+
+    try {
+      await resendInvitation.mutateAsync(referenceId);
+      showReferenceInvitationResentToast(refereeName);
+    } catch (resendError) {
+      const message =
+        resendError instanceof Error
+          ? resendError.message
+          : "Unable to resend invitation email.";
+      showReferenceInvitationResendErrorToast(message);
+    } finally {
+      setResendingReferenceId(null);
+    }
+  }
 
   if (isPending) {
     return <ReferencesTabSkeleton showAction={false} />;
@@ -54,6 +90,14 @@ export function RecruiterReferenceHistoryTab({
       {errorMessage ? (
         <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {errorMessage}
+        </div>
+      ) : null}
+
+      {failedDeliveryCount > 0 ? (
+        <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          {failedDeliveryCount} reference invitation
+          {failedDeliveryCount === 1 ? "" : "s"} could not be delivered. Use
+          Resend invitation below to try again.
         </div>
       ) : null}
 
@@ -94,6 +138,15 @@ export function RecruiterReferenceHistoryTab({
               candidateName={reference.candidateName}
               isOwnProfile={false}
               showRefereeContact
+              showInvitationDelivery
+              invitationSending={isReferenceInvitationSending(reference)}
+              invitationDeliveryFailed={isReferenceInvitationDeliveryFailed(
+                reference,
+              )}
+              onResendInvitation={() =>
+                void handleResendInvitation(reference.id, reference.refereeName)
+              }
+              isResending={resendingReferenceId === reference.id}
             />
           ))}
         </div>

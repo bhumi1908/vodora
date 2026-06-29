@@ -2,6 +2,7 @@ export const CANDIDATE_WELCOME_PATH = "/welcome/candidate";
 export const RECRUITER_WELCOME_PATH = "/welcome/recruiter";
 
 export const CANDIDATE_DASHBOARD_PATH = "/dashboard";
+export const CANDIDATE_PROFILE_PATH = "/my-profile";
 export const CANDIDATE_JOBS_PATH = "/jobs";
 export const CANDIDATE_FIND_RECRUITERS_PATH = "/find-recruiters";
 export const CANDIDATE_FIND_CANDIDATES_PATH = "/find-candidates";

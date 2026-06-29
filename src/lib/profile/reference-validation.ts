@@ -1,4 +1,5 @@
 import { isPersonalEmail } from "@/lib/auth/validation";
+import { getEmailFormatError } from "@/lib/email/validate-email";
 import { type FieldErrors, firstFieldError, hasFieldErrors } from "@/lib/form/field-errors";
 import {
   isMonthRangeInvalid,
@@ -20,8 +21,6 @@ import {
   type WrittenAssessmentQuestionId,
   mapWrittenAssessmentToLegacyRatings,
 } from "@/lib/references/written-reference-assessment";
-
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const REFEREE_COMPANY_EMAIL_ERROR =
   "Please use a company email address. Personal providers such as Gmail and Yahoo are not allowed.";
@@ -89,10 +88,14 @@ export function getReferenceFieldErrors(
 
   if (!input.email?.trim()) {
     errors.email = "Email is required.";
-  } else if (!EMAIL_PATTERN.test(input.email.trim())) {
-    errors.email = "Enter a valid email address.";
-  } else if (isPersonalEmail(input.email)) {
-    errors.email = REFEREE_COMPANY_EMAIL_ERROR;
+  } else {
+    const formatError = getEmailFormatError(input.email);
+
+    if (formatError) {
+      errors.email = formatError;
+    } else if (isPersonalEmail(input.email)) {
+      errors.email = REFEREE_COMPANY_EMAIL_ERROR;
+    }
   }
 
   if (!input.relationship) {
@@ -154,8 +157,12 @@ export function getRecruiterReferenceCollectionCandidateFieldErrors(input: {
 
   if (!input.email?.trim()) {
     errors.email = "Candidate email is required.";
-  } else if (!EMAIL_PATTERN.test(input.email.trim())) {
-    errors.email = "Enter a valid email address.";
+  } else {
+    const formatError = getEmailFormatError(input.email);
+
+    if (formatError) {
+      errors.email = formatError;
+    }
   }
 
   return errors;
@@ -167,10 +174,34 @@ export function validateReferenceRequest(
   return firstFieldError(getReferenceFieldErrors(input));
 }
 
+function isEmploymentRejection(input: Partial<ReferenceResponseFormData>): boolean {
+  return input.workedTogether === "no";
+}
+
+function validateRejectionResponse(
+  input: Partial<ReferenceResponseFormData>,
+  errors: ReferenceResponseFieldErrors,
+) {
+  if (!input.signatureName?.trim()) {
+    errors.signatureName = "Signature name is required.";
+  }
+}
+
 function validateSharedEmploymentFields(
   input: Partial<ReferenceResponseFormData>,
   errors: ReferenceResponseFieldErrors,
 ) {
+  if (!input.workedTogether) {
+    errors.employmentConfirmed =
+      "Please indicate whether this person worked with you.";
+    return;
+  }
+
+  if (isEmploymentRejection(input)) {
+    validateRejectionResponse(input, errors);
+    return;
+  }
+
   if (!input.employmentConfirmed) {
     errors.employmentConfirmed = "You must confirm that you worked with this candidate.";
   }
@@ -258,6 +289,10 @@ export function getReferenceResponseFieldErrors(
 
   validateSharedEmploymentFields(input, errors);
 
+  if (isEmploymentRejection(input)) {
+    return errors;
+  }
+
   if (referenceType === "questionnaire") {
     validateQuestionnaireAnswers(input, errors);
   } else {
@@ -309,21 +344,25 @@ export function mapReferenceResponseToInsert(
   input: ReferenceResponseFormData,
   context: {
     referenceRequestId: string;
-    userId: string;
+    userId: string | null;
     referenceType: ReferenceType;
   },
 ) {
   const isQuestionnaire = context.referenceType === "questionnaire";
-  const legacyRatings = !isQuestionnaire
-    ? mapWrittenAssessmentToLegacyRatings(input.writtenAssessmentAnswers)
-    : null;
+  const isRejection = isEmploymentRejection(input);
+  const legacyRatings =
+    !isQuestionnaire && !isRejection
+      ? mapWrittenAssessmentToLegacyRatings(input.writtenAssessmentAnswers)
+      : null;
 
   return {
     reference_request_id: context.referenceRequestId,
     submitted_by_user_id: context.userId,
     employment_confirmed: input.employmentConfirmed,
-    position_held: input.positionHeld.trim(),
-    employment_dates_confirmed: input.employmentDatesConfirmed,
+    position_held: isRejection ? null : input.positionHeld.trim() || null,
+    employment_dates_confirmed: isRejection
+      ? false
+      : input.employmentDatesConfirmed,
     performance_rating: isQuestionnaire
       ? null
       : legacyRatings?.performanceRating ?? null,
@@ -349,7 +388,7 @@ export function mapReferenceResponseToInsert(
     questionnaire_responses: isQuestionnaire
       ? input.questionnaireAnswers
       : input.writtenAssessmentAnswers,
-    attestation_confirmed: true,
+    attestation_confirmed: isRejection ? true : input.attestationConfirmed,
     signature_name: input.signatureName.trim(),
     signature_date: input.signatureDate.trim() || null,
     allow_profile_creation: input.allowProfileCreation,

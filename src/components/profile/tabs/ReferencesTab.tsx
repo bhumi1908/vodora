@@ -8,7 +8,13 @@ import { ReferencesTabSkeleton } from "@/components/profile/reference/References
 import { RequestReferenceModal } from "@/components/profile/reference/RequestReferenceModal";
 import type { CandidateProfileData } from "@/lib/profile/types";
 import {
+  isReferenceInvitationDeliveryFailed,
+  isReferenceInvitationSending,
+} from "@/lib/references/reference-invitation-delivery";
+import {
   showReferenceCancelledToast,
+  showReferenceInvitationResendErrorToast,
+  showReferenceInvitationResentToast,
   showReferenceRequestErrorToast,
 } from "@/lib/references/reference-toast";
 import {
@@ -16,6 +22,7 @@ import {
   useCandidateReferencesQuery,
   useInvalidateCandidateReferences,
   useRecruiterCandidateReferencesQuery,
+  useResendCandidateReferenceInvitationMutation,
 } from "@/lib/query/use-reference-queries";
 
 type ReferencesTabProps = {
@@ -44,6 +51,9 @@ export function ReferencesTab({
 }: ReferencesTabProps) {
   const [modalOpen, setModalOpen] = useState(false);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
+  const [resendingReferenceId, setResendingReferenceId] = useState<string | null>(
+    null,
+  );
 
   const {
     data: ownReferences = [],
@@ -63,6 +73,7 @@ export function ReferencesTab({
   );
 
   const cancelReference = useCancelReferenceMutation();
+  const resendInvitation = useResendCandidateReferenceInvitationMutation();
   const invalidateReferences = useInvalidateCandidateReferences();
 
   const references = isOwnProfile ? ownReferences : recruiterReferences;
@@ -78,12 +89,34 @@ export function ReferencesTab({
   const verifiedCount = references.filter(
     (reference) => reference.status === "verified",
   ).length;
+  const failedDeliveryCount = isOwnProfile
+    ? references.filter((reference) =>
+        isReferenceInvitationDeliveryFailed(reference),
+      ).length
+    : 0;
 
   const errorMessage = isError
     ? error instanceof Error
       ? error.message
       : "Unable to load references."
     : "";
+
+  async function handleResendInvitation(referenceId: string, refereeName: string) {
+    setResendingReferenceId(referenceId);
+
+    try {
+      await resendInvitation.mutateAsync(referenceId);
+      showReferenceInvitationResentToast(refereeName);
+    } catch (resendError) {
+      const message =
+        resendError instanceof Error
+          ? resendError.message
+          : "Unable to resend invitation email.";
+      showReferenceInvitationResendErrorToast(message);
+    } finally {
+      setResendingReferenceId(null);
+    }
+  }
 
   async function handleCancel(referenceId: string) {
     setCancellingId(referenceId);
@@ -166,6 +199,14 @@ export function ReferencesTab({
         </div>
       ) : null}
 
+      {failedDeliveryCount > 0 ? (
+        <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          {failedDeliveryCount} reference invitation
+          {failedDeliveryCount === 1 ? "" : "s"} could not be delivered. Use
+          Resend invitation below to try again.
+        </div>
+      ) : null}
+
       {references.length === 0 ? (
         <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50 px-6 py-12 text-center">
           <p className="text-sm font-medium text-gray-900">
@@ -200,6 +241,27 @@ export function ReferencesTab({
               reference={reference}
               isOwnProfile={isOwnProfile}
               showRefereeContact={isOwnProfile}
+              showInvitationDelivery={isOwnProfile}
+              invitationSending={
+                isOwnProfile
+                  ? isReferenceInvitationSending(reference)
+                  : false
+              }
+              invitationDeliveryFailed={
+                isOwnProfile
+                  ? isReferenceInvitationDeliveryFailed(reference)
+                  : false
+              }
+              onResendInvitation={
+                isOwnProfile
+                  ? () =>
+                      void handleResendInvitation(
+                        reference.id,
+                        reference.refereeName,
+                      )
+                  : undefined
+              }
+              isResending={resendingReferenceId === reference.id}
               onCancel={isOwnProfile ? handleCancel : undefined}
               isCancelling={cancellingId === reference.id}
             />

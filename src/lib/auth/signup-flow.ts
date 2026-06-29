@@ -171,5 +171,5 @@ export function getRequestOrigin(request: Request): string {
     return `${protocol}://${host}`;
   }
 
-  return env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  return env.NEXT_PUBLIC_APP_URL;
 }

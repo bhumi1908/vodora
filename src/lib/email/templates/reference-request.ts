@@ -84,7 +84,7 @@ export function buildReferenceRequestHtml({
               </a>
               ${buildEmailFallbackLinkHtml(inviteUrl)}
               <p style="margin:16px 0 0;font-size:12px;line-height:1.5;color:#9ca3af;">
-                This link expires in 30 days. Please sign in or create a free Vodora candidate account using the email address <strong style="color:#6b7280;">${escapeHtml(refereeEmail)}</strong>.
+                This link expires in 30 days. No account is required — you can complete the reference directly. Creating a Vodora profile is optional.
               </p>
             </td>
           </tr>
@@ -133,7 +133,7 @@ Completing this reference takes about 5 minutes. Once verified, it is stored in 
 Complete the reference using this link (expires in 30 days):
 ${inviteUrl}
 
-Please sign in or create a free Vodora candidate account using the email address ${refereeEmail}.
+This link expires in 30 days. No account is required — you can complete the reference directly. Creating a Vodora profile is optional.
 
 If you were not expecting this request, you can safely ignore this email.
 

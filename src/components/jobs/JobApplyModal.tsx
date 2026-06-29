@@ -12,6 +12,7 @@ import {
 import { useEffect, useMemo, useState } from "react";
 
 import { Modal } from "@/components/ui/Modal";
+import { CANDIDATE_PROFILE_PATH } from "@/lib/auth/routes";
 import { useSessionFormDraft } from "@/hooks/useSessionFormDraft";
 import { buildSessionFormDraftKey } from "@/lib/form/session-form-draft";
 import { formatFileSize } from "@/lib/jobs/format-file-size";
@@ -398,7 +399,7 @@ export function JobApplyModal({
             ) : (
               <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
                 No resume found on your profile. Upload one from{" "}
-                <a href="/my-profile/edit" className="font-medium underline">
+                <a href={CANDIDATE_PROFILE_PATH} className="font-medium underline">
                   My Profile
                 </a>{" "}
                 before applying.

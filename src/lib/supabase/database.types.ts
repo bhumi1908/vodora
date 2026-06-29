@@ -950,7 +950,7 @@ export type Database = {
           signature_date: string | null;
           signature_name: string | null;
           submitted_at: string;
-          submitted_by_user_id: string;
+          submitted_by_user_id: string | null;
           teamwork_rating: number | null;
           written_comments: string | null;
         };
@@ -971,7 +971,7 @@ export type Database = {
           signature_date?: string | null;
           signature_name?: string | null;
           submitted_at?: string;
-          submitted_by_user_id: string;
+          submitted_by_user_id: string | null;
           teamwork_rating?: number | null;
           written_comments?: string | null;
         };
@@ -992,7 +992,7 @@ export type Database = {
           signature_date?: string | null;
           signature_name?: string | null;
           submitted_at?: string;
-          submitted_by_user_id?: string;
+          submitted_by_user_id?: string | null;
           teamwork_rating?: number | null;
           written_comments?: string | null;
         };

@@ -4,8 +4,8 @@ import { fetchCompanyInvitations } from "@/lib/recruiter/fetch-company-invitatio
 import { COMPANY_INVITATION_ROLE_OPTIONS } from "@/lib/recruiter/hiring-preferences";
 import { requireOwnRecruiter } from "@/lib/recruiter/require-own-recruiter";
 import { createClient } from "@/lib/supabase/server";
+import { getEmailFormatError } from "@/lib/email/validate-email";
 
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const INVITATION_ROLES = COMPANY_INVITATION_ROLE_OPTIONS.map(
   (option) => option.value,
 );
@@ -58,9 +58,11 @@ export async function POST(request: Request) {
     );
   }
 
-  if (!EMAIL_PATTERN.test(email)) {
+  const formatError = getEmailFormatError(email);
+
+  if (formatError) {
     return NextResponse.json(
-      { success: false, error: "Enter a valid email address." },
+      { success: false, error: formatError },
       { status: 400 },
     );
   }

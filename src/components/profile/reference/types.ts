@@ -45,6 +45,8 @@ export type RequestReferenceFormData = {
 };
 
 export type ReferenceResponseFormData = {
+  /** Explicit yes/no employment answer; empty until the referee chooses. */
+  workedTogether: "yes" | "no" | "";
   employmentConfirmed: boolean;
   positionHeld: string;
   employmentDatesConfirmed: boolean;
@@ -79,6 +81,7 @@ export function createEmptyReferenceResponse(
   overrides?: Partial<ReferenceResponseFormData>,
 ): ReferenceResponseFormData {
   return {
+    workedTogether: "",
     employmentConfirmed: false,
     positionHeld: "",
     employmentDatesConfirmed: false,

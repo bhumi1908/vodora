@@ -1,6 +1,5 @@
 import { type FieldErrors, firstFieldError } from "@/lib/form/field-errors";
-
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+import { getEmailFormatError } from "@/lib/email/validate-email";
 
 export const FEEDBACK_ROLES = [
   "Candidate",
@@ -73,8 +72,12 @@ export function getFeedbackFieldErrors(
   if (input.canContact) {
     if (!input.email?.trim()) {
       errors.email = "Email is required if we can contact you.";
-    } else if (!EMAIL_PATTERN.test(input.email.trim())) {
-      errors.email = "Please enter a valid email address.";
+    } else {
+      const formatError = getEmailFormatError(input.email);
+
+      if (formatError) {
+        errors.email = formatError;
+      }
     }
   }
 

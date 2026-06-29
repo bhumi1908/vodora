@@ -6,6 +6,7 @@ import type { CandidateDashboardContext } from "@/lib/candidate/dashboard.types"
 import {
   CANDIDATE_CONNECTIONS_PATH,
   CANDIDATE_JOBS_PATH,
+  CANDIDATE_PROFILE_PATH,
 } from "@/lib/auth/routes";
 
 type CandidateDashboardHeaderProps = {
@@ -27,17 +28,17 @@ export function CandidateDashboardHeader({ context }: CandidateDashboardHeaderPr
         </h1>
         <p className="mt-1 text-gray-500">{subtitle.join(" · ")}</p>
       </div>
-      <div className="flex gap-3">
+      <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
         <Link
           href={CANDIDATE_JOBS_PATH}
-          className="flex items-center gap-2 rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+          className="flex w-full items-center justify-center gap-2 rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 sm:w-auto"
         >
           <Search className="h-4 w-4" />
           Browse Jobs
         </Link>
         <Link
-          href="/my-profile/edit"
-          className="flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+          href={CANDIDATE_PROFILE_PATH}
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 sm:w-auto"
         >
           <Pencil className="h-4 w-4" />
           Edit Profile
@@ -54,9 +55,9 @@ export function CandidateDashboardHeaderSkeleton() {
         <div className="h-9 w-64 animate-pulse rounded-lg bg-gray-200" />
         <div className="h-5 w-48 animate-pulse rounded-lg bg-gray-100" />
       </div>
-      <div className="flex gap-3">
-        <div className="h-10 w-32 animate-pulse rounded-xl bg-gray-100" />
-        <div className="h-10 w-32 animate-pulse rounded-xl bg-gray-200" />
+      <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+        <div className="h-10 w-full animate-pulse rounded-xl bg-gray-100 sm:w-32" />
+        <div className="h-10 w-full animate-pulse rounded-xl bg-gray-200 sm:w-32" />
       </div>
     </div>
   );

@@ -76,6 +76,7 @@ export function CandidateSignupPage({
   const [successMessage, setSuccessMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [invitedStubState, setInvitedStubState] = useState<{
+    kind: "recruiter_invite" | "referee";
     recruiterName?: string;
     companyName?: string;
   } | null>(null);
@@ -136,9 +137,19 @@ export function CandidateSignupPage({
       if (!response.ok || !result.success) {
         if (result.code === "invited_reference_stub") {
           setInvitedStubState({
+            kind: "recruiter_invite",
             recruiterName: result.recruiterName,
             companyName: result.companyName,
           });
+          setFormError(
+            result.error ??
+              "A Vodora profile was already started for this email.",
+          );
+          return;
+        }
+
+        if (result.code === "invited_referee_stub") {
+          setInvitedStubState({ kind: "referee" });
           setFormError(
             result.error ??
               "A Vodora profile was already started for this email.",
@@ -216,11 +227,14 @@ export function CandidateSignupPage({
         {invitedStubState ? (
           <div className="rounded-xl border border-blue-100 bg-blue-50 px-4 py-4 text-sm text-blue-900">
             <p className="font-medium">
-              Your profile was started by {invitedRecruiterLabel}
+              {invitedStubState.kind === "referee"
+                ? "Your profile was started when you submitted a reference"
+                : `Your profile was started by ${invitedRecruiterLabel}`}
             </p>
             <p className="mt-2 text-blue-800">
-              Set your password to access the reference being collected on your
-              behalf. We can email you a secure setup link for{" "}
+              {invitedStubState.kind === "referee"
+                ? "Set your password to access your Vodora profile. We can email you a secure setup link for "
+                : "Set your password to access the reference being collected on your behalf. We can email you a secure setup link for "}
               <strong>{formData.email.trim()}</strong>.
             </p>
             <div className="mt-4 flex flex-col gap-3 sm:flex-row">

@@ -5,6 +5,8 @@ import {
   fetchCandidateReferences,
   fetchRecruiterCandidateReferences,
   fetchRecruiterReferenceHistory,
+  resendCandidateReferenceInvitation,
+  resendRecruiterReferenceInvitation,
 } from "@/lib/query/reference-fetchers";
 import {
   createReferencePassportShare,
@@ -61,6 +63,28 @@ export function useCancelReferenceMutation() {
 
   return useMutation({
     mutationFn: cancelCandidateReference,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: referenceKeys.all });
+    },
+  });
+}
+
+export function useResendReferenceInvitationMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: resendRecruiterReferenceInvitation,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: referenceKeys.all });
+    },
+  });
+}
+
+export function useResendCandidateReferenceInvitationMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: resendCandidateReferenceInvitation,
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: referenceKeys.all });
     },

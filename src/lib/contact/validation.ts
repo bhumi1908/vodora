@@ -1,6 +1,5 @@
 import { type FieldErrors, firstFieldError } from "@/lib/form/field-errors";
-
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+import { getEmailFormatError } from "@/lib/email/validate-email";
 
 export const CONTACT_SUBJECT_VALUES = [
   "general",
@@ -52,8 +51,12 @@ export function getContactFieldErrors(
     errors.email = "Email address is required.";
   } else if (email.length > MAX_EMAIL_LENGTH) {
     errors.email = `Email must be ${MAX_EMAIL_LENGTH} characters or fewer.`;
-  } else if (!EMAIL_PATTERN.test(email)) {
-    errors.email = "Please enter a valid email address.";
+  } else {
+    const formatError = getEmailFormatError(email);
+
+    if (formatError) {
+      errors.email = formatError;
+    }
   }
 
   const subject = input.subject?.trim() ?? "";

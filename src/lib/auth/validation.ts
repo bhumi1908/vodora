@@ -14,8 +14,7 @@ import {
   type FieldErrors,
   firstFieldError,
 } from "@/lib/form/field-errors";
-
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+import { getEmailFormatError } from "@/lib/email/validate-email";
 
 const COMPANY_EMAIL_ERROR =
   "Please use a company email address. Personal email providers such as Gmail are not allowed for recruiter accounts.";
@@ -74,8 +73,12 @@ export function getCandidateSignupFieldErrors(
 
   if (!isNonEmpty(input.email)) {
     errors.email = "Email address is required.";
-  } else if (!EMAIL_PATTERN.test(input.email.trim())) {
-    errors.email = "Please enter a valid email address.";
+  } else {
+    const formatError = getEmailFormatError(input.email);
+
+    if (formatError) {
+      errors.email = formatError;
+    }
   }
 
   if (!isNonEmpty(input.password)) {
@@ -138,13 +141,17 @@ export function getRecruiterSignupFieldErrors(
 
   if (!isNonEmpty(input.email)) {
     errors.email = "Email address is required.";
-  } else if (!EMAIL_PATTERN.test(input.email.trim())) {
-    errors.email = "Please enter a valid email address.";
   } else {
-    const companyEmailError = validateCompanyEmail(input.email);
+    const formatError = getEmailFormatError(input.email);
 
-    if (companyEmailError) {
-      errors.email = companyEmailError;
+    if (formatError) {
+      errors.email = formatError;
+    } else {
+      const companyEmailError = validateCompanyEmail(input.email);
+
+      if (companyEmailError) {
+        errors.email = companyEmailError;
+      }
     }
   }
 
@@ -227,13 +234,17 @@ export function getLoginFieldErrors(input: {
 
   if (!email) {
     errors.email = "Email address is required.";
-  } else if (!EMAIL_PATTERN.test(email)) {
-    errors.email = "Please enter a valid email address.";
-  } else if (input.isRecruiterLogin) {
-    const companyEmailError = validateCompanyEmail(email);
+  } else {
+    const formatError = getEmailFormatError(email);
 
-    if (companyEmailError) {
-      errors.email = companyEmailError;
+    if (formatError) {
+      errors.email = formatError;
+    } else if (input.isRecruiterLogin) {
+      const companyEmailError = validateCompanyEmail(email);
+
+      if (companyEmailError) {
+        errors.email = companyEmailError;
+      }
     }
   }
 
@@ -296,8 +307,12 @@ export function getForgotPasswordFieldErrors(input: {
 
   if (!email) {
     errors.email = "Email address is required.";
-  } else if (!EMAIL_PATTERN.test(email)) {
-    errors.email = "Please enter a valid email address.";
+  } else {
+    const formatError = getEmailFormatError(email);
+
+    if (formatError) {
+      errors.email = formatError;
+    }
   }
 
   return errors;

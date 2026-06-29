@@ -25,12 +25,13 @@ type RecruiterReferenceRequestBody = RequestReferenceFormData & {
 async function fetchRecruiterEmailContext(userId: string): Promise<{
   recruiterName: string;
   companyName: string | null;
+  recruiterEmail: string | null;
 }> {
   const admin = createAdminClient();
 
   const { data: userRow } = await admin
     .from("users")
-    .select("first_name, last_name")
+    .select("first_name, last_name, email")
     .eq("id", userId)
     .maybeSingle();
 
@@ -57,6 +58,7 @@ async function fetchRecruiterEmailContext(userId: string): Promise<{
       ? `${userRow.first_name} ${userRow.last_name}`.trim()
       : "A Vodora recruiter",
     companyName,
+    recruiterEmail: userRow?.email?.trim() || null,
   };
 }
 
@@ -150,6 +152,10 @@ export async function POST(request: Request) {
 
   const emailContext = await fetchRecruiterEmailContext(context.userId);
   const { candidate: _ignored, ...referenceForm } = body;
+  const historyUrl = new URL(
+    "/recruiter/profile?tab=history",
+    getRequestOrigin(request),
+  ).toString();
 
   const result = await createReferenceRequest(
     supabase,
@@ -163,6 +169,10 @@ export async function POST(request: Request) {
     },
     referenceForm,
     getRequestOrigin(request),
+    {
+      recruiterEmail: emailContext.recruiterEmail,
+      historyUrl,
+    },
   );
 
   if (!result.success) {

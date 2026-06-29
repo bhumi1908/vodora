@@ -225,18 +225,20 @@ export function CollectReferenceTab({
           Reference Request Sent
         </h3>
         <p className="mb-8 leading-relaxed text-gray-500">
-          An email has been sent to{" "}
-          <strong>{sent.refereeName}</strong> with a secure link to complete a
-          reference for <strong>{sent.candidateName}</strong>.
-          {" "}The candidate will also receive an email with next steps.
+          Your reference request has been saved. We&apos;re sending emails to{" "}
+          <strong>{sent.refereeName}</strong> and{" "}
+          <strong>{sent.candidateName}</strong> now. If delivery fails, you can
+          resend the referee invitation from Reference History.
         </p>
-        <button
-          type="button"
-          onClick={reset}
-          className="rounded-xl bg-blue-600 px-8 py-3 font-semibold text-white transition-colors hover:bg-blue-700"
-        >
-          Collect Another Reference
-        </button>
+        <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
+          <button
+            type="button"
+            onClick={reset}
+            className="rounded-xl bg-blue-600 px-8 py-3 font-semibold text-white transition-colors hover:bg-blue-700"
+          >
+            Collect Another Reference
+          </button>
+        </div>
       </div>
     );
   }

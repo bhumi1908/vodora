@@ -1,8 +1,11 @@
+import { after } from "next/server";
+
 import {
   buildResetPasswordUrl,
   createPasswordResetTokenForEmail,
 } from "@/lib/auth/password-reset";
 import { EMAIL_FEATURES_ENABLED } from "@/lib/auth/email-features";
+import { retryAsync } from "@/lib/email/retry-async";
 import { sendEmail } from "@/lib/email/smtp";
 import {
   buildReferenceCollectionCandidateInviteEmailHtml,
@@ -108,8 +111,21 @@ async function sendReferenceCollectionCandidateEmail(
 export function queueReferenceCollectionCandidateEmail(
   params: QueueReferenceCollectionCandidateEmailParams,
 ): void {
-  void sendReferenceCollectionCandidateEmail(params).catch((error) => {
-    console.error("Background reference collection candidate email failed:", error);
+  after(async () => {
+    const result = await retryAsync(
+      () => sendReferenceCollectionCandidateEmail(params),
+      {
+        attempts: 2,
+        label: `Reference collection candidate email to ${params.candidateEmail}`,
+      },
+    );
+
+    if (!result.success) {
+      console.error(
+        "Background reference collection candidate email failed:",
+        result.error,
+      );
+    }
   });
 }
 

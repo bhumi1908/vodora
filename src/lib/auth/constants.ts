@@ -67,5 +67,4 @@ export const PERSONAL_EMAIL_DOMAINS = [
   "mail.com",
   "gmx.com",
   "msn.com",
-  "yopmail.com",
 ] as const;

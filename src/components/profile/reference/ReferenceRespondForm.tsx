@@ -43,10 +43,11 @@ type ReferenceRespondFormProps = {
   invitation: ReferenceInvitationDetails;
   token: string;
   onSubmitted: (result: {
-    status: "verified" | "submitted";
+    status: "verified" | "submitted" | "rejected";
     responseId: string;
     form: ReferenceResponseFormData;
     welcomeRedirectTo?: string;
+    profileSetupRequested?: boolean;
   }) => void;
 };
 
@@ -238,8 +239,13 @@ export function ReferenceRespondForm({
     const draft = restoreDraft();
 
     if (draft) {
-      setForm(draft.form);
-      setWorkedTogether(draft.workedTogether);
+      const restoredWorkedTogether =
+        draft.workedTogether || draft.form.workedTogether || "";
+      setForm({
+        ...draft.form,
+        workedTogether: restoredWorkedTogether,
+      });
+      setWorkedTogether(restoredWorkedTogether);
     }
 
     markHydrated();
@@ -259,14 +265,23 @@ export function ReferenceRespondForm({
 
   function updateWorkedTogether(value: "yes" | "no") {
     setWorkedTogether(value);
-    updateField("employmentConfirmed", value === "yes");
-    if (value === "yes") {
-      updateField("employmentDatesConfirmed", true);
-      if (!form.positionHeld.trim() && invitation.candidateTitle) {
-        updateField("positionHeld", invitation.candidateTitle);
-      }
-    }
+    setForm((current) => ({
+      ...current,
+      workedTogether: value,
+      employmentConfirmed: value === "yes",
+      ...(value === "yes"
+        ? {
+            employmentDatesConfirmed: true,
+            positionHeld:
+              current.positionHeld.trim() ||
+              invitation.candidateTitle?.trim() ||
+              current.positionHeld,
+          }
+        : {}),
+    }));
     clearField("employmentConfirmed");
+    setQuestionnaireErrors({});
+    setWrittenAssessmentErrors({});
     setError("");
   }
 
@@ -305,35 +320,49 @@ export function ReferenceRespondForm({
     setError("");
   }
 
-  const isValid =
-    workedTogether === "yes" &&
-    form.attestationConfirmed &&
-    Boolean(form.signatureName.trim()) &&
-    !hasReferenceResponseFieldErrors(
-      getReferenceResponseFieldErrors(
-        {
-          ...form,
-          employmentConfirmed: true,
-          employmentDatesConfirmed: true,
-          positionHeld:
-            form.positionHeld.trim() ||
-            invitation.candidateTitle?.trim() ||
-            "Not specified",
-        },
-        referenceType,
-      ),
-    );
+  const isRejection = workedTogether === "no";
+  const isAcceptance = workedTogether === "yes";
+
+  const isValid = isRejection
+    ? Boolean(form.signatureName.trim()) &&
+      !hasReferenceResponseFieldErrors(
+        getReferenceResponseFieldErrors(
+          { ...form, workedTogether: "no", employmentConfirmed: false },
+          referenceType,
+        ),
+      )
+    : isAcceptance &&
+      form.attestationConfirmed &&
+      Boolean(form.signatureName.trim()) &&
+      !hasReferenceResponseFieldErrors(
+        getReferenceResponseFieldErrors(
+          {
+            ...form,
+            workedTogether: "yes",
+            employmentConfirmed: true,
+            employmentDatesConfirmed: true,
+            positionHeld:
+              form.positionHeld.trim() ||
+              invitation.candidateTitle?.trim() ||
+              "Not specified",
+          },
+          referenceType,
+        ),
+      );
 
   async function handleSubmit() {
     const submissionForm: ReferenceResponseFormData = {
       ...form,
+      workedTogether,
       employmentConfirmed: workedTogether === "yes",
       employmentDatesConfirmed:
         workedTogether === "yes" ? true : form.employmentDatesConfirmed,
       positionHeld:
-        form.positionHeld.trim() ||
-        invitation.candidateTitle?.trim() ||
-        "Not specified",
+        workedTogether === "yes"
+          ? form.positionHeld.trim() ||
+            invitation.candidateTitle?.trim() ||
+            "Not specified"
+          : form.positionHeld,
     };
 
     const fieldErrors = getReferenceResponseFieldErrors(
@@ -363,9 +392,10 @@ export function ReferenceRespondForm({
         success: boolean;
         error?: string;
         fieldErrors?: ReferenceResponseFieldErrors;
-        status?: "verified" | "submitted";
+        status?: "verified" | "submitted" | "rejected";
         responseId?: string;
         welcomeRedirectTo?: string;
+        profileSetupRequested?: boolean;
       };
 
       if (!response.ok || !result.success || !result.responseId) {
@@ -382,13 +412,17 @@ export function ReferenceRespondForm({
         return;
       }
 
-      showReferenceSubmitSuccessToast(result.status === "verified");
+      showReferenceSubmitSuccessToast(
+        result.status === "verified",
+        result.status === "rejected",
+      );
       clearDraft();
       onSubmitted({
         status: result.status ?? "submitted",
         responseId: result.responseId,
         form: submissionForm,
         welcomeRedirectTo: result.welcomeRedirectTo,
+        profileSetupRequested: result.profileSetupRequested,
       });
     } catch {
       const message = "Unable to submit reference. Please try again.";
@@ -765,12 +799,18 @@ export function ReferenceRespondForm({
         className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-4 text-base font-semibold text-white shadow-sm transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
       >
         <FileText className="h-5 w-5" />
-        {isSubmitting ? "Submitting..." : "Submit Reference"}
+        {isSubmitting
+          ? "Submitting..."
+          : isRejection
+            ? "Submit Decline"
+            : "Submit Reference"}
       </button>
 
       {!isValid ? (
         <p className="text-center text-xs text-gray-400">
-          Complete all required fields (*) and the declaration to submit.
+          {isRejection
+            ? "Sign below to confirm you did not work with this candidate."
+            : "Complete all required fields (*) and the declaration to submit."}
         </p>
       ) : null}
 

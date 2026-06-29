@@ -2,16 +2,13 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 import type { RequestReferenceFormData } from "@/components/profile/reference/types";
 import { getRelationshipLabel } from "@/components/profile/reference/types";
-import { sendEmail } from "@/lib/email/smtp";
-import {
-  buildReferenceRequestHtml,
-  buildReferenceRequestText,
-} from "@/lib/email/templates/reference-request";
 import {
   mapReferenceRequestToInsert,
   type ReferenceRequestInsertContext,
   validateReferenceRequest,
 } from "@/lib/profile/reference-validation";
+import { queueReferenceRequestDelivery } from "@/lib/references/queue-reference-request-delivery";
+import type { DeliverReferenceInvitationParams } from "@/lib/references/reference-request-email.types";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Database } from "@/lib/supabase/database.types";
 
@@ -28,79 +25,17 @@ export type CreateReferenceRequestResult =
       fieldErrors?: Record<string, string>;
     };
 
-type ReferenceRequestEmailParams = {
-  referenceRequestId: string;
-  inviteUrl: string;
-  candidateName: string;
-  refereeName: string;
-  refereeEmail: string;
-  refereeCompany: string;
-  relationshipLabel: string;
-  message?: string | null;
-  recruiterName?: string | null;
-  recruiterCompany?: string | null;
+type QueueReferenceRequestDeliveryOptions = {
+  recruiterEmail?: string | null;
+  historyUrl?: string | null;
 };
-
-async function sendReferenceRequestEmail(
-  params: ReferenceRequestEmailParams,
-): Promise<void> {
-  const emailResult = await sendEmail({
-    to: params.refereeEmail,
-    subject: params.recruiterName?.trim()
-      ? `Reference request for ${params.candidateName} on Vodora`
-      : `Reference request from ${params.candidateName} on Vodora`,
-    html: buildReferenceRequestHtml({
-      inviteUrl: params.inviteUrl,
-      candidateName: params.candidateName,
-      refereeName: params.refereeName,
-      refereeEmail: params.refereeEmail,
-      refereeCompany: params.refereeCompany,
-      relationshipLabel: params.relationshipLabel,
-      message: params.message,
-      recruiterName: params.recruiterName,
-      recruiterCompany: params.recruiterCompany,
-    }),
-    text: buildReferenceRequestText({
-      inviteUrl: params.inviteUrl,
-      candidateName: params.candidateName,
-      refereeName: params.refereeName,
-      refereeEmail: params.refereeEmail,
-      refereeCompany: params.refereeCompany,
-      relationshipLabel: params.relationshipLabel,
-      message: params.message,
-      recruiterName: params.recruiterName,
-      recruiterCompany: params.recruiterCompany,
-    }),
-  });
-
-  if (!emailResult.success) {
-    throw new Error(emailResult.error);
-  }
-
-  const admin = createAdminClient();
-  const { error } = await admin
-    .from("reference_requests")
-    .update({ invitation_sent_at: new Date().toISOString() })
-    .eq("id", params.referenceRequestId);
-
-  if (error) {
-    console.error("Failed to update invitation_sent_at:", error);
-  }
-}
-
-export function queueReferenceRequestEmail(
-  params: ReferenceRequestEmailParams,
-): void {
-  void sendReferenceRequestEmail(params).catch((error) => {
-    console.error("Background reference request email failed:", error);
-  });
-}
 
 export async function createReferenceRequest(
   supabase: Supabase,
   context: ReferenceRequestInsertContext & { candidateName: string },
   input: RequestReferenceFormData,
   origin: string,
+  deliveryOptions: QueueReferenceRequestDeliveryOptions = {},
 ): Promise<CreateReferenceRequestResult> {
   const validationError = validateReferenceRequest(input);
 
@@ -135,7 +70,7 @@ export async function createReferenceRequest(
 
   const inviteUrl = `${origin}/reference/respond?token=${data.invitation_token}`;
 
-  queueReferenceRequestEmail({
+  const deliveryParams: DeliverReferenceInvitationParams = {
     referenceRequestId: data.id,
     inviteUrl,
     candidateName: context.candidateName,
@@ -146,7 +81,11 @@ export async function createReferenceRequest(
     message: input.message,
     recruiterName: context.recruiterName,
     recruiterCompany: context.recruiterCompany,
-  });
+    recruiterEmail: deliveryOptions.recruiterEmail,
+    historyUrl: deliveryOptions.historyUrl,
+  };
+
+  queueReferenceRequestDelivery(deliveryParams);
 
   return {
     success: true,

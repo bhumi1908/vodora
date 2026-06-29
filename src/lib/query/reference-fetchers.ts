@@ -70,3 +70,36 @@ export async function fetchRecruiterReferenceHistory(): Promise<
 
   return result.references ?? [];
 }
+
+type ResendReferenceInvitationResponse = {
+  success: boolean;
+  error?: string;
+};
+
+export async function resendRecruiterReferenceInvitation(
+  referenceId: string,
+): Promise<void> {
+  const response = await fetch(
+    `/api/recruiter/references/${encodeURIComponent(referenceId)}/resend-invitation`,
+    { method: "POST" },
+  );
+  const result = (await response.json()) as ResendReferenceInvitationResponse;
+
+  if (!response.ok || !result.success) {
+    throw new Error(result.error ?? "Unable to resend invitation email.");
+  }
+}
+
+export async function resendCandidateReferenceInvitation(
+  referenceId: string,
+): Promise<void> {
+  const response = await fetch(
+    `/api/candidate/references/${encodeURIComponent(referenceId)}/resend-invitation`,
+    { method: "POST" },
+  );
+  const result = (await response.json()) as ResendReferenceInvitationResponse;
+
+  if (!response.ok || !result.success) {
+    throw new Error(result.error ?? "Unable to resend invitation email.");
+  }
+}

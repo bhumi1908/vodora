@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 export type SignupEmailStatusCode =
   | "available"
   | "invited_reference_stub"
+  | "invited_referee_stub"
   | "already_registered"
   | "recruiter_account";
 
@@ -66,6 +67,10 @@ export async function getSignupEmailStatus(
     .select("invited_by_recruiter_id")
     .eq("user_id", userRow.id)
     .maybeSingle();
+
+  if (metadata.invited_for_referee_profile === true && candidateRow) {
+    return { code: "invited_referee_stub" };
+  }
 
   if (candidateRow && isInvitedReferenceStub(metadata, candidateRow.invited_by_recruiter_id)) {
     let recruiterName = "A Vodora recruiter";

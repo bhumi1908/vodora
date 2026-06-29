@@ -19,6 +19,7 @@ import type { CandidateDashboardContext } from "@/lib/candidate/dashboard.types"
 import {
   CANDIDATE_CONNECTIONS_PATH,
   CANDIDATE_JOBS_PATH,
+  CANDIDATE_PROFILE_PATH,
 } from "@/lib/auth/routes";
 import { getInitials } from "@/lib/profile/format";
 import type { ProfileCompletionItem } from "@/lib/profile/profile-completion";
@@ -51,7 +52,7 @@ export function CandidateDashboardStats({
         value={`${profileCompletionPercent}%`}
         icon={UserCircle}
         color="bg-green-50 text-green-600"
-        href="/my-profile/edit"
+        href={CANDIDATE_PROFILE_PATH}
       />
       <DashboardStatCard
         label="Connections"
@@ -72,7 +73,7 @@ export function CandidateDashboardStats({
         value={String(profileViewsCount)}
         icon={Eye}
         color="bg-purple-50 text-purple-600"
-        href="/my-profile"
+        href={CANDIDATE_PROFILE_PATH}
       />
     </DashboardStatGrid>
   );
@@ -92,7 +93,7 @@ function ProfileCompletionSidebar({
       <div className="mb-4 flex items-center justify-between">
         <h2 className="font-semibold text-gray-900">Profile Completion</h2>
         <Link
-          href="/my-profile/edit"
+          href={CANDIDATE_PROFILE_PATH}
           className="text-xs font-medium text-blue-600 transition-colors hover:text-blue-700"
         >
           Edit
@@ -134,7 +135,7 @@ function ProfileCompletionSidebar({
       )}
 
       <Link
-        href="/my-profile/edit"
+        href={CANDIDATE_PROFILE_PATH}
         className="mt-4 block w-full rounded-xl border border-blue-200 py-2.5 text-center text-sm font-medium text-blue-600 transition-colors hover:bg-blue-50"
       >
         Complete Profile
@@ -215,7 +216,7 @@ export function CandidateDashboardSidebar({
           </div>
         </div>
         <Link
-          href="/my-profile"
+          href={CANDIDATE_PROFILE_PATH}
           className="block w-full rounded-xl border border-gray-300 py-2.5 text-center text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
         >
           View My Profile

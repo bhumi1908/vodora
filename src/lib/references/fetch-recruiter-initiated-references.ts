@@ -82,6 +82,7 @@ export async function fetchRecruiterInitiatedReferences(
       reference_type,
       status,
       created_at,
+      invitation_sent_at,
       submitted_at,
       verified_at,
       reference_responses (
@@ -183,6 +184,7 @@ export async function fetchRecruiterInitiatedReferences(
       referenceType: row.reference_type,
       status: row.status,
       createdAt: row.created_at,
+      invitationSentAt: row.invitation_sent_at,
       submittedAt: row.submitted_at,
       verifiedAt: row.verified_at,
       writtenComments: response?.written_comments ?? null,

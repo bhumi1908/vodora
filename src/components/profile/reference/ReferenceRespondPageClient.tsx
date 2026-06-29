@@ -16,10 +16,11 @@ type ReferenceRespondPageClientProps = {
 };
 
 type SubmittedState = {
-  status: "verified" | "submitted";
+  status: "verified" | "submitted" | "rejected";
   responseId: string;
   form: ReferenceResponseFormData;
   welcomeRedirectTo?: string;
+  profileSetupRequested?: boolean;
 };
 
 function PageHeader() {
@@ -71,7 +72,6 @@ export function ReferenceRespondPageClient({
   const [submitted, setSubmitted] = useState<SubmittedState | null>(null);
 
   const loginRedirect = `/login?redirect=${encodeURIComponent(`/reference/respond?token=${token}`)}`;
-  const signupRedirect = `/signup/candidate?redirect=${encodeURIComponent(`/reference/respond?token=${token}`)}&email=${encodeURIComponent(invitation?.refereeEmail ?? "")}`;
 
   useEffect(() => {
     async function loadInvitation() {
@@ -135,6 +135,7 @@ export function ReferenceRespondPageClient({
           invitation={invitation}
           status={submitted.status}
           welcomeRedirectTo={submitted.welcomeRedirectTo}
+          profileSetupRequested={submitted.profileSetupRequested}
         />
       </div>
     );
@@ -169,39 +170,18 @@ export function ReferenceRespondPageClient({
       <PageHeader />
 
       <div className="mx-auto max-w-2xl space-y-6 px-4 py-8">
-        {!isAuthenticated ? (
-          <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-900">
-            <p className="font-medium">Sign in required</p>
-            <p className="mt-2">
-              Create a free Vodora candidate account or sign in using{" "}
-              <strong>{invitation.refereeEmail}</strong> to complete this reference.
-            </p>
-            <div className="mt-4 flex flex-col gap-3 sm:flex-row">
-              <Link
-                href={signupRedirect}
-                className="inline-flex justify-center rounded-xl bg-blue-600 px-4 py-2.5 font-medium text-white transition-colors hover:bg-blue-700"
-              >
-                Create account
-              </Link>
-              <Link
-                href={loginRedirect}
-                className="inline-flex justify-center rounded-xl border border-gray-300 bg-white px-4 py-2.5 font-medium text-gray-700 transition-colors hover:bg-gray-50"
-              >
-                Sign in
-              </Link>
-            </div>
-          </div>
-        ) : null}
-
         {isAuthenticated && !emailMatches ? (
-          <div className="rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-800">
-            You are signed in as <strong>{userEmail}</strong>, but this invitation
-            was sent to <strong>{invitation.refereeEmail}</strong>. Please sign in
-            with the invited email address.
+          <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-900">
+            <p className="font-medium">Signed in as a different account</p>
+            <p className="mt-2">
+              You are signed in as <strong>{userEmail}</strong>, but this invitation
+              was sent to <strong>{invitation.refereeEmail}</strong>. You can still
+              complete the reference below — no account is required.
+            </p>
             <div className="mt-4">
               <Link
                 href={loginRedirect}
-                className="inline-flex rounded-xl bg-blue-600 px-4 py-2.5 font-medium text-white transition-colors hover:bg-blue-700"
+                className="inline-flex rounded-xl border border-gray-300 bg-white px-4 py-2.5 font-medium text-gray-700 transition-colors hover:bg-gray-50"
               >
                 Switch account
               </Link>
@@ -209,13 +189,11 @@ export function ReferenceRespondPageClient({
           </div>
         ) : null}
 
-        {emailMatches ? (
-          <ReferenceRespondForm
-            invitation={invitation}
-            token={token}
-            onSubmitted={setSubmitted}
-          />
-        ) : null}
+        <ReferenceRespondForm
+          invitation={invitation}
+          token={token}
+          onSubmitted={setSubmitted}
+        />
       </div>
     </div>
   );

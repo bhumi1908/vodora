@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { getSignupEmailStatus } from "@/lib/auth/check-signup-email";
-
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+import { getEmailFormatError } from "@/lib/email/validate-email";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -15,9 +14,11 @@ export async function GET(request: Request) {
     );
   }
 
-  if (!EMAIL_PATTERN.test(email)) {
+  const formatError = getEmailFormatError(email);
+
+  if (formatError) {
     return NextResponse.json(
-      { success: false, error: "Enter a valid email address." },
+      { success: false, error: formatError },
       { status: 400 },
     );
   }

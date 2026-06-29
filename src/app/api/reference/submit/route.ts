@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import type { ReferenceResponseFormData } from "@/components/profile/reference/types";
+import { getRequestOrigin } from "@/lib/auth/signup-flow";
 import { fetchReferenceInvitationByToken } from "@/lib/references/fetch-reference-invitation";
 import { submitReferenceResponse } from "@/lib/references/submit-reference-response";
 import { createClient } from "@/lib/supabase/server";
@@ -62,33 +63,40 @@ export async function POST(request: Request) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) {
-    return NextResponse.json(
-      { success: false, error: "Authentication required." },
-      { status: 401 },
-    );
+  let auth:
+    | {
+        supabase: typeof supabase;
+        userId: string;
+        userEmail: string;
+      }
+    | undefined;
+
+  if (user) {
+    const { data: userRow } = await supabase
+      .from("users")
+      .select("email")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (userRow?.email) {
+      auth = {
+        supabase,
+        userId: user.id,
+        userEmail: userRow.email,
+      };
+    }
   }
 
-  const { data: userRow } = await supabase
-    .from("users")
-    .select("email")
-    .eq("id", user.id)
-    .maybeSingle();
-
-  if (!userRow?.email) {
-    return NextResponse.json(
-      { success: false, error: "Unable to verify your account email." },
-      { status: 400 },
-    );
-  }
-
-  const result = await submitReferenceResponse(supabase, {
+  const result = await submitReferenceResponse({
     referenceRequestId: invitation.id,
-    userId: user.id,
-    userEmail: userRow.email,
     invitedEmail: invitation.refereeEmail,
+    refereeName: invitation.refereeName,
+    refereeTitle: invitation.refereeTitle,
+    refereeCompany: invitation.refereeCompany,
     referenceType: invitation.referenceType,
     input: body.response,
+    origin: getRequestOrigin(request),
+    auth,
   });
 
   if (!result.success) {
@@ -108,6 +116,9 @@ export async function POST(request: Request) {
     responseId: result.responseId,
     ...(result.welcomeRedirectTo
       ? { welcomeRedirectTo: result.welcomeRedirectTo }
+      : {}),
+    ...(result.profileSetupRequested
+      ? { profileSetupRequested: true }
       : {}),
   });
 }
