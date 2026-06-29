@@ -171,7 +171,7 @@ export function ReferenceRespondPageClient({
 
       <div className="mx-auto max-w-2xl space-y-6 px-4 py-8">
         {isAuthenticated && !emailMatches ? (
-          <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-900">
+          <div className="hidden rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-900">
             <p className="font-medium">Signed in as a different account</p>
             <p className="mt-2">
               You are signed in as <strong>{userEmail}</strong>, but this invitation

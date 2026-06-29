@@ -13,16 +13,17 @@ import { useAccountType } from "@/lib/auth/use-account-type";
 import { isRecruiterAppRoute } from "@/lib/auth/routes";
 import { createClient } from "@/lib/supabase/client";
 
-const AUTH_ROUTE_PREFIXES = [
+const CHROMELESS_ROUTE_PREFIXES = [
   "/login",
   "/signup",
   "/welcome",
   "/forgot-password",
   "/verify-email",
+  "/reference/respond",
 ];
 
-function isAuthRoute(pathname: string) {
-  return AUTH_ROUTE_PREFIXES.some(
+function isChromelessRoute(pathname: string) {
+  return CHROMELESS_ROUTE_PREFIXES.some(
     (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
   );
 }
@@ -128,7 +129,7 @@ export function SiteChrome({ children }: { children: React.ReactNode }) {
       ? "recruiter"
       : "candidate";
 
-  if (isAuthRoute(pathname)) {
+  if (isChromelessRoute(pathname)) {
     return <>{children}</>;
   }
 
