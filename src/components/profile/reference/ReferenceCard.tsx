@@ -1,15 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import { Building2, CheckCircle2, ChevronDown, Mail, Phone, Star, Trash2 } from "lucide-react";
+import { Building2, CheckCircle2, ChevronDown, Clock, Mail, Phone, Star, Trash2 } from "lucide-react";
 
+import { ReferenceVerifiedStamp } from "@/components/profile/reference/ReferenceVerifiedStamp";
 import {
   getReferenceStatusLabel,
   getRefereeInitials,
   normalizeReferenceType,
 } from "@/components/profile/reference/types";
 import type { CandidateReferenceItem } from "@/lib/references/fetch-candidate-references";
-import { formatDateRange } from "@/lib/profile/format";
+import {
+  formatDateRange,
+  formatReferenceDateStamp,
+  formatReferenceDateTime,
+} from "@/lib/profile/format";
 import {
   formatQuestionnaireAnswerValue,
   REFERENCE_QUESTIONNAIRE,
@@ -39,25 +44,50 @@ type ReferenceCardProps = {
   isCancelling?: boolean;
 };
 
-function formatReferenceDate(reference: CandidateReferenceItem): string {
-  const dateValue = reference.verifiedAt ?? reference.submittedAt ?? reference.createdAt;
-
-  if (!dateValue) {
-    return "";
-  }
-
-  return new Date(dateValue).toLocaleDateString("en-US", {
-    month: "long",
-    year: "numeric",
-  });
-}
-
 function formatEmploymentPeriod(reference: CandidateReferenceItem): string | null {
   if (!reference.employmentStart && !reference.employmentEnd) {
     return null;
   }
 
   return formatDateRange(reference.employmentStart, reference.employmentEnd);
+}
+
+function ReferenceTimestamp({
+  reference,
+}: {
+  reference: CandidateReferenceItem;
+}) {
+  const submittedStamp = formatReferenceDateTime(
+    reference.responseSubmittedAt ?? reference.submittedAt,
+  );
+  const signedStamp = formatReferenceDateStamp(reference.signatureDate);
+  const requestedStamp = formatReferenceDateStamp(reference.createdAt);
+
+  if (reference.status === "verified") {
+    return signedStamp ? (
+      <p className="mt-2 text-xs text-gray-500">Signed on {signedStamp}</p>
+    ) : null;
+  }
+
+  if (reference.status === "submitted") {
+    return submittedStamp ? (
+      <p className="mt-2 flex items-center gap-1.5 text-xs text-amber-700">
+        <Clock className="h-3.5 w-3.5 shrink-0" />
+        Submitted on {submittedStamp}
+      </p>
+    ) : null;
+  }
+
+  if (reference.status === "pending" && requestedStamp) {
+    return (
+      <p className="mt-2 flex items-center gap-1.5 text-xs text-gray-500">
+        <Clock className="h-3.5 w-3.5 shrink-0" />
+        Requested on {requestedStamp}
+      </p>
+    );
+  }
+
+  return null;
 }
 
 function statusClasses(status: string): string {
@@ -195,10 +225,10 @@ export function ReferenceCard({
               </p>
               <p className="mt-1 text-sm text-gray-500">
                 {reference.relationshipLabel}
-                {formatReferenceDate(reference)
-                  ? ` · ${formatReferenceDate(reference)}`
-                  : ""}
               </p>
+              {showVerificationStatus ? (
+                <ReferenceTimestamp reference={reference} />
+              ) : null}
               {showEmploymentDetails ? (
                 <div className="mt-2 flex flex-col gap-1">
                   {employmentPeriod ? (
@@ -221,9 +251,12 @@ export function ReferenceCard({
             </div>
 
             <div className="flex shrink-0 items-center gap-2 self-start">
-              {showVerificationStatus ? (
+              {showVerificationStatus && reference.status === "verified" ? (
+                <ReferenceVerifiedStamp verifiedAt={reference.verifiedAt} />
+              ) : null}
+              {showVerificationStatus && reference.status !== "verified" ? (
                 <span
-                  className={`rounded-full px-3 py-1 text-xs font-medium ${statusClasses(reference.status)}`}
+                  className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium ${statusClasses(reference.status)}`}
                 >
                   {getReferenceStatusLabel(reference.status)}
                 </span>

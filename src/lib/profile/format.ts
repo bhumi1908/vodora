@@ -19,6 +19,48 @@ function formatMonthYear(date: string): string {
   });
 }
 
+export function formatReferenceDateStamp(
+  date: string | null | undefined,
+): string | null {
+  if (!date) {
+    return null;
+  }
+
+  const parsed = new Date(date);
+
+  if (Number.isNaN(parsed.getTime())) {
+    return null;
+  }
+
+  return parsed.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+export function formatReferenceDateTime(
+  date: string | null | undefined,
+): string | null {
+  if (!date) {
+    return null;
+  }
+
+  const parsed = new Date(date);
+
+  if (Number.isNaN(parsed.getTime())) {
+    return null;
+  }
+
+  return parsed.toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
 export function formatDateRange(
   startDate: string | null,
   endDate: string | null,

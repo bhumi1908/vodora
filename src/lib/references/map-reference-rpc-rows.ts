@@ -20,6 +20,8 @@ export type ReferenceRpcRow = {
   created_at: string;
   submitted_at: string | null;
   verified_at: string | null;
+  response_submitted_at?: string | null;
+  signature_date?: string | null;
   written_comments: string | null;
   questionnaire_responses: unknown;
   performance_rating: number | null;
@@ -50,6 +52,8 @@ export function mapReferenceRpcRows(
     createdAt: row.created_at,
     submittedAt: row.submitted_at,
     verifiedAt: row.verified_at,
+    responseSubmittedAt: row.response_submitted_at ?? null,
+    signatureDate: row.signature_date ?? null,
     writtenComments: row.written_comments,
     questionnaireResponses: parseQuestionnaireResponses(
       row.questionnaire_responses,

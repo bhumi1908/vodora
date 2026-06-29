@@ -94,7 +94,9 @@ export async function fetchRecruiterInitiatedReferences(
         leadership_rating,
         rehire_recommendation,
         employment_confirmed,
-        employment_dates_confirmed
+        employment_dates_confirmed,
+        submitted_at,
+        signature_date
       )
     `,
     )
@@ -187,6 +189,8 @@ export async function fetchRecruiterInitiatedReferences(
       invitationSentAt: row.invitation_sent_at,
       submittedAt: row.submitted_at,
       verifiedAt: row.verified_at,
+      responseSubmittedAt: response?.submitted_at ?? null,
+      signatureDate: response?.signature_date ?? null,
       writtenComments: response?.written_comments ?? null,
       questionnaireResponses: parseQuestionnaireResponses(
         response?.questionnaire_responses,
