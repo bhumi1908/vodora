@@ -4,6 +4,7 @@ import {
   Copy,
   Link2,
   Loader2,
+  Mail,
   Trash2,
   UserRound,
   X,
@@ -25,6 +26,7 @@ import {
   showRecruiterAccessSharedToast,
   showShareLinkCopiedToast,
   showShareLinkCreatedToast,
+  showShareLinkEmailedToast,
   showShareLinkErrorToast,
   showShareLinkRevokedToast,
 } from "@/lib/references/reference-share-toast";
@@ -36,6 +38,7 @@ import {
   useReferenceShareGrantsQuery,
   useRevokeReferenceRecruiterGrantMutation,
   useRevokeReferenceShareMutation,
+  useSendReferenceShareLinkToRecruiterMutation,
 } from "@/lib/query/use-reference-queries";
 
 type ShareReferencesModalProps = {
@@ -107,6 +110,7 @@ export function ShareReferencesModal({
   const revokeShare = useRevokeReferenceShareMutation();
   const createGrant = useCreateReferenceRecruiterGrantMutation();
   const revokeGrant = useRevokeReferenceRecruiterGrantMutation();
+  const sendShareLinkEmail = useSendReferenceShareLinkToRecruiterMutation();
 
   const verifiedReferences = useMemo(
     () => references.filter((reference) => reference.status === "verified"),
@@ -219,6 +223,32 @@ export function ShareReferencesModal({
     }
   }
 
+  async function handleEmailShareLinkToRecruiter() {
+    if (!selectedRecruiterId) {
+      showShareLinkErrorToast("Select a connected recruiter.");
+      return;
+    }
+
+    const sharing = getSharingPayload();
+    const recruiter = connectedRecruiters.find(
+      (entry) => entry.recruiterId === selectedRecruiterId,
+    );
+
+    try {
+      await sendShareLinkEmail.mutateAsync({
+        recruiterId: selectedRecruiterId,
+        ...sharing,
+        permissions,
+        expiresInDays,
+      });
+      showShareLinkEmailedToast(recruiter?.name);
+    } catch (error) {
+      showShareLinkErrorToast(
+        error instanceof Error ? error.message : undefined,
+      );
+    }
+  }
+
   async function handleRevokeShare(shareId: string) {
     setRevokingShareId(shareId);
 
@@ -262,6 +292,13 @@ export function ShareReferencesModal({
     hasVerifiedReferences &&
     hasValidSelection &&
     Boolean(selectedRecruiterId) &&
+    !createGrant.isPending &&
+    !sendShareLinkEmail.isPending;
+  const canEmailShareLinkToRecruiter =
+    hasVerifiedReferences &&
+    hasValidSelection &&
+    Boolean(selectedRecruiterId) &&
+    !sendShareLinkEmail.isPending &&
     !createGrant.isPending;
 
   return (
@@ -302,7 +339,7 @@ export function ShareReferencesModal({
         </div>
 
         <div className="border-b border-gray-200 px-6">
-          <div className="flex gap-2 py-3">
+          <div className="flex flex-col gap-2 py-3 sm:flex-row">
             {[
               { id: "link" as const, label: "Secure link", icon: Link2 },
               { id: "recruiter" as const, label: "Connected recruiter", icon: UserRound },
@@ -311,7 +348,7 @@ export function ShareReferencesModal({
                 key={id}
                 type="button"
                 onClick={() => setMode(id)}
-                className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+                className={`inline-flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors sm:w-auto ${
                   mode === id
                     ? "bg-blue-600 text-white"
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
@@ -539,11 +576,11 @@ export function ShareReferencesModal({
           </section>
         </div>
 
-        <div className="flex justify-end gap-2 border-t border-gray-200 px-6 py-4">
+        <div className="flex flex-col gap-2 border-t border-gray-200 px-6 py-4 sm:flex-row sm:justify-end">
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+            className="inline-flex w-full items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 sm:w-auto"
           >
             Close
           </button>
@@ -552,7 +589,7 @@ export function ShareReferencesModal({
               type="button"
               disabled={!canCreateLink}
               onClick={() => void handleCreateShare()}
-              className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-60"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-60 sm:w-auto"
             >
               {createShare.isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -562,19 +599,34 @@ export function ShareReferencesModal({
               Generate Link
             </button>
           ) : (
-            <button
-              type="button"
-              disabled={!canShareWithRecruiter}
-              onClick={() => void handleShareWithRecruiter()}
-              className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-60"
-            >
-              {createGrant.isPending ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <UserRound className="h-4 w-4" />
-              )}
-              Share with Recruiter
-            </button>
+            <>
+              <button
+                type="button"
+                disabled={!canEmailShareLinkToRecruiter}
+                onClick={() => void handleEmailShareLinkToRecruiter()}
+                className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-60 sm:w-auto"
+              >
+                {sendShareLinkEmail.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Mail className="h-4 w-4" />
+                )}
+                Send link by email
+              </button>
+              <button
+                type="button"
+                disabled={!canShareWithRecruiter}
+                onClick={() => void handleShareWithRecruiter()}
+                className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-60 sm:w-auto"
+              >
+                {createGrant.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <UserRound className="h-4 w-4" />
+                )}
+                Share with Recruiter
+              </button>
+            </>
           )}
         </div>
       </div>

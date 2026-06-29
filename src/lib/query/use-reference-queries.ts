@@ -16,11 +16,13 @@ import {
   openReferenceShareLink,
   revokeReferencePassportShare,
   revokeReferenceRecruiterGrant,
+  sendReferenceShareLinkToRecruiter,
 } from "@/lib/query/reference-share-fetchers";
 import { referenceKeys } from "@/lib/query/reference-keys";
 import type {
   CreateReferenceSharePayload,
   CreateReferenceRecruiterGrantPayload,
+  SendReferenceShareLinkToRecruiterPayload,
 } from "@/lib/references/reference-passport-share.types";
 
 const STALE_TIME_MS = 60_000;
@@ -169,6 +171,18 @@ export function useRevokeReferenceRecruiterGrantMutation() {
     mutationFn: revokeReferenceRecruiterGrant,
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: referenceKeys.grants() });
+    },
+  });
+}
+
+export function useSendReferenceShareLinkToRecruiterMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (payload: SendReferenceShareLinkToRecruiterPayload) =>
+      sendReferenceShareLinkToRecruiter(payload),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: referenceKeys.shares() });
     },
   });
 }

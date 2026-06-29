@@ -5,6 +5,7 @@ import type {
   ReferencePassportShareItem,
   ReferenceRecruiterGrantItem,
   ConnectedRecruiterShareOption,
+  SendReferenceShareLinkToRecruiterPayload,
 } from "@/lib/references/reference-passport-share.types";
 
 type SharesResponse = {
@@ -137,4 +138,27 @@ export async function revokeReferenceRecruiterGrant(grantId: string): Promise<vo
   if (!response.ok || !result.success) {
     throw new Error(result.error ?? "Unable to revoke recruiter access.");
   }
+}
+
+type SendShareLinkResponse = {
+  success: boolean;
+  error?: string;
+  share?: ReferencePassportShareItem;
+};
+
+export async function sendReferenceShareLinkToRecruiter(
+  payload: SendReferenceShareLinkToRecruiterPayload,
+): Promise<ReferencePassportShareItem> {
+  const response = await fetch("/api/candidate/references/grants/send-link", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  const result = (await response.json()) as SendShareLinkResponse;
+
+  if (!response.ok || !result.success || !result.share) {
+    throw new Error(result.error ?? "Unable to send share link email.");
+  }
+
+  return result.share;
 }

@@ -68,3 +68,8 @@ export type CreateReferenceRecruiterGrantPayload = {
     import("@/lib/references/reference-permissions").ReferenceSharePermissions
   >;
 };
+
+export type SendReferenceShareLinkToRecruiterPayload =
+  CreateReferenceRecruiterGrantPayload & {
+    expiresInDays?: number | null;
+  };

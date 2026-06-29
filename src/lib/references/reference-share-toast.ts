@@ -27,3 +27,11 @@ export function showRecruiterAccessRevokedToast() {
 export function showShareLinkErrorToast(message?: string) {
   toast.error(message ?? "Something went wrong with reference sharing.");
 }
+
+export function showShareLinkEmailedToast(recruiterName?: string) {
+  toast.success(
+    recruiterName
+      ? `Share link emailed to ${recruiterName}.`
+      : "Share link emailed to recruiter.",
+  );
+}
