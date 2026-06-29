@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useState, type ReactNode } from "react";
 
 import { ReferenceRespondForm } from "@/components/profile/reference/ReferenceRespondForm";
+import { ReferenceRespondSkeleton } from "@/components/profile/reference/ReferenceRespondSkeleton";
 import { ReferenceRespondSuccess } from "@/components/profile/reference/ReferenceRespondSuccess";
 import type { ReferenceResponseFormData } from "@/components/profile/reference/types";
 import type { ReferenceInvitationDetails } from "@/lib/references/fetch-reference-invitation";
@@ -107,14 +108,7 @@ export function ReferenceRespondPageClient({
   }, [token]);
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <PageHeader />
-        <div className="mx-auto max-w-2xl px-4 py-16 text-center text-sm text-gray-500">
-          Loading reference invitation...
-        </div>
-      </div>
-    );
+    return <ReferenceRespondSkeleton />;
   }
 
   if (loadError || !invitation) {
