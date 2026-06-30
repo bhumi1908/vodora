@@ -2,23 +2,29 @@
 
 import { useMemo, useState } from "react";
 
+import { AccountSecuritySection } from "@/components/settings/AccountSecuritySection";
 import { DefaultCoverLetterSection } from "@/components/settings/DefaultCoverLetterSection";
 import { ProfileVisibilitySection } from "@/components/settings/ProfileVisibilitySection";
-import { RememberMeSection } from "@/components/settings/RememberMeSection";
-import { ResetPasswordSection } from "@/components/settings/ResetPasswordSection";
-import { SettingsPageLayout, type SettingsSection } from "@/components/settings/SettingsPageLayout";
+import {
+  SettingsPageLayout,
+  type SettingsSection,
+} from "@/components/settings/SettingsPageLayout";
 import type { CandidateSettingsData } from "@/lib/settings/fetch-candidate-settings";
 import type { CandidateVisibility } from "@/lib/settings/candidate-visibility";
 
 type CandidateSettingsPageClientProps = {
   initialSettings: CandidateSettingsData;
   initialRememberMe: boolean;
+  email: string;
+  emailVerified: boolean;
   defaultSectionId?: string;
 };
 
 export function CandidateSettingsPageClient({
   initialSettings,
   initialRememberMe,
+  email,
+  emailVerified,
   defaultSectionId,
 }: CandidateSettingsPageClientProps) {
   const [visibility, setVisibility] = useState<CandidateVisibility>(
@@ -42,6 +48,7 @@ export function CandidateSettingsPageClient({
         id: "profile-visibility",
         label: "Profile Visibility",
         description: "Who can find and view your profile?",
+        contentMaxWidth: "narrow",
         content: (
           <ProfileVisibilitySection
             embedded
@@ -53,17 +60,19 @@ export function CandidateSettingsPageClient({
         ),
       },
       {
-        id: "remember-me",
-        label: "Sign-in Preference",
+        id: "account-security",
+        label: "Account & Security",
         description:
-          "Choose whether future sign-ins should keep you logged in longer.",
+          "Manage your email, password, and sign-in preferences in one place.",
+        contentMaxWidth: "narrow",
         content: (
-          <RememberMeSection
-            embedded
-            value={rememberMe}
-            savedValue={savedRememberMe}
-            onChange={setRememberMe}
-            onSaved={setSavedRememberMe}
+          <AccountSecuritySection
+            email={email}
+            emailVerified={emailVerified}
+            rememberMe={rememberMe}
+            savedRememberMe={savedRememberMe}
+            onRememberMeChange={setRememberMe}
+            onRememberMeSaved={setSavedRememberMe}
           />
         ),
       },
@@ -72,6 +81,7 @@ export function CandidateSettingsPageClient({
         label: "Default Cover Letter",
         description:
           "Write your cover letter once. It pre-fills automatically when you apply to jobs.",
+        contentMaxWidth: "narrow",
         content: (
           <DefaultCoverLetterSection
             embedded
@@ -82,16 +92,11 @@ export function CandidateSettingsPageClient({
           />
         ),
       },
-      {
-        id: "reset-password",
-        label: "Reset Password",
-        description: "Enter a new password for your account.",
-        contentMaxWidth: "narrow",
-        content: <ResetPasswordSection embedded />,
-      },
     ],
     [
       defaultCoverLetter,
+      email,
+      emailVerified,
       rememberMe,
       savedDefaultCoverLetter,
       savedRememberMe,

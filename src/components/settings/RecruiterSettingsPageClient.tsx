@@ -2,21 +2,27 @@
 
 import { useMemo, useState } from "react";
 
-import { RememberMeSection } from "@/components/settings/RememberMeSection";
-import { ResetPasswordSection } from "@/components/settings/ResetPasswordSection";
-import { SettingsPageLayout, type SettingsSection } from "@/components/settings/SettingsPageLayout";
+import { AccountSecuritySection } from "@/components/settings/AccountSecuritySection";
+import {
+  SettingsPageLayout,
+  type SettingsSection,
+} from "@/components/settings/SettingsPageLayout";
 import { TeamInvitationsSection } from "@/components/settings/TeamInvitationsSection";
 import type { CompanyInvitationRecord } from "@/lib/recruiter/company-invitation.types";
 
 type RecruiterSettingsPageClientProps = {
   initialInvitations: CompanyInvitationRecord[];
   initialRememberMe: boolean;
+  email: string;
+  emailVerified: boolean;
   defaultSectionId?: string;
 };
 
 export function RecruiterSettingsPageClient({
   initialInvitations,
   initialRememberMe,
+  email,
+  emailVerified,
   defaultSectionId,
 }: RecruiterSettingsPageClientProps) {
   const [rememberMe, setRememberMe] = useState(initialRememberMe);
@@ -25,17 +31,19 @@ export function RecruiterSettingsPageClient({
   const sections = useMemo<SettingsSection[]>(
     () => [
       {
-        id: "remember-me",
-        label: "Sign-in Preference",
+        id: "account-security",
+        label: "Account & Security",
         description:
-          "Choose whether future sign-ins should keep you logged in longer.",
+          "Manage your email, password, and sign-in preferences in one place.",
+        contentMaxWidth: "narrow",
         content: (
-          <RememberMeSection
-            embedded
-            value={rememberMe}
-            savedValue={savedRememberMe}
-            onChange={setRememberMe}
-            onSaved={setSavedRememberMe}
+          <AccountSecuritySection
+            email={email}
+            emailVerified={emailVerified}
+            rememberMe={rememberMe}
+            savedRememberMe={savedRememberMe}
+            onRememberMeChange={setRememberMe}
+            onRememberMeSaved={setSavedRememberMe}
           />
         ),
       },
@@ -44,6 +52,7 @@ export function RecruiterSettingsPageClient({
         label: "Team & Invitations",
         description:
           "Invite colleagues by email, view pending invitations, and assign roles.",
+        contentMaxWidth: "narrow",
         content: (
           <TeamInvitationsSection
             embedded
@@ -51,15 +60,8 @@ export function RecruiterSettingsPageClient({
           />
         ),
       },
-      {
-        id: "reset-password",
-        label: "Reset Password",
-        description: "Enter a new password for your account.",
-        contentMaxWidth: "narrow",
-        content: <ResetPasswordSection embedded />,
-      },
     ],
-    [initialInvitations, rememberMe, savedRememberMe],
+    [email, emailVerified, initialInvitations, rememberMe, savedRememberMe],
   );
 
   return (

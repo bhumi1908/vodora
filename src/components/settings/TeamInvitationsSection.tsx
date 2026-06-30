@@ -13,6 +13,12 @@ export function TeamInvitationsSection({
   initialInvitations,
   embedded = false,
 }: TeamInvitationsSectionProps) {
+  if (embedded) {
+    return (
+      <RecruiterInviteTeamSection initialInvitations={initialInvitations} />
+    );
+  }
+
   return (
     <ProfileEditSection
       id="team-invitations"

@@ -1,12 +1,13 @@
 "use client";
 
-import { Lock } from "lucide-react";
+import { Lock, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
 
 import { AuthInput } from "@/components/auth/shared/AuthInput";
 import { useFieldErrors } from "@/hooks/useFieldErrors";
 import { showPasswordUpdatedSuccessToast } from "@/lib/auth-toast";
+import { generateSecurePassword } from "@/lib/auth/generate-password";
 import type {
   ChangePasswordApiResponse,
   ResetPasswordApiResponse,
@@ -20,6 +21,8 @@ type ResetPasswordFormProps = {
   onSuccess?: () => void;
   showHeading?: boolean;
   redirectOnSuccess?: boolean;
+  showGeneratePassword?: boolean;
+  compact?: boolean;
 };
 
 export function ResetPasswordForm({
@@ -28,6 +31,8 @@ export function ResetPasswordForm({
   onSuccess,
   showHeading = true,
   redirectOnSuccess = true,
+  showGeneratePassword = false,
+  compact = false,
 }: ResetPasswordFormProps) {
   const router = useRouter();
   const [password, setPassword] = useState("");
@@ -37,6 +42,15 @@ export function ResetPasswordForm({
   >();
   const [formError, setFormError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  function handleGeneratePassword() {
+    const generatedPassword = generateSecurePassword();
+    setPassword(generatedPassword);
+    setConfirmPassword(generatedPassword);
+    clearField("password");
+    clearField("confirmPassword");
+    setFormError("");
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -125,47 +139,70 @@ export function ResetPasswordForm({
         </div>
       ) : null}
 
+      {showGeneratePassword ? (
+        <div className="mb-1 flex justify-end">
+          <button
+            type="button"
+            onClick={handleGeneratePassword}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+          >
+            <Sparkles className="h-3.5 w-3.5" />
+            Generate password
+          </button>
+        </div>
+      ) : null}
+
       <form onSubmit={handleSubmit} className="space-y-5" noValidate>
-        <AuthInput
-          id="password"
-          label="New Password"
-          type="password"
-          required
-          value={password}
-          onChange={(event) => {
-            setPassword(event.target.value);
-            clearField("password");
-            setFormError("");
-          }}
-          placeholder="••••••••"
-          icon={<Lock className="h-5 w-5" />}
-          hint="Must be at least 8 characters."
-          error={errors.password}
-        />
+        <div className={compact ? "grid gap-5 sm:grid-cols-2" : "space-y-5"}>
+          <AuthInput
+            id="password"
+            label="New Password"
+            type="password"
+            required
+            value={password}
+            onChange={(event) => {
+              setPassword(event.target.value);
+              clearField("password");
+              setFormError("");
+            }}
+            placeholder="••••••••"
+            icon={<Lock className="h-5 w-5" />}
+            hint="Must be at least 8 characters."
+            error={errors.password}
+            showPasswordToggle
+          />
 
-        <AuthInput
-          id="confirmPassword"
-          label="Confirm New Password"
-          type="password"
-          required
-          value={confirmPassword}
-          onChange={(event) => {
-            setConfirmPassword(event.target.value);
-            clearField("confirmPassword");
-            setFormError("");
-          }}
-          placeholder="••••••••"
-          icon={<Lock className="h-5 w-5" />}
-          error={errors.confirmPassword}
-        />
+          <AuthInput
+            id="confirmPassword"
+            label="Confirm New Password"
+            type="password"
+            required
+            value={confirmPassword}
+            onChange={(event) => {
+              setConfirmPassword(event.target.value);
+              clearField("confirmPassword");
+              setFormError("");
+            }}
+            placeholder="••••••••"
+            icon={<Lock className="h-5 w-5" />}
+            error={errors.confirmPassword}
+            showPasswordToggle
+          />
+        </div>
 
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="w-full rounded-lg bg-blue-600 py-3 text-base font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
-        >
-          {isSubmitting ? "Updating..." : "Update Password"}
-        </button>
+        <div className={compact ? "flex justify-end" : ""}>
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className={
+              compact
+                ? "rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+                : "w-full rounded-lg bg-blue-600 py-3 text-base font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
+            }
+          >
+            {isSubmitting ? "Updating..." : "Update Password"}
+          </button>
+        </div>
       </form>
     </div>
   );

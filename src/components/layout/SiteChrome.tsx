@@ -19,6 +19,7 @@ const CHROMELESS_ROUTE_PREFIXES = [
   "/signup",
   "/welcome",
   "/forgot-password",
+  "/reset-password",
   "/verify-email",
   "/reference/respond",
 ];
@@ -34,7 +35,6 @@ function isRecruitersLanding(pathname: string) {
 }
 
 const ACCOUNT_AWARE_ROUTE_PREFIXES = [
-  "/reset-password",
   "/feedback",
   "/settings",
   "/notifications",

@@ -29,7 +29,7 @@ const TASK_COPY: Record<
   },
   invite: {
     title: "Invite Team Members",
-    description: "Save team invitations now. Email delivery comes next.",
+    description: "Add colleagues to your company workspace by email.",
   },
 };
 

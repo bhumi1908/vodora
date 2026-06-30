@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 import { ResetPasswordPage } from "@/components/auth/ResetPasswordPage";
-import { ResetPasswordSessionPage } from "@/components/auth/ResetPasswordSessionPage";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
@@ -32,5 +31,5 @@ export default async function ResetPasswordRoute({
     redirect("/login?redirect=/reset-password");
   }
 
-  return <ResetPasswordSessionPage />;
+  redirect("/settings?section=account-security");
 }
