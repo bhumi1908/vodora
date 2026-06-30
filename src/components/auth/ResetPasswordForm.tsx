@@ -19,6 +19,7 @@ type ResetPasswordFormProps = {
   token?: string;
   onSuccess?: () => void;
   showHeading?: boolean;
+  redirectOnSuccess?: boolean;
 };
 
 export function ResetPasswordForm({
@@ -26,6 +27,7 @@ export function ResetPasswordForm({
   token,
   onSuccess,
   showHeading = true,
+  redirectOnSuccess = true,
 }: ResetPasswordFormProps) {
   const router = useRouter();
   const [password, setPassword] = useState("");
@@ -87,7 +89,11 @@ export function ResetPasswordForm({
       showPasswordUpdatedSuccessToast();
       onSuccess?.();
 
-      if ("redirectTo" in result && result.redirectTo) {
+      if (
+        redirectOnSuccess &&
+        "redirectTo" in result &&
+        result.redirectTo
+      ) {
         router.push(result.redirectTo);
         router.refresh();
       }

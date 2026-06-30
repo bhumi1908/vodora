@@ -656,6 +656,51 @@ export type Database = {
         };
         Relationships: [];
       };
+      notifications: {
+        Row: {
+          action_url: string;
+          actor_user_id: string | null;
+          body: string | null;
+          created_at: string;
+          entity_id: string | null;
+          entity_type: string | null;
+          id: string;
+          metadata: Json;
+          read_at: string | null;
+          recipient_user_id: string;
+          title: string;
+          type: string;
+        };
+        Insert: {
+          action_url: string;
+          actor_user_id?: string | null;
+          body?: string | null;
+          created_at?: string;
+          entity_id?: string | null;
+          entity_type?: string | null;
+          id?: string;
+          metadata?: Json;
+          read_at?: string | null;
+          recipient_user_id: string;
+          title: string;
+          type: string;
+        };
+        Update: {
+          action_url?: string;
+          actor_user_id?: string | null;
+          body?: string | null;
+          created_at?: string;
+          entity_id?: string | null;
+          entity_type?: string | null;
+          id?: string;
+          metadata?: Json;
+          read_at?: string | null;
+          recipient_user_id?: string;
+          title?: string;
+          type?: string;
+        };
+        Relationships: [];
+      };
       recruiters: {
         Row: {
           bio: string | null;

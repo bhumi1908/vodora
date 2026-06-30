@@ -6,6 +6,7 @@ type ProfileEditSectionProps = {
   description?: string;
   children: ReactNode;
   footer?: ReactNode;
+  embedded?: boolean;
 };
 
 export function ProfileEditSection({
@@ -14,7 +15,22 @@ export function ProfileEditSection({
   description,
   children,
   footer,
+  embedded = false,
 }: ProfileEditSectionProps) {
+  if (embedded) {
+    return (
+      <section id={id}>
+        <div className="space-y-4">{children}</div>
+
+        {footer ? (
+          <div className="mt-6 flex items-center justify-end gap-3 border-t border-gray-100 pt-4">
+            {footer}
+          </div>
+        ) : null}
+      </section>
+    );
+  }
+
   return (
     <section
       id={id}

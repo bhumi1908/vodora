@@ -7,6 +7,7 @@ export const CANDIDATE_JOBS_PATH = "/jobs";
 export const CANDIDATE_FIND_RECRUITERS_PATH = "/find-recruiters";
 export const CANDIDATE_FIND_CANDIDATES_PATH = "/find-candidates";
 export const CANDIDATE_CONNECTIONS_PATH = "/connections";
+export const NOTIFICATIONS_PATH = "/notifications";
 
 export function getCandidateRecruiterProfilePath(recruiterId: string): string {
   return `${CANDIDATE_FIND_RECRUITERS_PATH}/${encodeURIComponent(recruiterId)}`;

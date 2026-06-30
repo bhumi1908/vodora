@@ -41,6 +41,7 @@ const PROTECTED_PREFIXES = [
   ...RECRUITER_ONLY_PREFIXES,
   ...SHARE_PREFIXES,
   "/settings",
+  "/notifications",
   "/feedback",
 ];
 

@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { UserProfileMenu } from "@/components/layout/UserProfileMenu";
-import { ConnectionNotificationBell } from "@/components/connections/ConnectionNotificationBell";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 import {
   CANDIDATE_CONNECTIONS_PATH,
   CANDIDATE_FIND_CANDIDATES_PATH,
@@ -113,8 +113,6 @@ export function SiteHeader() {
   const isLanding = pathname === "/";
   const profileHref =
     accountType === "recruiter" ? RECRUITER_PROFILE_PATH : "/my-profile";
-  const notificationRole =
-    accountType === "recruiter" ? "recruiter" : "candidate";
   const accountTypeLoading = Boolean(user) && accountType === null;
   const dashboardHref = getDashboardPath(accountType ?? "candidate");
   const connectHref =
@@ -210,7 +208,7 @@ export function SiteHeader() {
                     <div className="h-8 w-24 animate-pulse rounded-lg bg-gray-100" />
                   ) : (
                     <>
-                      <ConnectionNotificationBell role={notificationRole} />
+                      <NotificationBell />
                       <UserProfileMenu
                         user={user}
                         profileHref={profileHref}
@@ -282,7 +280,7 @@ export function SiteHeader() {
                     ) : (
                       <>
                         <div className="mb-2 flex justify-end">
-                          <ConnectionNotificationBell role={notificationRole} />
+                          <NotificationBell />
                         </div>
                         <UserProfileMenu
                           user={user}

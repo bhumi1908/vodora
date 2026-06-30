@@ -1,7 +1,7 @@
 "use client";
 
 import type { User } from "@supabase/supabase-js";
-import { ChevronDown, KeyRound, LogOut, Settings } from "lucide-react";
+import { ChevronDown, KeyRound, LogOut, UserRound } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -129,7 +129,7 @@ export function RecruiterUserProfileMenu({
           className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100"
           onClick={onNavigate}
         >
-          <Settings className="h-4 w-4" />
+          <UserRound className="h-4 w-4" />
           My Profile
         </Link>
         <Link
@@ -203,7 +203,7 @@ export function RecruiterUserProfileMenu({
               onNavigate?.();
             }}
           >
-            <Settings className="h-4 w-4" />
+            <UserRound className="h-4 w-4" />
             My Profile
           </Link>
           <Link

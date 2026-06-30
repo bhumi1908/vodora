@@ -15,7 +15,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { RecruiterUserProfileMenu } from "@/components/layout/RecruiterUserProfileMenu";
-import { ConnectionNotificationBell } from "@/components/connections/ConnectionNotificationBell";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 import {
   RECRUITER_CONNECTIONS_PATH,
   RECRUITER_DASHBOARD_PATH,
@@ -231,7 +231,7 @@ export function RecruiterAppHeader() {
             <div className="hidden items-center gap-2 md:flex lg:gap-3">
               {showAuthActions && isLoggedIn ? (
                 <>
-                  <ConnectionNotificationBell role="recruiter" />
+                  <NotificationBell />
                   {user ? (
                     <RecruiterUserProfileMenu
                       user={user}
@@ -291,7 +291,7 @@ export function RecruiterAppHeader() {
               <div className="mt-4 space-y-2 border-t border-gray-100 pt-4">
                 {showAuthActions && isLoggedIn ? (
                   <div className="flex justify-end px-1 pb-1">
-                    <ConnectionNotificationBell role="recruiter" />
+                    <NotificationBell />
                   </div>
                 ) : null}
 

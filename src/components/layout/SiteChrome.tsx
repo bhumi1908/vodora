@@ -9,6 +9,7 @@ import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { ConnectionRealtimeSync } from "@/components/connections/ConnectionRealtimeSync";
 import { JobApplicationRealtimeSync } from "@/components/jobs/JobApplicationRealtimeSync";
+import { NotificationRealtimeSync } from "@/components/notifications/NotificationRealtimeSync";
 import { useAccountType } from "@/lib/auth/use-account-type";
 import { isRecruiterAppRoute } from "@/lib/auth/routes";
 import { createClient } from "@/lib/supabase/client";
@@ -36,6 +37,7 @@ const ACCOUNT_AWARE_ROUTE_PREFIXES = [
   "/reset-password",
   "/feedback",
   "/settings",
+  "/notifications",
 ];
 
 function isAccountAwareRoute(pathname: string) {
@@ -139,6 +141,7 @@ export function SiteChrome({ children }: { children: React.ReactNode }) {
         <>
           <ConnectionRealtimeSync role={realtimeRole} />
           <JobApplicationRealtimeSync role={realtimeRole} />
+          <NotificationRealtimeSync />
         </>
       ) : null}
       <ChromeHeader />
