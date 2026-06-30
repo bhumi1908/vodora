@@ -60,7 +60,8 @@ export function CandidatePeerDirectory({ filters: initialFilters }: CandidatePee
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [connecting, setConnecting] = useState<CandidatePeerSearchCandidate | null>(null);
 
-  const { data: filters = initialFilters } = useCandidatePeerSearchFiltersQuery();
+  const { data: filters = initialFilters } =
+    useCandidatePeerSearchFiltersQuery(initialFilters);
 
   const filterState = useMemo(
     () => ({

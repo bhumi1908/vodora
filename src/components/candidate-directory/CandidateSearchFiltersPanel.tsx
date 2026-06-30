@@ -3,9 +3,13 @@
 import { ChevronDown, ChevronUp, SlidersHorizontal } from "lucide-react";
 import { useMemo, useState } from "react";
 
+import { AVAILABILITY_START_OPTIONS } from "@/lib/profile/availability";
 import type { RecruiterSearchFilters } from "@/lib/recruiter/search.types";
 
-const availabilityOptions = ["All", "Immediately", "2 weeks", "1 month"];
+const availabilityOptions = [
+  "All",
+  ...AVAILABILITY_START_OPTIONS.map((option) => option.value).filter(Boolean),
+];
 const experienceLevels = ["Any", "0-3 years", "4-7 years", "8+ years"];
 const referenceFilters = ["Any", "5+ references", "8+ references", "10+ references"];
 

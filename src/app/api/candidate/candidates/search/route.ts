@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { getAccountType } from "@/lib/auth/account-type";
 import { searchCandidatesForCandidates } from "@/lib/candidate/fetch-candidate-peer-search";
 import type { CandidatePeerSearchParams } from "@/lib/candidate/candidate-peer-search.types";
+import { resolveCategorySearchParam } from "@/lib/search/resolve-category-search-param";
 import { createClient } from "@/lib/supabase/server";
 
 function parseExperienceRange(value: string | null): {
@@ -34,7 +35,10 @@ function parseMinReferences(value: string | null): number | undefined {
   }
 }
 
-function parseSearchParams(url: URL): CandidatePeerSearchParams {
+function parseSearchParams(url: URL): Omit<CandidatePeerSearchParams, "categoryId"> & {
+  categoryId?: string;
+  legacyCategory?: string;
+} {
   const workTypeCodes = url.searchParams
     .getAll("workType")
     .map((code) => code.trim())
@@ -47,6 +51,7 @@ function parseSearchParams(url: URL): CandidatePeerSearchParams {
   return {
     query: url.searchParams.get("q") ?? undefined,
     categoryId: url.searchParams.get("categoryId") ?? undefined,
+    legacyCategory: url.searchParams.get("category") ?? undefined,
     availabilityStart:
       url.searchParams.get("availability") &&
       url.searchParams.get("availability") !== "All"
@@ -83,7 +88,17 @@ export async function GET(request: Request) {
     );
   }
 
-  const params = parseSearchParams(new URL(request.url));
+  const parsedParams = parseSearchParams(new URL(request.url));
+  const { legacyCategory, ...searchInput } = parsedParams;
+  const categoryId = await resolveCategorySearchParam(
+    supabase,
+    parsedParams.categoryId,
+    legacyCategory,
+  );
+  const params: CandidatePeerSearchParams = {
+    ...searchInput,
+    categoryId,
+  };
   const result = await searchCandidatesForCandidates(supabase, params);
 
   if (result.error) {

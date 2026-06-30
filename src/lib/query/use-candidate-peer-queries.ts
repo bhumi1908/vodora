@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import type { CandidatePeerSearchFilters } from "@/lib/candidate/candidate-peer-search.types";
 import {
   fetchCandidatePeerSearchFilters,
   fetchCandidatePeerSearchResults,
@@ -11,10 +12,13 @@ import {
 } from "@/lib/query/candidate-peer-keys";
 import { connectionKeys } from "@/lib/query/connection-keys";
 
-export function useCandidatePeerSearchFiltersQuery() {
+export function useCandidatePeerSearchFiltersQuery(
+  initialFilters?: CandidatePeerSearchFilters,
+) {
   return useQuery({
     queryKey: candidatePeerKeys.filters(),
     queryFn: fetchCandidatePeerSearchFilters,
+    initialData: initialFilters,
     staleTime: 5 * 60 * 1000,
   });
 }

@@ -1,5 +1,5 @@
-import { RecruiterProfileSkeleton } from "@/components/recruiter/RecruiterProfileSkeleton";
+import { ProfileViewSkeleton } from "@/components/profile/ProfileViewSkeleton";
 
 export default function CandidateRecruiterProfileLoading() {
-  return <RecruiterProfileSkeleton />;
+  return <ProfileViewSkeleton showBackLink />;
 }

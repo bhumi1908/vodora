@@ -13,7 +13,7 @@ import {
   useRequiredMyRecruiterProfileData,
 } from "@/components/recruiter/MyRecruiterProfileDataProvider";
 import { RecruiterProfileSectionModal } from "@/components/recruiter/edit/RecruiterProfileSectionModal";
-import { RecruiterProfileSkeleton } from "@/components/recruiter/RecruiterProfileSkeleton";
+import { ProfileViewSkeleton } from "@/components/profile/ProfileViewSkeleton";
 import {
   RecruiterProfileView,
   type RecruiterProfileTab,
@@ -88,7 +88,7 @@ export function RecruiterProfilePage() {
   );
 
   if (isLoading || !profile || !editProfile) {
-    return <RecruiterProfileSkeleton />;
+    return <ProfileViewSkeleton />;
   }
 
   return (
