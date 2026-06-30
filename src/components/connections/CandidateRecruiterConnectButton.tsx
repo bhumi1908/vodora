@@ -3,6 +3,7 @@
 import { CheckCircle, Clock3, UserCheck, X } from "lucide-react";
 import { useState } from "react";
 
+import { ConnectModalAvatar } from "@/components/connections/ConnectModalAvatar";
 import type { ProfileConnectionState } from "@/lib/connections/connection.types";
 import {
   showConnectionRequestErrorToast,
@@ -81,14 +82,22 @@ function CandidateRecruiterConnectModal({
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 sm:items-center sm:p-4">
       <div className="max-h-[92dvh] w-full overflow-y-auto rounded-t-2xl bg-white shadow-2xl sm:max-h-none sm:max-w-lg sm:rounded-2xl">
         <div className="flex items-start justify-between gap-3 p-5 pb-0 sm:p-8">
-          <div className="min-w-0">
-            <h2 className="text-lg font-semibold text-gray-900 sm:text-xl">
-              Connect with {getFirstName(profile.name)}
-            </h2>
-            <p className="text-xs text-gray-500 sm:text-sm">
-              {profile.title ?? "Recruiter"}
-              {profile.company ? ` · ${profile.company}` : ""}
-            </p>
+          <div className="flex min-w-0 items-center gap-3 sm:gap-4">
+            <ConnectModalAvatar
+              name={profile.name}
+              profilePictureUrl={profile.profilePictureUrl}
+              initials={profile.avatarInitials}
+              size="sm"
+            />
+            <div className="min-w-0">
+              <h2 className="text-lg font-semibold text-gray-900 sm:text-xl">
+                Connect with {getFirstName(profile.name)}
+              </h2>
+              <p className="text-xs text-gray-500 sm:text-sm">
+                {profile.title ?? "Recruiter"}
+                {profile.company ? ` · ${profile.company}` : ""}
+              </p>
+            </div>
           </div>
           <button
             type="button"

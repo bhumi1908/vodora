@@ -7,6 +7,7 @@ import {
   redactPrivateProfileFields,
   resolveProfileVisibility,
 } from "@/lib/profile/profile-visibility";
+import { fetchRecruiterCandidateSavedStatus } from "@/lib/recruiter/fetch-candidate-save-status";
 import { getCachedRecruiterCandidateProfile } from "@/lib/recruiter/fetch-recruiter-candidate-profile";
 import { createClient } from "@/lib/supabase/server";
 
@@ -54,6 +55,10 @@ export async function GET(_request: Request, context: RouteContext) {
     ? await checkRecruiterReferenceGrant(supabase, profile.candidateId)
     : false;
 
+  const isSaved = profile.candidateId
+    ? await fetchRecruiterCandidateSavedStatus(supabase, profile.candidateId)
+    : false;
+
   const visibility = resolveProfileVisibility({
     recruiterView: true,
     connection,
@@ -69,5 +74,6 @@ export async function GET(_request: Request, context: RouteContext) {
     success: true,
     profile: visibleProfile,
     hasReferenceAccess,
+    isSaved,
   });
 }

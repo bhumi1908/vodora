@@ -14,12 +14,14 @@ type RecruiterCandidateProfileWithCacheProps = {
   vodoraId: string;
   initialProfile: CandidateProfileData;
   initialHasReferenceAccess?: boolean;
+  initialIsSaved?: boolean;
 };
 
 export function RecruiterCandidateProfileWithCache({
   vodoraId,
   initialProfile,
   initialHasReferenceAccess = false,
+  initialIsSaved = false,
 }: RecruiterCandidateProfileWithCacheProps) {
   const queryClient = useQueryClient();
 
@@ -29,12 +31,14 @@ export function RecruiterCandidateProfileWithCache({
     initialData: {
       profile: initialProfile,
       hasReferenceAccess: initialHasReferenceAccess,
+      isSaved: initialIsSaved,
     },
   });
 
   const profile = data?.profile ?? initialProfile;
   const hasReferenceAccess =
     data?.hasReferenceAccess ?? initialHasReferenceAccess;
+  const isSaved = data?.isSaved ?? initialIsSaved;
 
   const { data: connection } = useRecruiterCandidateConnectionStatusQuery(
     profile?.candidateId ?? null,
@@ -71,6 +75,7 @@ export function RecruiterCandidateProfileWithCache({
       recruiterView
       connection={connection ?? null}
       hasReferenceAccess={hasReferenceAccess}
+      isSaved={isSaved}
       onConnectionChange={handleConnectionChange}
     />
   );

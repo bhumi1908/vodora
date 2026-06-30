@@ -17,7 +17,7 @@ type CandidateSaveButtonProps = {
   initialSaved: boolean;
   candidateName?: string;
   onSavedChange?: (saved: boolean) => void;
-  variant?: "list" | "grid";
+  variant?: "list" | "grid" | "profile";
 };
 
 export function CandidateSaveButton({
@@ -78,6 +78,17 @@ export function CandidateSaveButton({
     ? "text-amber-500"
     : "text-gray-400 hover:text-gray-600";
 
+  const profileClassName = saved
+    ? "border border-amber-200 bg-amber-50 text-amber-500"
+    : "border border-gray-300 text-gray-500 hover:bg-gray-50";
+
+  const variantClassName =
+    variant === "grid"
+      ? `p-1.5 ${gridClassName}`
+      : variant === "profile"
+        ? `p-2 ${profileClassName}`
+        : `p-2 ${listClassName}`;
+
   return (
     <button
       type="button"
@@ -85,9 +96,9 @@ export function CandidateSaveButton({
       disabled={mutation.isPending}
       aria-label={saved ? "Remove saved profile" : "Save profile"}
       aria-pressed={saved}
-      className={`rounded-lg transition-colors disabled:opacity-60 ${
-        variant === "grid" ? `p-1.5 ${gridClassName}` : `p-2 ${listClassName}`
-      }`}
+      className={`transition-colors disabled:opacity-60 ${
+        variant === "profile" ? "rounded-full" : "rounded-lg"
+      } ${variantClassName}`}
     >
       <Bookmark className={`h-4 w-4 ${saved ? "fill-amber-500" : ""}`} />
     </button>

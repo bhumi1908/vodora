@@ -35,6 +35,7 @@ type ProfilePageProps = {
   peerView?: boolean;
   connection?: ProfileConnectionState;
   hasReferenceAccess?: boolean;
+  isSaved?: boolean;
   onConnectionChange?: () => void;
   editProfile?: CandidateProfileEditData | null;
 };
@@ -46,6 +47,7 @@ export function ProfilePage({
   peerView = false,
   connection = null,
   hasReferenceAccess = false,
+  isSaved = false,
   onConnectionChange,
   editProfile = null,
 }: ProfilePageProps) {
@@ -125,8 +127,10 @@ export function ProfilePage({
       <ProfileHeader
         profile={profile}
         visibility={visibility}
+        recruiterView={recruiterView}
         peerView={peerView}
         connection={connection}
+        isSaved={isSaved}
         onConnectionChange={onConnectionChange}
         onShareClick={() => setShareModalOpen(true)}
         onEnterVisitorPreview={() => setVisitorPreview(true)}

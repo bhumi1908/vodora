@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, Users } from "lucide-react";
+import { Users } from "lucide-react";
 import Link from "next/link";
 
 import {
@@ -31,18 +31,14 @@ export function ProfileConnectionStats({ role }: ProfileConnectionStatsProps) {
   }
 
   return (
-    <Link
-      href={href}
-      className="mb-4 flex flex-wrap items-center gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm transition-colors hover:border-blue-300 hover:bg-blue-50"
-    >
+    <div className="mb-4 flex flex-wrap items-center gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm">
       <Users className="h-4 w-4 text-blue-600" />
-      <span>
-        <span className="font-semibold text-gray-900">{counts.connected}</span>
-        <span className="text-gray-600">
-          {" "}
-          connected
-        </span>
-      </span>
+      <Link
+        href={href}
+        className="font-semibold text-blue-600 transition-colors hover:text-blue-700 hover:underline"
+      >
+        {counts.connected} connected
+      </Link>
       {counts.pendingReceived > 0 ? (
         <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800">
           {counts.pendingReceived} request{counts.pendingReceived === 1 ? "" : "s"} waiting
@@ -53,10 +49,6 @@ export function ProfileConnectionStats({ role }: ProfileConnectionStatsProps) {
           {counts.pendingSent} pending sent
         </span>
       ) : null}
-      <span className="inline-flex items-center gap-1 text-blue-600">
-        Manage connections
-        <ArrowRight className="h-4 w-4" aria-hidden="true" />
-      </span>
-    </Link>
+    </div>
   );
 }

@@ -19,6 +19,7 @@ import { CANDIDATE_PROFILE_PATH } from "@/lib/auth/routes";
 import { ProfileConnectionStats } from "@/components/connections/ProfileConnectionStats";
 import { CandidateProfilePeerConnectButton } from "@/components/connections/CandidateProfilePeerConnectButton";
 import { RecruiterProfileConnectButton } from "@/components/connections/RecruiterProfileConnectButton";
+import { CandidateSaveButton } from "@/components/recruiter/CandidateSaveButton";
 import { ProfileCompletionCircle } from "@/components/profile/ProfileCompletionCircle";
 import {
   CANDIDATE_FIND_RECRUITERS_PATH,
@@ -39,8 +40,10 @@ type ActionPlacement = "desktop" | "mobile";
 type ProfileHeaderProps = {
   profile: CandidateProfileData;
   visibility: ProfileVisibility;
+  recruiterView?: boolean;
   peerView?: boolean;
   connection?: ProfileConnectionState;
+  isSaved?: boolean;
   onConnectionChange?: () => void;
   onShareClick?: () => void;
   onEnterVisitorPreview?: () => void;
@@ -94,8 +97,10 @@ function ProfileAvatar({
 function ProfileHeaderActions({
   visibility,
   profile,
+  recruiterView = false,
   peerView = false,
   connection,
+  isSaved = false,
   onConnectionChange,
   onShareClick,
   onEnterVisitorPreview,
@@ -105,8 +110,10 @@ function ProfileHeaderActions({
 }: {
   visibility: ProfileVisibility;
   profile: CandidateProfileData;
+  recruiterView?: boolean;
   peerView?: boolean;
   connection: ProfileConnectionState;
+  isSaved?: boolean;
   onConnectionChange?: () => void;
   onShareClick?: () => void;
   onEnterVisitorPreview?: () => void;
@@ -116,7 +123,9 @@ function ProfileHeaderActions({
 }) {
   const isMobile = placement === "mobile";
   const rowClass = isMobile
-    ? "flex flex-col gap-2"
+    ? recruiterView
+      ? "flex flex-row items-center gap-2"
+      : "flex flex-col gap-2"
     : "flex flex-row flex-wrap items-center justify-end gap-2";
   const buttonClass = isMobile
     ? "flex min-h-10 w-full items-center justify-center gap-1.5 rounded-full px-3 py-2 text-xs font-medium transition-colors"
@@ -233,23 +242,41 @@ function ProfileHeaderActions({
   }
 
   if (visibility.showConnectInHeader) {
+    const connectControl = peerView ? (
+      <CandidateProfilePeerConnectButton
+        profile={profile}
+        connection={connection}
+        onConnectionChange={onConnectionChange}
+      />
+    ) : (
+      <RecruiterProfileConnectButton
+        profile={profile}
+        connection={connection}
+        onConnectionChange={onConnectionChange}
+      />
+    );
+
     return (
-      <div
-        className={`${rowClass} ${isMobile ? "[&_button]:w-full [&>span]:w-full [&>span]:justify-center" : ""}`}
-      >
-        {peerView ? (
-          <CandidateProfilePeerConnectButton
-            profile={profile}
-            connection={connection}
-            onConnectionChange={onConnectionChange}
+      <div className={rowClass}>
+        <div
+          className={
+            isMobile && recruiterView
+              ? "min-w-0 flex-1 [&_button]:w-full [&>span]:flex [&>span]:w-full [&>span]:justify-center"
+              : isMobile
+                ? "[&_button]:w-full [&>span]:flex [&>span]:w-full [&>span]:justify-center"
+                : ""
+          }
+        >
+          {connectControl}
+        </div>
+        {recruiterView && profile.candidateId ? (
+          <CandidateSaveButton
+            candidateId={profile.candidateId}
+            initialSaved={isSaved}
+            candidateName={profile.name}
+            variant="profile"
           />
-        ) : (
-          <RecruiterProfileConnectButton
-            profile={profile}
-            connection={connection}
-            onConnectionChange={onConnectionChange}
-          />
-        )}
+        ) : null}
       </div>
     );
   }
@@ -260,8 +287,10 @@ function ProfileHeaderActions({
 export function ProfileHeader({
   profile,
   visibility,
+  recruiterView = false,
   peerView = false,
   connection = null,
+  isSaved = false,
   onConnectionChange,
   onShareClick,
   onEnterVisitorPreview,
@@ -293,8 +322,10 @@ export function ProfileHeader({
   const actionProps = {
     visibility,
     profile,
+    recruiterView,
     peerView,
     connection,
+    isSaved,
     onConnectionChange,
     onShareClick,
     onEnterVisitorPreview,
@@ -345,7 +376,7 @@ export function ProfileHeader({
         <div className="-mt-12 mb-4 flex gap-4">
           <ProfileAvatar profile={profile} onEditPhoto={onEditPhoto} />
           {showActions ? (
-            <div className="hidden min-w-0 flex-1 pt-12 md:flex md:items-center md:justify-end">
+            <div className="hidden min-w-0 flex-1 pt-12 md:mt-3 md:flex md:items-end md:justify-end">
               <ProfileHeaderActions {...actionProps} placement="desktop" />
             </div>
           ) : null}

@@ -375,9 +375,17 @@ function CandidateResultsSkeleton({ view }: { view: "list" | "grid" }) {
           <div className="flex gap-4">
             <Skeleton className="h-14 w-14 shrink-0 rounded-2xl" />
             <div className="flex-1 space-y-2">
-              <Skeleton className="h-5 w-40" />
-              <Skeleton className="h-4 w-56" />
-              <Skeleton className="h-3 w-full max-w-md" />
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div className="flex-1 space-y-2">
+                  <Skeleton className="h-5 w-40" />
+                  <Skeleton className="h-4 w-56" />
+                  <Skeleton className="h-3 w-full max-w-md" />
+                </div>
+                <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+                  <Skeleton className="h-9 w-9 shrink-0 rounded-lg" />
+                  <Skeleton className="h-9 w-full rounded-lg sm:w-28" />
+                </div>
+              </div>
               <div className="flex flex-wrap gap-2 pt-2">
                 <Skeleton className="h-6 w-16 rounded-lg" />
                 <Skeleton className="h-6 w-20 rounded-lg" />

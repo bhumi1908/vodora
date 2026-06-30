@@ -1,12 +1,13 @@
 "use client";
 
 import { CheckCircle, MapPin, Shield } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { CandidateSaveButton } from "@/components/recruiter/CandidateSaveButton";
 import { getRecruiterCandidateProfilePath } from "@/lib/auth/routes";
 import type { RecruiterCandidateCardData } from "@/lib/recruiter/dashboard.types";
-import { formatCandidateAvailability } from "@/lib/recruiter/format-candidate-availability";
+import { formatCandidateCardAvailability } from "@/lib/recruiter/format-candidate-availability";
 import { formatLocation, getInitials } from "@/lib/profile/format";
 
 type RecruiterCandidateGridCardProps = {
@@ -21,11 +22,11 @@ export function RecruiterCandidateGridCard({
   const router = useRouter();
   const fullName = `${candidate.firstName} ${candidate.lastName}`.trim();
   const location = formatLocation(candidate.city, candidate.country);
-  const availability = formatCandidateAvailability(
+  const availability = formatCandidateCardAvailability(
     candidate.availabilityStatus,
     candidate.availabilityStart,
-    candidate.workTypes,
   );
+  const isNotLooking = candidate.availabilityStatus === "not_looking";
   const initials = getInitials(candidate.firstName, candidate.lastName);
   const profilePath = getRecruiterCandidateProfilePath(candidate.vodoraId);
 
@@ -82,12 +83,26 @@ export function RecruiterCandidateGridCard({
             <span className="truncate">{location}</span>
           </div>
         ) : null}
-        <div className="mb-3 flex items-center justify-between">
+        <div className="mb-4 flex items-center justify-between gap-2">
           <span className="flex items-center gap-1 text-xs font-medium text-blue-600">
             <Shield className="h-3 w-3" />
             {candidate.referenceCount} references
           </span>
-          <span className="text-xs font-medium text-green-600">{availability}</span>
+          <span
+            className={`min-w-0 truncate text-right text-xs font-medium ${
+              isNotLooking ? "text-gray-500" : "text-green-600"
+            }`}
+          >
+            {availability}
+          </span>
+        </div>
+        <div onClick={(event) => event.stopPropagation()}>
+          <Link
+            href={profilePath}
+            className="flex w-full items-center justify-center rounded-lg bg-blue-600 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+          >
+            View Profile
+          </Link>
         </div>
       </div>
     </article>

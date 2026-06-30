@@ -6,6 +6,7 @@ import {
 } from "@/lib/profile/format";
 import type { OwnCandidateProfileRpcResult } from "@/lib/profile/own-candidate-profile-rpc.types";
 import { parseSpotlightBlocks } from "@/lib/profile/spotlight";
+import { resolveProfilePictureUrl } from "@/lib/profile/resolve-profile-picture-url";
 import type { CandidateProfileData } from "@/lib/profile/types";
 
 function toMonthInput(value: string | null): string {
@@ -69,7 +70,10 @@ export function transformOwnCandidateProfileToView(
     phone: user.phone,
     website: candidate?.linkedin_profile_url ?? null,
     avatarInitials: getInitials(user.first_name, user.last_name),
-    profilePictureUrl: candidate?.profile_picture_url ?? null,
+    profilePictureUrl: resolveProfilePictureUrl(
+      candidate?.profile_picture_url,
+      documents,
+    ),
     about: candidate?.summary ?? null,
     profession: candidate?.profession ?? null,
     vodoraId: candidate?.vodora_id ?? null,
@@ -138,7 +142,10 @@ export function transformOwnCandidateProfileToEdit(
     candidateId: candidate.id,
     name: `${user.first_name} ${user.last_name}`.trim(),
     avatarInitials: getInitials(user.first_name, user.last_name),
-    profilePictureUrl: candidate.profile_picture_url,
+    profilePictureUrl: resolveProfilePictureUrl(
+      candidate.profile_picture_url,
+      documents,
+    ),
     title: candidate.current_position ?? candidate.headline ?? "",
     company: candidate.current_company_name ?? "",
     phone: user.phone ?? "",

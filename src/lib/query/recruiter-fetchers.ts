@@ -187,6 +187,7 @@ export async function fetchRecruiterCandidateProfile(
   return {
     profile: payload.profile,
     hasReferenceAccess: payload.hasReferenceAccess ?? false,
+    isSaved: payload.isSaved ?? false,
   };
 }
 

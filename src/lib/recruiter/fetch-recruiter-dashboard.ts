@@ -6,6 +6,7 @@ import type {
   RecruiterDashboardContext,
   RecruiterDashboardData,
 } from "@/lib/recruiter/dashboard.types";
+import { formatLocation } from "@/lib/profile/format";
 import type { Database } from "@/lib/supabase/database.types";
 import { fetchRecruiterDashboardCounts } from "@/lib/recruiter/recruiter-candidate-profile-views";
 
@@ -63,12 +64,12 @@ async function fetchRecruiterDashboardContext(
     await Promise.all([
       supabase
         .from("users")
-        .select("first_name, last_name")
+        .select("first_name, last_name, email, phone, city, country")
         .eq("id", userId)
         .maybeSingle(),
       supabase
         .from("recruiters")
-        .select("job_title, company_id")
+        .select("job_title, company_id, profile_picture_url")
         .eq("user_id", userId)
         .maybeSingle(),
     ]);
@@ -78,15 +79,21 @@ async function fetchRecruiterDashboardContext(
   }
 
   let companyName: string | null = null;
+  let website: string | null = null;
+  let companyCity: string | null = null;
+  let companyCountry: string | null = null;
 
   if (recruiter?.company_id) {
     const { data: company } = await supabase
       .from("companies")
-      .select("name")
+      .select("name, website, city, country")
       .eq("id", recruiter.company_id)
       .maybeSingle();
 
     companyName = company?.name ?? null;
+    website = company?.website ?? null;
+    companyCity = company?.city ?? null;
+    companyCountry = company?.country ?? null;
   }
 
   return {
@@ -94,6 +101,14 @@ async function fetchRecruiterDashboardContext(
     lastName: userRow.last_name,
     companyName,
     jobTitle: recruiter?.job_title ?? null,
+    profilePictureUrl: recruiter?.profile_picture_url ?? null,
+    location: formatLocation(
+      userRow.city ?? companyCity,
+      userRow.country ?? companyCountry,
+    ),
+    email: userRow.email ?? null,
+    phone: userRow.phone ?? null,
+    website,
   };
 }
 

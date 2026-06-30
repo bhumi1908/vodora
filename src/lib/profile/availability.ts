@@ -56,6 +56,27 @@ export function formatCandidateAvailability(
   return statusLabel;
 }
 
+/** Short label for candidate list/grid cards: timing only when looking, status only when not. */
+export function formatCandidateCardAvailability(
+  availabilityStatus: string,
+  availabilityStart: string | null | undefined,
+): string {
+  if (availabilityStatus === "not_looking") {
+    return "Not looking";
+  }
+
+  const startLabel = availabilityStart?.trim();
+  if (startLabel) {
+    return startLabel;
+  }
+
+  if (availabilityStatus === "available_now") {
+    return "Immediately";
+  }
+
+  return formatAvailabilityStatus(availabilityStatus);
+}
+
 export function validateAvailabilityStatus(value: string | undefined): string | null {
   const status = value?.trim() ?? "";
 

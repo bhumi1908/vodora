@@ -1,5 +1,3 @@
-import { ArrowLeft } from "lucide-react";
-import Link from "next/link";
 import { after } from "next/server";
 import { notFound, redirect } from "next/navigation";
 
@@ -8,9 +6,10 @@ import { RecruiterCandidateProfileWithCache } from "@/components/recruiter/Recru
 import { getCandidateDashboardAccessDeniedRedirect } from "@/lib/auth/access-denied";
 import { getAccountType } from "@/lib/auth/account-type";
 import { getRouteProtectionRedirect } from "@/lib/auth/route-protection";
+import { NavigationBackLink } from "@/components/ui/NavigationBackLink";
 import {
   getRecruiterCandidateProfilePath,
-  RECRUITER_DASHBOARD_PATH,
+  RECRUITER_SEARCH_PATH,
 } from "@/lib/auth/routes";
 import { fetchRecruiterCandidateConnectionStatus } from "@/lib/connections/fetch-recruiter-candidate-connection-status";
 import { checkRecruiterReferenceGrant } from "@/lib/references/check-recruiter-reference-grant";
@@ -18,6 +17,7 @@ import {
   redactPrivateProfileFields,
   resolveProfileVisibility,
 } from "@/lib/profile/profile-visibility";
+import { fetchRecruiterCandidateSavedStatus } from "@/lib/recruiter/fetch-candidate-save-status";
 import { getCachedRecruiterCandidateProfile } from "@/lib/recruiter/fetch-recruiter-candidate-profile";
 import { recordRecruiterCandidateProfileView } from "@/lib/recruiter/recruiter-candidate-profile-views";
 import { createClient } from "@/lib/supabase/server";
@@ -83,6 +83,10 @@ export default async function RecruiterCandidateProfilePage({
     ? await checkRecruiterReferenceGrant(supabase, profile.candidateId)
     : false;
 
+  const isSaved = profile.candidateId
+    ? await fetchRecruiterCandidateSavedStatus(supabase, profile.candidateId)
+    : false;
+
   const visibility = resolveProfileVisibility({
     recruiterView: true,
     connection,
@@ -108,18 +112,13 @@ export default async function RecruiterCandidateProfilePage({
     <>
       <RecruiterCandidateProfileViewTracker />
       <div className="mx-auto max-w-5xl px-3 pt-4 sm:px-6 sm:pt-6">
-        <Link
-          href={RECRUITER_DASHBOARD_PATH}
-          className="inline-flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-700"
-        >
-          <ArrowLeft className="h-4 w-4 shrink-0" aria-hidden="true" />
-          Back to dashboard
-        </Link>
+        <NavigationBackLink fallbackHref={RECRUITER_SEARCH_PATH} />
       </div>
       <RecruiterCandidateProfileWithCache
         vodoraId={vodoraId}
         initialProfile={visibleProfile}
         initialHasReferenceAccess={hasReferenceAccess}
+        initialIsSaved={isSaved}
       />
     </>
   );

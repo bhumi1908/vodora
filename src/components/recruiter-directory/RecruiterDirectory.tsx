@@ -17,6 +17,7 @@ import {
   X,
 } from "lucide-react";
 
+import { ConnectModalAvatar } from "@/components/connections/ConnectModalAvatar";
 import { RecruiterDirectorySkeleton } from "@/components/recruiter-directory/RecruiterDirectorySkeleton";
 import { getTotalPages, Pagination } from "@/components/ui/Pagination";
 import { getCandidateJobPath, getCandidateRecruiterProfilePath } from "@/lib/auth/routes";
@@ -113,11 +114,12 @@ function ConnectModal({
       <div className="max-h-[92dvh] w-full overflow-y-auto rounded-t-2xl bg-white shadow-2xl sm:max-h-none sm:max-w-lg sm:rounded-2xl">
         <div className="flex items-start justify-between gap-3 p-5 pb-0 sm:p-8">
           <div className="flex min-w-0 items-center gap-3 sm:gap-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-blue-100 sm:h-14 sm:w-14">
-              <span className="text-lg font-bold text-blue-700 sm:text-xl">
-                {recruiter.avatar}
-              </span>
-            </div>
+            <ConnectModalAvatar
+              name={recruiter.name}
+              profilePictureUrl={recruiter.profilePictureUrl}
+              initials={recruiter.avatar}
+              size="sm"
+            />
             <div className="min-w-0">
               <h2 className="text-lg font-semibold text-gray-900 sm:text-xl">
                 Connect with {getFirstName(recruiter.name)}

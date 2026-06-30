@@ -3,6 +3,11 @@ export type RecruiterDashboardContext = {
   lastName: string;
   companyName: string | null;
   jobTitle: string | null;
+  profilePictureUrl: string | null;
+  location: string | null;
+  email: string | null;
+  phone: string | null;
+  website: string | null;
 };
 
 export type RecruiterDashboardCandidate = {

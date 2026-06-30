@@ -3,6 +3,7 @@
 import { CheckCircle, Clock3, UserCheck, X } from "lucide-react";
 import { useState } from "react";
 
+import { ConnectModalAvatar } from "@/components/connections/ConnectModalAvatar";
 import type { CandidatePeerSearchCandidate } from "@/lib/candidate/candidate-peer-search.types";
 import {
   showConnectionRequestErrorToast,
@@ -86,18 +87,11 @@ export function CandidatePeerConnectModal({
       <div className="w-full max-w-lg rounded-2xl bg-white shadow-2xl">
         <div className="flex items-start justify-between p-8 pb-0">
           <div className="flex items-center gap-4">
-            <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-blue-100">
-              {candidate.profilePictureUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={candidate.profilePictureUrl}
-                  alt={fullName}
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <span className="text-xl font-bold text-blue-700">{initials}</span>
-              )}
-            </div>
+            <ConnectModalAvatar
+              name={fullName}
+              profilePictureUrl={candidate.profilePictureUrl}
+              initials={initials}
+            />
             <div>
               <h2 className="text-xl font-semibold text-gray-900">
                 Connect with {getFirstName(fullName)}

@@ -4,11 +4,17 @@ import {
   Briefcase,
   Building2,
   Clock,
+  ExternalLink,
   Eye,
+  Globe,
+  Mail,
+  MapPin,
+  Phone,
   TrendingUp,
 } from "lucide-react";
 import Link from "next/link";
 
+import { ProfileConnectionStats } from "@/components/connections/ProfileConnectionStats";
 import { Skeleton } from "@/components/ui/Skeleton";
 import {
   DashboardStatCard,
@@ -21,7 +27,11 @@ import {
   RECRUITER_SEARCH_PATH,
 } from "@/lib/auth/routes";
 import { env } from "@/lib/env";
-import { getInitials } from "@/lib/profile/format";
+import {
+  formatWebsiteHref,
+  formatWebsiteLabel,
+  getInitials,
+} from "@/lib/profile/format";
 import type { RecruiterJobListItem } from "@/lib/jobs/recruiter-jobs.types";
 import type { RecruiterDashboardContext } from "@/lib/recruiter/dashboard.types";
 
@@ -98,6 +108,12 @@ export function RecruiterDashboardSidebar({
 }: RecruiterDashboardSidebarProps) {
   const recruiterInitials = getInitials(context.firstName, context.lastName);
   const recruiterName = `${context.firstName} ${context.lastName}`.trim();
+  const websiteLabel = context.website
+    ? formatWebsiteLabel(context.website)
+    : null;
+  const websiteHref = context.website
+    ? formatWebsiteHref(context.website)
+    : null;
 
   return (
     <div className="space-y-5">
@@ -107,7 +123,7 @@ export function RecruiterDashboardSidebar({
           <button
             type="button"
             onClick={onAddJob}
-            className="text-xs font-medium text-blue-600 transition-colors hover:text-blue-700"
+            className="shrink-0 cursor-pointer rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-blue-500"
           >
             + Add
           </button>
@@ -164,31 +180,79 @@ export function RecruiterDashboardSidebar({
       </div>
 
       <div className="rounded-2xl border border-gray-200 bg-white p-6">
-        <div className="mb-4 flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100">
-            <span className="font-semibold text-blue-700">
-              {recruiterInitials}
-            </span>
+        <div className="mb-4 flex items-start gap-3">
+          <div className="flex min-w-0 flex-1 items-center gap-3">
+            {context.profilePictureUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={context.profilePictureUrl}
+                alt={recruiterName}
+                className="h-12 w-12 shrink-0 rounded-xl object-cover"
+              />
+            ) : (
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-100">
+                <span className="font-semibold text-blue-700">
+                  {recruiterInitials}
+                </span>
+              </div>
+            )}
+            <div className="min-w-0 flex-1">
+              <p className="truncate font-semibold text-gray-900">
+                {recruiterName}
+              </p>
+              <p className="truncate text-xs text-gray-500">
+                {context.jobTitle ?? "Recruiter"}
+              </p>
+            </div>
           </div>
-          <div>
-            <p className="font-semibold text-gray-900">{recruiterName}</p>
-            <p className="text-xs text-gray-500">
-              {context.jobTitle ?? "Recruiter"}
-            </p>
-          </div>
+          <Link
+            href={RECRUITER_PROFILE_PATH}
+            aria-label="View my profile"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-gray-200 text-gray-600 transition-colors hover:border-gray-300 hover:bg-gray-50 hover:text-gray-900"
+          >
+            <ExternalLink className="h-4 w-4" aria-hidden="true" />
+          </Link>
         </div>
-        {context.companyName ? (
-          <div className="mb-4 flex items-center gap-2">
-            <Building2 className="h-4 w-4 text-gray-400" />
-            <span className="text-sm text-gray-600">{context.companyName}</span>
-          </div>
-        ) : null}
-        <Link
-          href={RECRUITER_PROFILE_PATH}
-          className="block w-full rounded-xl border border-gray-300 py-2.5 text-center text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
-        >
-          View My Profile
-        </Link>
+
+        <ProfileConnectionStats role="recruiter" />
+
+        <div className="mt-3 flex flex-col gap-2 text-sm text-gray-500">
+          {context.companyName ? (
+            <span className="flex min-w-0 items-center gap-2">
+              <Building2 className="h-4 w-4 shrink-0 text-gray-400" />
+              <span className="truncate">{context.companyName}</span>
+            </span>
+          ) : null}
+          {context.location ? (
+            <span className="flex min-w-0 items-center gap-2">
+              <MapPin className="h-4 w-4 shrink-0 text-gray-400" />
+              <span className="truncate">{context.location}</span>
+            </span>
+          ) : null}
+          {context.email ? (
+            <span className="flex min-w-0 items-center gap-2 break-all">
+              <Mail className="h-4 w-4 shrink-0 text-gray-400" />
+              {context.email}
+            </span>
+          ) : null}
+          {context.phone ? (
+            <span className="flex min-w-0 items-center gap-2">
+              <Phone className="h-4 w-4 shrink-0 text-gray-400" />
+              {context.phone}
+            </span>
+          ) : null}
+          {websiteLabel && websiteHref ? (
+            <a
+              href={websiteHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex min-w-0 items-center gap-2 break-all text-blue-600 hover:underline"
+            >
+              <Globe className="h-4 w-4 shrink-0 text-gray-400" />
+              {websiteLabel}
+            </a>
+          ) : null}
+        </div>
       </div>
 
       {env.NEXT_PUBLIC_SHOW_RECENT_PLACEMENTS ? (

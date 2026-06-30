@@ -1,6 +1,7 @@
 "use client";
 
 import { CheckCircle, Clock, MapPin, Shield } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { CandidatePeerConnectButton } from "@/components/candidate-directory/CandidatePeerConnectButton";
@@ -11,7 +12,10 @@ import {
   getCandidatePeerProfilePath,
 } from "@/lib/auth/routes";
 import type { RecruiterCandidateCardData } from "@/lib/recruiter/dashboard.types";
-import { formatCandidateAvailability } from "@/lib/recruiter/format-candidate-availability";
+import {
+  formatCandidateAvailability,
+  formatCandidateCardAvailability,
+} from "@/lib/recruiter/format-candidate-availability";
 import { formatLocation, getInitials } from "@/lib/profile/format";
 
 function formatExperience(years: number | null | undefined): string | null {
@@ -85,11 +89,18 @@ function CandidateDirectoryListCard({
   const router = useRouter();
   const fullName = `${candidate.firstName} ${candidate.lastName}`.trim();
   const location = formatLocation(candidate.city, candidate.country);
-  const availability = formatCandidateAvailability(
-    candidate.availabilityStatus,
-    candidate.availabilityStart,
-    candidate.workTypes,
-  );
+  const availability =
+    variant === "recruiter"
+      ? formatCandidateCardAvailability(
+          candidate.availabilityStatus,
+          candidate.availabilityStart,
+        )
+      : formatCandidateAvailability(
+          candidate.availabilityStatus,
+          candidate.availabilityStart,
+          candidate.workTypes,
+        );
+  const isNotLooking = candidate.availabilityStatus === "not_looking";
   const experience = formatExperience(candidate.totalYearsExperience);
   const initials = getInitials(candidate.firstName, candidate.lastName);
   const peerCandidate =
@@ -147,9 +158,17 @@ function CandidateDirectoryListCard({
                   <Shield className="h-3 w-3 text-blue-500" />
                   {candidate.referenceCount} verified refs
                 </span>
-                <span className="flex items-center gap-1">
-                  <Clock className="h-3 w-3 text-green-500" />
-                  Available: {availability}
+                <span className="flex min-w-0 items-center gap-1">
+                  <Clock
+                    className={`h-3 w-3 shrink-0 ${
+                      isNotLooking ? "text-gray-400" : "text-green-500"
+                    }`}
+                  />
+                  <span className="truncate">
+                    {variant === "recruiter" && isNotLooking
+                      ? availability
+                      : `Available: ${availability}`}
+                  </span>
                 </span>
                 {experience ? (
                   <span className="text-gray-400">{experience} exp.</span>
@@ -158,16 +177,24 @@ function CandidateDirectoryListCard({
             </div>
 
             <div
-              className="flex shrink-0 items-center gap-2"
+              className="flex w-full shrink-0 flex-col gap-2 sm:w-auto sm:flex-row sm:items-center"
               onClick={(event) => event.stopPropagation()}
             >
               {variant === "recruiter" ? (
-                <CandidateSaveButton
-                  candidateId={candidate.id}
-                  initialSaved={"isSaved" in candidate ? candidate.isSaved : false}
-                  candidateName={fullName}
-                  onSavedChange={onSavedChange}
-                />
+                <>
+                  <CandidateSaveButton
+                    candidateId={candidate.id}
+                    initialSaved={"isSaved" in candidate ? candidate.isSaved : false}
+                    candidateName={fullName}
+                    onSavedChange={onSavedChange}
+                  />
+                  <Link
+                    href={profilePath}
+                    className="inline-flex w-full items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 sm:w-auto"
+                  >
+                    View Profile
+                  </Link>
+                </>
               ) : peerCandidate && onConnect ? (
                 <CandidatePeerConnectButton
                   candidate={peerCandidate}
