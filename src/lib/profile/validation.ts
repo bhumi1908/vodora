@@ -187,6 +187,7 @@ export function getOverviewFieldErrors(input: {
 
   const availabilityStartError = validateAvailabilityStart(
     input.availabilityStart,
+    input.availabilityStatus,
   );
 
   if (availabilityStartError) {

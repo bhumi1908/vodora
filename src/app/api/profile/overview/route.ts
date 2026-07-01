@@ -74,7 +74,10 @@ export async function PATCH(request: Request) {
   const website = body.website?.trim() || null;
   const about = body.about?.trim() || null;
   const availabilityStatus = body.availabilityStatus?.trim() || "not_looking";
-  const availabilityStart = body.availabilityStart?.trim() || null;
+  const availabilityStart =
+    availabilityStatus === "not_looking"
+      ? null
+      : body.availabilityStart?.trim() || null;
   const experienceLevel = body.experienceLevel?.trim() || null;
   const totalYearsRaw = body.totalYearsExperience?.trim() ?? "";
   const totalYearsExperience = totalYearsRaw

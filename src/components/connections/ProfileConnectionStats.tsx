@@ -11,12 +11,42 @@ import { useConnectionCountsQuery } from "@/lib/query/use-connection-queries";
 
 type ProfileConnectionStatsProps = {
   role: "candidate" | "recruiter";
+  variant?: "block" | "inline";
 };
 
-export function ProfileConnectionStats({ role }: ProfileConnectionStatsProps) {
+export function ProfileConnectionStats({
+  role,
+  variant = "block",
+}: ProfileConnectionStatsProps) {
   const { data: counts } = useConnectionCountsQuery(role);
   const href =
     role === "candidate" ? CANDIDATE_CONNECTIONS_PATH : RECRUITER_CONNECTIONS_PATH;
+
+  if (variant === "inline") {
+    if (!counts || counts.total === 0) {
+      return (
+        <Link
+          href={href}
+          className="flex min-w-0 items-center gap-1.5 text-blue-600 transition-colors hover:underline"
+        >
+          <Users className="h-4 w-4 shrink-0" />
+          <span>Start building your network</span>
+        </Link>
+      );
+    }
+
+    return (
+      <span className="flex min-w-0 items-center gap-1.5">
+        <Users className="h-4 w-4 shrink-0" />
+        <Link
+          href={href}
+          className="font-medium text-blue-600 transition-colors hover:underline"
+        >
+          {counts.connected} connected
+        </Link>
+      </span>
+    );
+  }
 
   if (!counts || counts.total === 0) {
     return (

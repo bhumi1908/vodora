@@ -28,6 +28,7 @@ import {
 import {
   AVAILABILITY_START_OPTIONS,
   AVAILABILITY_STATUS_OPTIONS,
+  isAvailabilityStartRequired,
 } from "@/lib/profile/availability";
 import { EXPERIENCE_LEVEL_OPTIONS } from "@/lib/profile/experience";
 
@@ -52,6 +53,9 @@ export function OverviewEditSection({
   const isDirty = useMemo(
     () => isOverviewDirty(savedValue, value),
     [savedValue, value],
+  );
+  const availabilityStartRequired = isAvailabilityStartRequired(
+    value.availabilityStatus,
   );
 
   function updateField<K extends keyof typeof value>(
@@ -134,9 +138,24 @@ export function OverviewEditSection({
           label="Job search status"
           required
           value={value.availabilityStatus}
-          onChange={(event) =>
-            updateField("availabilityStatus", event.target.value)
-          }
+          onChange={(event) => {
+            const nextStatus = event.target.value;
+
+            if (nextStatus === "not_looking") {
+              onChange({
+                ...value,
+                availabilityStatus: nextStatus,
+                availabilityStart: "",
+              });
+            } else {
+              updateField("availabilityStatus", nextStatus);
+            }
+
+            clearField("availabilityStatus");
+            clearField("availabilityStart");
+            setError("");
+            setSuccess("");
+          }}
           options={[...AVAILABILITY_STATUS_OPTIONS]}
           placeholder="Select status"
           error={errors.availabilityStatus}
@@ -144,12 +163,16 @@ export function OverviewEditSection({
         <FormSelect
           id="profile-availability-start"
           label="Available from"
+          required={availabilityStartRequired}
+          disabled={!availabilityStartRequired}
           value={value.availabilityStart}
           onChange={(event) =>
             updateField("availabilityStart", event.target.value)
           }
           options={[...AVAILABILITY_START_OPTIONS]}
-          placeholder="Select timing"
+          placeholder={
+            availabilityStartRequired ? "Select timing" : "Not specified"
+          }
           error={errors.availabilityStart}
         />
       </AuthFormGrid>

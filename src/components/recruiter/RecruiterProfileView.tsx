@@ -27,8 +27,11 @@ import {
 import type { RecruiterProfileEditData } from "@/lib/recruiter/transform-own-recruiter-profile-to-edit";
 import { RecruiterProfileRestrictedNotice } from "@/components/recruiter/RecruiterProfileRestrictedNotice";
 import { RecruiterPublishedRolesView } from "@/components/recruiter/RecruiterPublishedRolesView";
+import { ProfilePictureAvatar } from "@/components/ui/ProfilePictureAvatar";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { RECRUITER_TYPE_OPTIONS } from "@/lib/auth/constants";
 import { env } from "@/lib/env";
+import { formatLocation } from "@/lib/profile/format";
 import type { ProfileConnectionState } from "@/lib/connections/connection.types";
 import {
   formatWebsiteHref,
@@ -70,6 +73,41 @@ type RecruiterProfileViewProps = {
   collectReferenceTab?: ReactNode;
   referenceHistoryTab?: ReactNode;
 };
+
+function getRecruiterTypeLabel(value: string | null | undefined): string | null {
+  if (!value?.trim()) {
+    return null;
+  }
+
+  const option = RECRUITER_TYPE_OPTIONS.find((item) => item.value === value);
+  return option?.label ?? value;
+}
+
+function getCompanyDisplayInfo(
+  profile: RecruiterProfileData,
+  editProfile: RecruiterProfileEditData | null | undefined,
+) {
+  if (editProfile) {
+    return {
+      companyName: editProfile.companyName.trim() || profile.company,
+      website: editProfile.website.trim() || profile.website,
+      location:
+        formatLocation(editProfile.city, editProfile.country) || profile.location,
+      employeeCount: editProfile.employeeCount.trim() || null,
+      hiresPerYear: editProfile.hiresPerYear.trim() || null,
+      recruiterType: getRecruiterTypeLabel(editProfile.recruiterType),
+    };
+  }
+
+  return {
+    companyName: profile.company,
+    website: profile.website,
+    location: profile.location,
+    employeeCount: null,
+    hiresPerYear: null,
+    recruiterType: null,
+  };
+}
 
 function renderEditButton(
   sectionId: RecruiterProfileSectionId,
@@ -137,6 +175,22 @@ export function RecruiterProfileView({
     preferences.preferredExperienceLevels.length > 0 ||
     Boolean(preferences.remotePreference);
 
+  const companyDisplay = getCompanyDisplayInfo(profile, editProfile);
+  const hasCompanyDetails = Boolean(
+    companyDisplay.companyName ||
+      companyDisplay.website ||
+      companyDisplay.location ||
+      companyDisplay.employeeCount ||
+      companyDisplay.hiresPerYear ||
+      companyDisplay.recruiterType,
+  );
+  const companyWebsiteHref = companyDisplay.website
+    ? formatWebsiteHref(companyDisplay.website)
+    : null;
+  const companyWebsiteLabel = companyDisplay.website
+    ? formatWebsiteLabel(companyDisplay.website)
+    : null;
+
   return (
     <div className="mx-auto max-w-5xl px-4 py-4 sm:py-8">
       <div className="mb-5 overflow-hidden rounded-2xl border border-gray-200 bg-white">
@@ -144,20 +198,13 @@ export function RecruiterProfileView({
         <div className="px-4 pb-6 sm:px-6 sm:pb-8 lg:px-8">
           <div className="-mt-12 mb-5 flex flex-col gap-4 sm:-mt-14 sm:flex-row sm:items-end sm:justify-between">
             <div className="relative shrink-0">
-              <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-2xl border-4 border-white bg-blue-100 shadow-lg sm:h-28 sm:w-28">
-                {profile.profilePictureUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={profile.profilePictureUrl}
-                    alt={profile.name}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <span className="text-3xl font-bold text-blue-700 sm:text-4xl">
-                    {profile.avatarInitials}
-                  </span>
-                )}
-              </div>
+              <ProfilePictureAvatar
+                name={profile.name}
+                initials={profile.avatarInitials}
+                profilePictureUrl={profile.profilePictureUrl}
+                containerClassName="flex h-24 w-24 items-center justify-center overflow-hidden rounded-2xl border-4 border-white bg-blue-100 shadow-lg sm:h-28 sm:w-28"
+                initialsClassName="text-3xl font-bold text-blue-700 sm:text-4xl"
+              />
               {visibility.showOwnerActions && onPhotoEdit ? (
                 <button
                   type="button"
@@ -187,10 +234,6 @@ export function RecruiterProfileView({
             </div>
           </div>
 
-          {visibility.showOwnerActions ? (
-            <ProfileConnectionStats role="recruiter" />
-          ) : null}
-
           {visibility.showRestrictedNotice ? (
             <div className="mb-5">
               <RecruiterProfileRestrictedNotice />
@@ -208,20 +251,6 @@ export function RecruiterProfileView({
                     <CheckCircle className="h-3.5 w-3.5 shrink-0" /> Verified Recruiter
                   </span>
                 ) : null}
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {renderEditButton(
-                  "details",
-                  editProfile,
-                  onEditSection,
-                  visibility.showOwnerActions,
-                )}
-                {renderEditButton(
-                  "company",
-                  editProfile,
-                  onEditSection,
-                  visibility.showOwnerActions,
-                )}
               </div>
             </div>
             {profile.title ? (
@@ -262,6 +291,9 @@ export function RecruiterProfileView({
                   <Globe className="h-4 w-4 shrink-0" />
                   {websiteLabel}
                 </a>
+              ) : null}
+              {visibility.showOwnerActions ? (
+                <ProfileConnectionStats role="recruiter" variant="inline" />
               ) : null}
             </div>
           </div>
@@ -400,7 +432,7 @@ export function RecruiterProfileView({
               </div>
 
               {visibility.showHiringPreferences ? (
-                <div>
+                <div className="border-t border-gray-200 pt-8">
                   <div className="mb-3 flex items-center justify-between gap-4">
                     <h2 className="text-lg font-semibold text-gray-900">
                       Hiring Preferences
@@ -442,6 +474,85 @@ export function RecruiterProfileView({
                   ) : (
                     <p className="text-sm text-gray-400">
                       No hiring preferences set yet.
+                    </p>
+                  )}
+                </div>
+              ) : null}
+
+              {visibility.showHiringPreferences ? (
+                <div className="border-t border-gray-200 pt-8">
+                  <div className="mb-3 flex items-center justify-between gap-4">
+                    <h2 className="text-lg font-semibold text-gray-900">
+                      Company About
+                    </h2>
+                    {renderEditButton(
+                      "company",
+                      editProfile,
+                      onEditSection,
+                      visibility.showOwnerActions,
+                    )}
+                  </div>
+                  {hasCompanyDetails ? (
+                    <div className="space-y-2 text-sm text-gray-600">
+                      {companyDisplay.companyName ? (
+                        <p>
+                          <span className="font-medium text-gray-900">
+                            Company:
+                          </span>{" "}
+                          {companyDisplay.companyName}
+                        </p>
+                      ) : null}
+                      {companyDisplay.location ? (
+                        <p>
+                          <span className="font-medium text-gray-900">
+                            Location:
+                          </span>{" "}
+                          {companyDisplay.location}
+                        </p>
+                      ) : null}
+                      {companyDisplay.website && companyWebsiteHref ? (
+                        <p>
+                          <span className="font-medium text-gray-900">
+                            Website:
+                          </span>{" "}
+                          <a
+                            href={companyWebsiteHref}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:underline"
+                          >
+                            {companyWebsiteLabel ?? companyDisplay.website}
+                          </a>
+                        </p>
+                      ) : null}
+                      {companyDisplay.employeeCount ? (
+                        <p>
+                          <span className="font-medium text-gray-900">
+                            Employees:
+                          </span>{" "}
+                          {companyDisplay.employeeCount}
+                        </p>
+                      ) : null}
+                      {companyDisplay.hiresPerYear ? (
+                        <p>
+                          <span className="font-medium text-gray-900">
+                            Hires per year:
+                          </span>{" "}
+                          {companyDisplay.hiresPerYear}
+                        </p>
+                      ) : null}
+                      {companyDisplay.recruiterType ? (
+                        <p>
+                          <span className="font-medium text-gray-900">
+                            Recruiter type:
+                          </span>{" "}
+                          {companyDisplay.recruiterType}
+                        </p>
+                      ) : null}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-400">
+                      No company details added yet.
                     </p>
                   )}
                 </div>

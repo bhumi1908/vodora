@@ -33,6 +33,7 @@ import {
 } from "@/lib/profile/format";
 import type { ProfileCompletionItem } from "@/lib/profile/profile-completion";
 import type { ProfileVisibility } from "@/lib/profile/profile-visibility";
+import { ProfilePictureAvatar } from "@/components/ui/ProfilePictureAvatar";
 import type { CandidateProfileData } from "@/lib/profile/types";
 
 type ActionPlacement = "desktop" | "mobile";
@@ -65,19 +66,13 @@ function ProfileAvatar({
 }) {
   return (
     <div className="relative shrink-0">
-      <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border-4 border-white bg-gray-200 shadow-md">
-        {profile.profilePictureUrl ? (
-          <img
-            src={profile.profilePictureUrl}
-            alt={profile.name}
-            className="h-full w-full object-cover"
-          />
-        ) : (
-          <span className="text-3xl font-semibold text-gray-700">
-            {profile.avatarInitials}
-          </span>
-        )}
-      </div>
+      <ProfilePictureAvatar
+        name={profile.name}
+        initials={profile.avatarInitials}
+        profilePictureUrl={profile.profilePictureUrl}
+        containerClassName="flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border-4 border-white bg-blue-100 shadow-md"
+        initialsClassName="text-3xl font-semibold text-blue-700"
+      />
       {onEditPhoto ? (
         <button
           type="button"

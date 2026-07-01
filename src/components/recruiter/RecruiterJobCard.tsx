@@ -16,9 +16,12 @@ export function RecruiterJobCard({ role, onEdit }: RecruiterJobCardProps) {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0 flex-1">
           <div className="mb-1 flex flex-wrap items-center gap-2">
-            <h3 className="text-base font-semibold text-gray-900 sm:text-lg">
+            <Link
+              href={getRecruiterJobApplicantsPath(role.id)}
+              className="text-base font-semibold text-gray-900 transition-colors hover:text-blue-600 sm:text-lg"
+            >
               {role.title}
-            </h3>
+            </Link>
             {role.urgent ? (
               <span className="rounded-full border border-red-200 bg-red-50 px-2 py-0.5 text-xs font-medium text-red-600">
                 Urgent

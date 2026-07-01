@@ -154,7 +154,10 @@ export function transformOwnCandidateProfileToEdit(
     country: candidate.country ?? user.country ?? "",
     about: candidate.summary ?? "",
     availabilityStatus: candidate.availability_status ?? "not_looking",
-    availabilityStart: candidate.availability_start ?? "",
+    availabilityStart:
+      candidate.availability_status === "not_looking"
+        ? ""
+        : (candidate.availability_start ?? ""),
     totalYearsExperience:
       candidate.total_years_experience !== null &&
       candidate.total_years_experience !== undefined

@@ -65,7 +65,7 @@ export const RECRUITER_SECTION_COPY: Record<
     title: "Company Information",
     description:
       "Details about your company. These appear on your public profile.",
-    label: "Company",
+    label: "Company Details",
   },
   about: {
     title: "About",

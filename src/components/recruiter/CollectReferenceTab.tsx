@@ -244,7 +244,7 @@ export function CollectReferenceTab({
   }
 
   return (
-    <div className="max-w-3xl">
+    <div className="mx-auto max-w-3xl">
       <div className="mb-8">
         <h2 className="mb-1 text-xl font-semibold text-gray-900">
           Collect a Reference

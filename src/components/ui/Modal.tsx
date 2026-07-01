@@ -9,7 +9,7 @@ type ModalProps = {
   onClose: () => void;
   title: string;
   description?: string;
-  children: ReactNode;
+  children?: ReactNode;
   footer?: ReactNode;
   maxWidthClassName?: string;
 };
@@ -86,9 +86,11 @@ export function Modal({
           </button>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5">
-          {children}
-        </div>
+        {children ? (
+          <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5">
+            {children}
+          </div>
+        ) : null}
 
         {footer ? (
           <div className="shrink-0 border-t border-gray-200 px-4 py-4 sm:px-6">

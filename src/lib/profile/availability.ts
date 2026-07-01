@@ -93,8 +93,23 @@ export function validateAvailabilityStatus(value: string | undefined): string | 
   return null;
 }
 
-export function validateAvailabilityStart(value: string | undefined): string | null {
+export function isAvailabilityStartRequired(
+  availabilityStatus: string | undefined,
+): boolean {
+  const status = availabilityStatus?.trim() ?? "";
+
+  return status !== "" && status !== "not_looking";
+}
+
+export function validateAvailabilityStart(
+  value: string | undefined,
+  availabilityStatus?: string | undefined,
+): string | null {
   const start = value?.trim() ?? "";
+
+  if (isAvailabilityStartRequired(availabilityStatus) && !start) {
+    return "Available from is required.";
+  }
 
   if (!start) {
     return null;

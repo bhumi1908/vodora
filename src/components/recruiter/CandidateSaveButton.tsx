@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Bookmark } from "lucide-react";
 import { useEffect, useState } from "react";
 
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import {
   showCandidateRemovedToast,
   showCandidateSavedToast,
@@ -29,6 +30,7 @@ export function CandidateSaveButton({
 }: CandidateSaveButtonProps) {
   const queryClient = useQueryClient();
   const [saved, setSaved] = useState(initialSaved);
+  const [confirmUnsaveOpen, setConfirmUnsaveOpen] = useState(false);
 
   useEffect(() => {
     setSaved(initialSaved);
@@ -67,7 +69,20 @@ export function CandidateSaveButton({
       return;
     }
 
+    if (saved) {
+      setConfirmUnsaveOpen(true);
+      return;
+    }
+
     mutation.mutate();
+  };
+
+  const handleConfirmUnsave = () => {
+    mutation.mutate(undefined, {
+      onSettled: () => {
+        setConfirmUnsaveOpen(false);
+      },
+    });
   };
 
   const listClassName = saved
@@ -89,18 +104,35 @@ export function CandidateSaveButton({
         ? `p-2 ${profileClassName}`
         : `p-2 ${listClassName}`;
 
+  const unsaveDescription = candidateName
+    ? `Are you sure you want to remove ${candidateName} from your saved candidates?`
+    : "Are you sure you want to remove this candidate from your saved list?";
+
   return (
-    <button
-      type="button"
-      onClick={handleToggle}
-      disabled={mutation.isPending}
-      aria-label={saved ? "Remove saved profile" : "Save profile"}
-      aria-pressed={saved}
-      className={`transition-colors disabled:opacity-60 ${
-        variant === "profile" ? "rounded-full" : "rounded-lg"
-      } ${variantClassName}`}
-    >
-      <Bookmark className={`h-4 w-4 ${saved ? "fill-amber-500" : ""}`} />
-    </button>
+    <>
+      <button
+        type="button"
+        onClick={handleToggle}
+        disabled={mutation.isPending}
+        aria-label={saved ? "Remove saved profile" : "Save profile"}
+        aria-pressed={saved}
+        className={`transition-colors disabled:opacity-60 ${
+          variant === "profile" ? "rounded-full" : "rounded-lg"
+        } ${variantClassName}`}
+      >
+        <Bookmark className={`h-4 w-4 ${saved ? "fill-amber-500" : ""}`} />
+      </button>
+
+      <ConfirmDialog
+        open={confirmUnsaveOpen}
+        onClose={() => setConfirmUnsaveOpen(false)}
+        onConfirm={handleConfirmUnsave}
+        title="Are you sure?"
+        description={unsaveDescription}
+        confirmLabel="Yes"
+        cancelLabel="No"
+        isConfirming={mutation.isPending}
+      />
+    </>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Users } from "lucide-react";
+import { Pencil, Users } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 
@@ -18,10 +18,7 @@ import {
   RecruiterProfileView,
   type RecruiterProfileTab,
 } from "@/components/recruiter/RecruiterProfileView";
-import {
-  RECRUITER_CONNECTIONS_PATH,
-  RECRUITER_SEARCH_PATH,
-} from "@/lib/auth/routes";
+import { RECRUITER_SEARCH_PATH } from "@/lib/auth/routes";
 import { formatRecruiterJobStatsForDisplay } from "@/lib/jobs/format-recruiter-job-stats";
 import { useRecruiterJobsQuery } from "@/lib/query/use-job-queries";
 import { resolveRecruiterProfileVisibility } from "@/lib/recruiter/recruiter-profile-visibility";
@@ -113,12 +110,14 @@ export function RecruiterProfilePage() {
               <Users className="h-4 w-4 shrink-0" />
               Find Candidates
             </Link>
-            <Link
-              href={RECRUITER_CONNECTIONS_PATH}
-              className="flex items-center justify-center gap-2 rounded-xl border border-purple-200 bg-purple-50 px-4 py-2 text-sm font-medium text-purple-700 transition-colors hover:bg-purple-100 sm:justify-start"
+            <button
+              type="button"
+              onClick={() => setActiveEditSection("details")}
+              className="flex items-center justify-center gap-2 rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 sm:justify-start"
             >
-              Connections
-            </Link>
+              <Pencil className="h-4 w-4 shrink-0" />
+              Edit Profile
+            </button>
           </>
         }
         activeRolesTab={

@@ -84,6 +84,7 @@ interface FormSelectProps {
   options: FormSelectOption[];
   placeholder?: string;
   required?: boolean;
+  disabled?: boolean;
   error?: string;
 }
 
@@ -95,6 +96,7 @@ export function FormSelect({
   options,
   placeholder = "Select",
   required = false,
+  disabled = false,
   error,
 }: FormSelectProps) {
   return (
@@ -106,10 +108,11 @@ export function FormSelect({
       <select
         id={id}
         required={required}
+        disabled={disabled}
         value={value}
         onChange={onChange}
         aria-invalid={error ? true : undefined}
-        className={getFieldClassName(error)}
+        className={`${getFieldClassName(error)}${disabled ? " cursor-not-allowed bg-gray-50 text-gray-500" : ""}`}
       >
         <option value="">{placeholder}</option>
         {options.map((option) => (

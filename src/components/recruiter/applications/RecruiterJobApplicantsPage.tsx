@@ -8,11 +8,11 @@ import {
   SearchX,
   Users,
 } from "lucide-react";
-import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { RecruiterJobApplicantDetailPanel } from "@/components/recruiter/applications/RecruiterJobApplicantDetailPanel";
 import { RecruiterJobApplicantListCard } from "@/components/recruiter/applications/RecruiterJobApplicantListCard";
+import { NavigationBackLink } from "@/components/ui/NavigationBackLink";
 import { getTotalPages, Pagination } from "@/components/ui/Pagination";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { RECRUITER_PROFILE_ROLES_PATH } from "@/lib/auth/routes";
@@ -169,7 +169,10 @@ export function RecruiterJobApplicantsPage({ jobId }: RecruiterJobApplicantsPage
   if (isError || !job) {
     return (
       <div className="mx-auto max-w-6xl px-3 py-10 sm:px-6">
-        <BackLink />
+        <NavigationBackLink
+          fallbackHref={RECRUITER_PROFILE_ROLES_PATH}
+          label="Back"
+        />
         <div className="mt-8 rounded-2xl border border-red-200 bg-red-50 p-8 text-center">
           <p className="text-sm text-red-700">
             {error instanceof Error ? error.message : "Could not load applicants."}
@@ -181,7 +184,10 @@ export function RecruiterJobApplicantsPage({ jobId }: RecruiterJobApplicantsPage
 
   return (
     <div className="mx-auto max-w-6xl px-3 pb-10 pt-4 sm:px-6 sm:pt-6">
-      <BackLink />
+      <NavigationBackLink
+        fallbackHref={RECRUITER_PROFILE_ROLES_PATH}
+        label="Back"
+      />
 
       <header className="mt-4 overflow-hidden rounded-2xl border border-gray-200 bg-white">
         <div className="bg-linear-to-r from-gray-900 via-blue-950 to-blue-900 px-5 py-6 sm:px-6">
@@ -388,18 +394,6 @@ function ApplicantSearchEmptyState({
         Clear search
       </button>
     </div>
-  );
-}
-
-function BackLink() {
-  return (
-    <Link
-      href={RECRUITER_PROFILE_ROLES_PATH}
-      className="inline-flex items-center gap-2 text-sm font-medium text-blue-600 transition-colors hover:text-blue-700"
-    >
-      <ArrowLeft className="h-4 w-4 shrink-0" aria-hidden="true" />
-      Back to active roles
-    </Link>
   );
 }
 

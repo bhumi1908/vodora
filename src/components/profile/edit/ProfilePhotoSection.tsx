@@ -4,6 +4,7 @@ import { Camera, Loader2 } from "lucide-react";
 import { useRef, useState } from "react";
 
 import { FormError, FormSuccess } from "@/components/auth/shared/FormFields";
+import { ProfilePictureAvatar } from "@/components/ui/ProfilePictureAvatar";
 import { ProfileEditSection } from "@/components/profile/edit/ProfileEditSection";
 import { SectionSaveButton } from "@/components/profile/edit/SectionSaveButton";
 import {
@@ -104,22 +105,17 @@ export function ProfilePhotoSection({
       }
     >
       <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
-        <div className="relative flex h-28 w-28 shrink-0 items-center justify-center overflow-hidden rounded-full border-4 border-gray-100 bg-gray-200">
-          {previewUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={previewUrl}
-              alt={name}
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <span className="text-3xl font-semibold text-gray-700">
-              {avatarInitials}
-            </span>
-          )}
+        <div className="relative shrink-0">
+          <ProfilePictureAvatar
+            name={name}
+            initials={avatarInitials}
+            profilePictureUrl={previewUrl}
+            containerClassName="flex h-28 w-28 items-center justify-center overflow-hidden rounded-full border-4 border-gray-100 bg-blue-100"
+            initialsClassName="text-3xl font-semibold text-blue-700"
+          />
 
           {uploadMutation.isPending ? (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+            <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40">
               <Loader2 className="h-6 w-6 animate-spin text-white" />
             </div>
           ) : null}
