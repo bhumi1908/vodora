@@ -2,8 +2,15 @@ import type { ChangeEvent, ReactNode } from "react";
 import { AlertCircle } from "lucide-react";
 import Link from "next/link";
 
+import {
+  SELECT_RIGHT_PADDING_CLASSNAME,
+  SelectField,
+} from "@/components/shared/SelectField";
+
 const fieldClassName =
   "w-full rounded-lg border border-gray-300 px-4 py-3 text-base outline-none transition-colors focus:border-transparent focus:ring-2 focus:ring-blue-500 sm:text-sm";
+
+const selectFieldClassName = `w-full appearance-none rounded-lg border border-gray-300 py-3 pl-4 ${SELECT_RIGHT_PADDING_CLASSNAME} text-base outline-none transition-colors focus:border-transparent focus:ring-2 focus:ring-blue-500 sm:text-sm`;
 
 function getFieldClassName(error?: string) {
   if (error) {
@@ -11,6 +18,14 @@ function getFieldClassName(error?: string) {
   }
 
   return fieldClassName;
+}
+
+export function getSelectFieldClassName(error?: string) {
+  if (error) {
+    return `${selectFieldClassName} border-red-500 focus:ring-red-500`;
+  }
+
+  return selectFieldClassName;
 }
 
 interface FieldErrorProps {
@@ -105,22 +120,24 @@ export function FormSelect({
         {label}
         {required ? " *" : ""}
       </label>
-      <select
-        id={id}
-        required={required}
-        disabled={disabled}
-        value={value}
-        onChange={onChange}
-        aria-invalid={error ? true : undefined}
-        className={`${getFieldClassName(error)}${disabled ? " cursor-not-allowed bg-gray-50 text-gray-500" : ""}`}
-      >
-        <option value="">{placeholder}</option>
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
+      <SelectField>
+        <select
+          id={id}
+          required={required}
+          disabled={disabled}
+          value={value}
+          onChange={onChange}
+          aria-invalid={error ? true : undefined}
+          className={`${getSelectFieldClassName(error)}${disabled ? " cursor-not-allowed bg-gray-50 text-gray-500" : ""}`}
+        >
+          <option value="">{placeholder}</option>
+          {options.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      </SelectField>
       <FieldError message={error} />
     </div>
   );

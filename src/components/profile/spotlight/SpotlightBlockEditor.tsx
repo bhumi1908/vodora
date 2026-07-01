@@ -1,7 +1,12 @@
 "use client";
 
-import { Check, ChevronDown, X } from "lucide-react";
+import { Check, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+
+import {
+  SELECT_RIGHT_PADDING_CLASSNAME,
+  SelectField,
+} from "@/components/shared/SelectField";
 
 import {
   SPOTLIGHT_BLOCK_TYPES,
@@ -287,7 +292,7 @@ export function SpotlightBlockEditor({
               <label className="mb-1.5 block text-xs font-medium text-gray-500">
                 Language
               </label>
-              <div className="relative">
+              <SelectField>
                 <select
                   value={data.language}
                   onChange={(event) =>
@@ -296,14 +301,13 @@ export function SpotlightBlockEditor({
                       language: event.target.value,
                     }))
                   }
-                  className="w-full appearance-none rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className={`w-full appearance-none rounded-xl border border-gray-300 bg-white py-2.5 pl-4 ${SELECT_RIGHT_PADDING_CLASSNAME} text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none`}
                 >
                   {SPOTLIGHT_CODE_LANGUAGES.map((language) => (
                     <option key={language}>{language}</option>
                   ))}
                 </select>
-                <ChevronDown className="pointer-events-none absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
-              </div>
+              </SelectField>
             </div>
             <div>
               <label className="mb-1.5 block text-xs font-medium text-gray-500">

@@ -11,6 +11,10 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
+import {
+  SELECT_RIGHT_PADDING_CLASSNAME,
+  SelectField,
+} from "@/components/shared/SelectField";
 import { ApplicationDocumentRow } from "@/components/recruiter/applications/ApplicationDocumentRow";
 import { ApplicationStatusBadge } from "@/components/recruiter/applications/ApplicationStatusBadge";
 import { ReferenceCard } from "@/components/profile/reference/ReferenceCard";
@@ -112,14 +116,20 @@ export function RecruiterJobApplicantDetailPanel({
             <ApplicationStatusBadge status={applicant.status} />
             <label className="flex flex-col gap-1 text-xs text-gray-500">
               Update status
-              <div className="relative">
+              <SelectField
+                rightAdornment={
+                  updateStatusMutation.isPending ? (
+                    <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-blue-600" />
+                  ) : undefined
+                }
+              >
                 <select
                   value={applicant.status}
                   onChange={(event) =>
                     handleStatusChange(event.target.value as JobApplicationStatus)
                   }
                   disabled={updateStatusMutation.isPending}
-                  className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 outline-none transition-colors focus:border-blue-300 focus:ring-2 focus:ring-blue-100 disabled:opacity-60"
+                  className={`appearance-none rounded-xl border border-gray-200 bg-white py-2 pl-3 ${SELECT_RIGHT_PADDING_CLASSNAME} text-sm font-medium text-gray-700 outline-none transition-colors focus:border-blue-300 focus:ring-2 focus:ring-blue-100 disabled:opacity-60`}
                 >
                   {JOB_APPLICATION_STATUS_OPTIONS.map((status) => (
                     <option key={status} value={status}>
@@ -127,10 +137,7 @@ export function RecruiterJobApplicantDetailPanel({
                     </option>
                   ))}
                 </select>
-                {updateStatusMutation.isPending ? (
-                  <Loader2 className="absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-blue-600" />
-                ) : null}
-              </div>
+              </SelectField>
             </label>
           </div>
         </div>

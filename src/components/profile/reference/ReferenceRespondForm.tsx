@@ -5,13 +5,17 @@ import {
   Briefcase,
   Building2,
   CheckCircle,
-  ChevronDown,
   Clock,
   FileText,
   Lock,
   Shield,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+
+import {
+  SELECT_RIGHT_PADDING_CLASSNAME,
+  SelectField,
+} from "@/components/shared/SelectField";
 
 import { ReferenceQuestionnaireFields } from "@/components/profile/reference/ReferenceQuestionnaireFields";
 import {
@@ -75,11 +79,11 @@ function Select({
         {label}
         {required ? <span className="ml-0.5 text-red-500">*</span> : null}
       </label>
-      <div className="relative">
+      <SelectField>
         <select
           value={value}
           onChange={(event) => onChange(event.target.value)}
-          className={`w-full appearance-none rounded-xl border bg-white px-4 py-2.5 text-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+          className={`w-full appearance-none rounded-xl border bg-white py-2.5 pl-4 ${SELECT_RIGHT_PADDING_CLASSNAME} text-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 ${
             error ? "border-red-500" : "border-gray-300"
           }`}
         >
@@ -90,8 +94,7 @@ function Select({
             </option>
           ))}
         </select>
-        <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-      </div>
+      </SelectField>
       {error ? <p className="mt-1 text-sm text-red-600">{error}</p> : null}
     </div>
   );

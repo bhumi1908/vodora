@@ -3,19 +3,9 @@
 import { useEffect, useState } from "react";
 import type { ChangeEvent } from "react";
 
-import { FieldError } from "@/components/auth/shared/FormFields";
+import { FieldError, getSelectFieldClassName } from "@/components/auth/shared/FormFields";
+import { SelectField } from "@/components/shared/SelectField";
 import type { JobTitleOptionGroup } from "@/lib/job-titles/types";
-
-const fieldClassName =
-  "w-full rounded-lg border border-gray-300 px-4 py-3 text-base outline-none transition-colors focus:border-transparent focus:ring-2 focus:ring-blue-500 sm:text-sm";
-
-function getFieldClassName(error?: string) {
-  if (error) {
-    return `${fieldClassName} border-red-500 focus:ring-red-500`;
-  }
-
-  return fieldClassName;
-}
 
 function hasOptionGroups(optionGroups?: JobTitleOptionGroup[]): boolean {
   return Boolean(optionGroups && optionGroups.length > 0);
@@ -117,27 +107,29 @@ export function JobTitleSelect({
         {label}
         {required ? " *" : ""}
       </label>
-      <select
-        id={id}
-        required={required}
-        value={value}
-        onChange={onChange}
-        disabled={disabled || isLoading}
-        aria-invalid={displayError ? true : undefined}
-        aria-busy={isLoading}
-        className={getFieldClassName(displayError)}
-      >
-        <option value="">{selectPlaceholder}</option>
-        {optionGroups.map((group) => (
-          <optgroup key={group.label} label={group.label}>
-            {group.options.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </optgroup>
-        ))}
-      </select>
+      <SelectField>
+        <select
+          id={id}
+          required={required}
+          value={value}
+          onChange={onChange}
+          disabled={disabled || isLoading}
+          aria-invalid={displayError ? true : undefined}
+          aria-busy={isLoading}
+          className={getSelectFieldClassName(displayError)}
+        >
+          <option value="">{selectPlaceholder}</option>
+          {optionGroups.map((group) => (
+            <optgroup key={group.label} label={group.label}>
+              {group.options.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </optgroup>
+          ))}
+        </select>
+      </SelectField>
       <FieldError message={displayError} />
     </div>
   );
