@@ -30,6 +30,7 @@ export type PublishedJobsQueryParams = {
   workTypes: string[];
   location: string;
   query: string;
+  industryCategoryId: string | null;
   page: number;
   limit?: number;
 };

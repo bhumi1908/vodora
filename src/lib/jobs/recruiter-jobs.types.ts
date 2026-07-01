@@ -25,6 +25,8 @@ export type RecruiterJobListItem = {
   posted: string;
   urgent: boolean;
   status: string;
+  isExpired: boolean;
+  closesAt: string | null;
   newApplicantCount: number;
   recentNewApplicants: RecruiterDashboardRecentApplicant[];
 };

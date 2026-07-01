@@ -1,5 +1,6 @@
 import { getInitials } from "@/lib/profile/format";
 import type { CandidateJob, JobRecruiter } from "@/lib/jobs/candidate-jobs.types";
+import { isJobPostingExpired } from "@/lib/jobs/job-posting-active";
 import type { RecruiterJobListItem } from "@/lib/jobs/recruiter-jobs.types";
 
 type WorkTypeJoin = { name: string } | null;
@@ -43,6 +44,7 @@ export type RecruiterJobPostingRow = {
   status: string;
   published_at: string | null;
   created_at: string;
+  closes_at: string | null;
   work_types: WorkTypeJoin;
   job_applications: Array<{ count: number }> | null;
 };
@@ -168,6 +170,8 @@ export function transformRecruiterJobPostingRow(
     posted: formatRelativePosted(row.published_at, row.created_at),
     urgent: row.is_urgent,
     status: row.status,
+    isExpired: isJobPostingExpired(row.status, row.closes_at),
+    closesAt: row.closes_at,
     newApplicantCount: 0,
     recentNewApplicants: [],
   };

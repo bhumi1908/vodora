@@ -29,9 +29,9 @@ export function showShareLinkErrorToast(message?: string) {
 }
 
 export function showShareLinkEmailedToast(recruiterName?: string) {
+  const recipient = recruiterName?.trim() ? recruiterName.trim() : "the recruiter";
+
   toast.success(
-    recruiterName
-      ? `Share link emailed to ${recruiterName}.`
-      : "Share link emailed to recruiter.",
+    `Share link emailed to ${recipient}. It should arrive in less than a minute.`,
   );
 }

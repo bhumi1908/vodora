@@ -1,5 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+import { fetchRecruiterCandidateConnectionStatus } from "@/lib/connections/fetch-recruiter-candidate-connection-status";
+import type { ConnectionStatus } from "@/lib/connections/connection.types";
 import type {
   RecruiterSearchCandidate,
   RecruiterSearchParams,
@@ -37,6 +39,16 @@ type RpcSearchResponse = {
 const DEFAULT_LIMIT = 10;
 const MAX_LIMIT = 50;
 
+function normalizeConnectionStatus(
+  value: string | null | undefined,
+): ConnectionStatus | null {
+  if (value === "connected" || value === "pending") {
+    return value;
+  }
+
+  return null;
+}
+
 function normalizeCandidate(row: RpcCandidateRow): RecruiterSearchCandidate {
   return {
     id: row.id,
@@ -56,6 +68,22 @@ function normalizeCandidate(row: RpcCandidateRow): RecruiterSearchCandidate {
     isSaved: row.is_saved ?? false,
     category: row.category,
     totalYearsExperience: row.total_years_experience,
+    connectionStatus: null,
+  };
+}
+
+async function attachConnectionStatus(
+  supabase: Supabase,
+  candidate: RecruiterSearchCandidate,
+): Promise<RecruiterSearchCandidate> {
+  const connection = await fetchRecruiterCandidateConnectionStatus(
+    supabase,
+    candidate.id,
+  );
+
+  return {
+    ...candidate,
+    connectionStatus: normalizeConnectionStatus(connection?.status),
   };
 }
 
@@ -105,11 +133,19 @@ export async function searchRecruiterCandidates(
 
   const totalCount = payload?.total_count ?? 0;
   const rows = Array.isArray(payload?.candidates) ? payload.candidates : [];
+  const normalizedCandidates = rows
+    .filter((row): row is RpcCandidateRow =>
+      Boolean(row && typeof row === "object" && "id" in row),
+    )
+    .map(normalizeCandidate);
+  const candidates = await Promise.all(
+    normalizedCandidates.map((candidate) =>
+      attachConnectionStatus(supabase, candidate),
+    ),
+  );
 
   return {
-    candidates: rows
-      .filter((row): row is RpcCandidateRow => Boolean(row && typeof row === "object" && "id" in row))
-      .map(normalizeCandidate),
+    candidates,
     totalCount,
     page,
     limit,

@@ -14,6 +14,7 @@ export type OwnCandidateProfileCandidateRow = {
   id: string;
   vodora_id: string;
   profession: string | null;
+  job_title_id: string | null;
   current_position: string | null;
   current_company_name: string | null;
   headline: string | null;

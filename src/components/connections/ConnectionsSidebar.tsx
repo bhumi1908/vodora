@@ -65,7 +65,7 @@ export function ConnectionsSidebar({
   onTabChange,
 }: ConnectionsSidebarProps) {
   return (
-    <aside className="w-full shrink-0 mt-10 lg:w-64 lg:self-start">
+    <aside className="w-full shrink-0 lg:w-64 lg:self-start">
       <nav
         className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm"
         aria-label="Manage connections"
@@ -89,8 +89,8 @@ export function ConnectionsSidebar({
                   aria-selected={active}
                   onClick={() => onTabChange(item.id)}
                   className={`flex w-full items-center gap-3 px-5 py-3.5 text-left text-sm transition-colors hover:bg-gray-50 ${active
-                      ? "bg-blue-50 font-semibold text-blue-600"
-                      : "text-gray-700"
+                    ? "bg-blue-50 font-semibold text-blue-600"
+                    : "text-gray-700"
                     }`}
                 >
                   <span
@@ -101,8 +101,8 @@ export function ConnectionsSidebar({
                   <span className="min-w-0 flex-1">{item.label}</span>
                   <span
                     className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold ${active
-                        ? "bg-blue-100 text-blue-700"
-                        : "bg-gray-100 text-gray-600"
+                      ? "bg-blue-100 text-blue-700"
+                      : "bg-gray-100 text-gray-600"
                       }`}
                   >
                     {count}

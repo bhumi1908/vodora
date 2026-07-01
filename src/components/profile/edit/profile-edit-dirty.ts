@@ -10,6 +10,7 @@ export type OverviewFields = Pick<
   CandidateProfileEditData,
   | "about"
   | "title"
+  | "jobTitleId"
   | "company"
   | "phone"
   | "website"

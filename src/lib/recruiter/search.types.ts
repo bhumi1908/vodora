@@ -1,8 +1,10 @@
+import type { ConnectionStatus } from "@/lib/connections/connection.types";
 import type { RecruiterDashboardCandidate } from "@/lib/recruiter/dashboard.types";
 
 export type RecruiterSearchCandidate = RecruiterDashboardCandidate & {
   category: string | null;
   totalYearsExperience: number | null;
+  connectionStatus: ConnectionStatus | null;
 };
 
 export type RecruiterSearchFilters = {

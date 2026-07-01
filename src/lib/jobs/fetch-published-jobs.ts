@@ -1,9 +1,15 @@
 import type { CandidateJobFilters } from "@/lib/jobs/candidate-jobs.types";
 import {
+  fetchCandidateViewerLocation,
+  resolveJobCategoriesForIndustryId,
+} from "@/lib/jobs/fetch-candidate-job-match-context";
+import {
   transformJobPostingRowToCandidateJob,
   type JobPostingRow,
 } from "@/lib/jobs/format-job-posting";
+import { isJobPostingActive } from "@/lib/jobs/job-posting-active";
 import { CANDIDATE_JOBS_PAGE_SIZE } from "@/lib/jobs/job-board-options";
+import { sortJobPostingsByProximity } from "@/lib/jobs/job-location-proximity";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -25,6 +31,15 @@ export type PublishedJobsResult = {
   limit: number;
   totalPages: number;
   categoryCounts: Record<string, number>;
+};
+
+type ResolvedPublishedJobsFilters = {
+  category: string;
+  workTypes: string[];
+  location: string;
+  query: string;
+  industryCategoryId: string | null;
+  industryJobCategories: string[];
 };
 
 function applyLocationFilter<T extends { ilike: (column: string, pattern: string) => T }>(
@@ -78,53 +93,76 @@ async function fetchCategoryCounts(
 ): Promise<Record<string, number>> {
   const { data } = await supabase
     .from("job_postings")
-    .select("category")
+    .select("category, status, closes_at")
     .eq("status", "published");
 
-  const counts: Record<string, number> = { All: data?.length ?? 0 };
+  const activeRows = (data ?? []).filter((row) =>
+    isJobPostingActive(row.status, row.closes_at),
+  );
 
-  for (const row of data ?? []) {
+  const counts: Record<string, number> = { All: activeRows.length };
+
+  for (const row of activeRows) {
     counts[row.category] = (counts[row.category] ?? 0) + 1;
   }
 
   return counts;
 }
 
-function buildPublishedJobsQuery(
+async function resolvePublishedJobsFilters(
   supabase: Supabase,
   params: PublishedJobsQuery,
+): Promise<ResolvedPublishedJobsFilters> {
+  const industryCategoryId = params.industryCategoryId;
+
+  const industryJobCategories =
+    industryCategoryId && industryCategoryId !== "all"
+      ? await resolveJobCategoriesForIndustryId(supabase, industryCategoryId)
+      : [];
+
+  return {
+    category: params.category,
+    workTypes: params.workTypes,
+    location: params.location,
+    query: params.query,
+    industryCategoryId,
+    industryJobCategories,
+  };
+}
+
+function buildPublishedJobsQuery(
+  supabase: Supabase,
+  filters: ResolvedPublishedJobsFilters,
   workTypeIds: string[],
 ) {
-  const limit = params.limit ?? CANDIDATE_JOBS_PAGE_SIZE;
-  const query = params.query.trim();
+  const query = filters.query.trim();
 
   let request = supabase
     .from("job_postings")
     .select("*", { count: "exact" })
     .eq("status", "published")
-    .order("published_at", { ascending: false, nullsFirst: false });
+    .or("closes_at.is.null,closes_at.gt.now()");
 
-  if (params.category !== "All") {
-    request = request.eq("category", params.category);
+  if (filters.category !== "All") {
+    request = request.eq("category", filters.category);
+  } else if (filters.industryJobCategories.length > 0) {
+    request = request.in("category", filters.industryJobCategories);
   }
 
   if (workTypeIds.length > 0) {
     request = request.in("work_type_id", workTypeIds);
   }
 
-  request = applyLocationFilter(request, params.location);
+  request = applyLocationFilter(request, filters.location);
 
   if (query) {
     const pattern = `%${query}%`;
     request = request.or(
-      `title.ilike.${pattern},company_display_name.ilike.${pattern},category.ilike.${pattern}`,
+      `title.ilike.${pattern},company_display_name.ilike.${pattern},category.ilike.${pattern},description.ilike.${pattern}`,
     );
   }
 
-  const from = (params.page - 1) * limit;
-  const to = from + limit - 1;
-
-  return request.range(from, to);
+  return request;
 }
 
 async function enrichJobPostingRows(
@@ -203,11 +241,16 @@ async function enrichJobPostingRows(
 export async function fetchPublishedJobs(
   supabase: Supabase,
   params: PublishedJobsQuery,
+  userId: string | null = null,
 ): Promise<PublishedJobsResult> {
   const limit = params.limit ?? CANDIDATE_JOBS_PAGE_SIZE;
-  const workTypeIds = await fetchWorkTypeIdsByNames(supabase, params.workTypes);
+  const resolvedFilters = await resolvePublishedJobsFilters(supabase, params);
+  const workTypeIds = await fetchWorkTypeIdsByNames(
+    supabase,
+    resolvedFilters.workTypes,
+  );
 
-  if (params.workTypes.length > 0 && workTypeIds.length === 0) {
+  if (resolvedFilters.workTypes.length > 0 && workTypeIds.length === 0) {
     const categoryCounts = await fetchCategoryCounts(supabase);
 
     return {
@@ -220,8 +263,32 @@ export async function fetchPublishedJobs(
     };
   }
 
+  if (
+    resolvedFilters.industryCategoryId &&
+    resolvedFilters.industryCategoryId !== "all" &&
+    resolvedFilters.category === "All" &&
+    resolvedFilters.industryJobCategories.length === 0
+  ) {
+    const categoryCounts = await fetchCategoryCounts(supabase);
+
+    return {
+      jobs: [],
+      total: 0,
+      page: params.page,
+      limit,
+      totalPages: 0,
+      categoryCounts,
+    };
+  }
+
+  const viewerLocation = userId
+    ? await fetchCandidateViewerLocation(supabase, userId)
+    : null;
+
+  const request = buildPublishedJobsQuery(supabase, resolvedFilters, workTypeIds);
+
   const [{ data, count, error }, categoryCounts] = await Promise.all([
-    buildPublishedJobsQuery(supabase, params, workTypeIds),
+    request,
     fetchCategoryCounts(supabase),
   ]);
 
@@ -229,9 +296,12 @@ export async function fetchPublishedJobs(
     throw new Error(error.message);
   }
 
-  const total = count ?? 0;
+  const sortedRows = sortJobPostingsByProximity(data ?? [], viewerLocation);
+  const total = count ?? sortedRows.length;
   const totalPages = total > 0 ? Math.ceil(total / limit) : 0;
-  const enrichedRows = await enrichJobPostingRows(supabase, data ?? []);
+  const from = (params.page - 1) * limit;
+  const pageRows = sortedRows.slice(from, from + limit);
+  const enrichedRows = await enrichJobPostingRows(supabase, pageRows);
   const jobs = enrichedRows.map(transformJobPostingRowToCandidateJob);
 
   return {
@@ -253,6 +323,7 @@ export async function fetchPublishedJobById(
     .select("*")
     .eq("id", jobId)
     .eq("status", "published")
+    .or("closes_at.is.null,closes_at.gt.now()")
     .maybeSingle();
 
   if (error) {

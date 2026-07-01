@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 
+import { resolveIndustryCategoryId } from "@/lib/auth/industry";
+import { resolveJobTitleForSignup } from "@/lib/job-titles/resolve-job-title";
 import { validateOverview } from "@/lib/profile/validation";
 import { requireOwnCandidate } from "@/lib/profile/require-own-candidate";
 import { createClient } from "@/lib/supabase/server";
@@ -7,6 +9,7 @@ import { createClient } from "@/lib/supabase/server";
 type OverviewPayload = {
   about?: string;
   title?: string;
+  jobTitleId?: string;
   company?: string;
   phone?: string;
   website?: string;
@@ -84,6 +87,52 @@ export async function PATCH(request: Request) {
     ? Number.parseInt(totalYearsRaw, 10)
     : null;
 
+  const jobTitleId = body.jobTitleId?.trim() ?? "";
+  let jobTitleUpdate: {
+    job_title_id?: string;
+    profession?: string;
+    industry_category_id?: string;
+  } = {};
+
+  if (jobTitleId) {
+    const { jobTitle, error: jobTitleError } =
+      await resolveJobTitleForSignup(jobTitleId);
+
+    if (jobTitleError || !jobTitle) {
+      return NextResponse.json(
+        { success: false, error: jobTitleError ?? "Invalid job title." },
+        { status: 400 },
+      );
+    }
+
+    let industryCategoryId = jobTitle.industryCategoryId;
+
+    if (!industryCategoryId) {
+      const { id, error: industryError } = await resolveIndustryCategoryId(
+        supabase,
+        "other",
+      );
+
+      if (industryError || !id) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: industryError ?? "Unable to resolve industry category.",
+          },
+          { status: 400 },
+        );
+      }
+
+      industryCategoryId = id;
+    }
+
+    jobTitleUpdate = {
+      job_title_id: jobTitle.id,
+      profession: jobTitle.name,
+      industry_category_id: industryCategoryId,
+    };
+  }
+
   const { error: candidateError } = await supabase
     .from("candidates")
     .update({
@@ -99,6 +148,7 @@ export async function PATCH(request: Request) {
       availability_updated_at: new Date().toISOString(),
       experience_level: experienceLevel,
       total_years_experience: totalYearsExperience,
+      ...jobTitleUpdate,
     })
     .eq("id", context.candidateId);
 

@@ -1,14 +1,17 @@
 "use client";
 
-import { Briefcase, MapPin, Plus } from "lucide-react";
+import { Briefcase, Plus } from "lucide-react";
+import { useState } from "react";
 
 import { RecruiterActiveRolesSkeleton } from "@/components/recruiter/RecruiterActiveRolesSkeleton";
 import { useRequiredMyRecruiterProfileData } from "@/components/recruiter/MyRecruiterProfileDataProvider";
 import { RecruiterCreateJobModal } from "@/components/recruiter/RecruiterCreateJobModal";
 import { RecruiterEditJobModal } from "@/components/recruiter/RecruiterEditJobModal";
 import { RecruiterJobCard } from "@/components/recruiter/RecruiterJobCard";
-import { useRecruiterJobsQuery } from "@/lib/query/use-job-queries";
-import { useState } from "react";
+import {
+  useRecruiterJobsQuery,
+  useRepostRecruiterJobMutation,
+} from "@/lib/query/use-job-queries";
 
 type RecruiterActiveRolesTabProps = {
   defaultCompanyName: string;
@@ -20,9 +23,23 @@ export function RecruiterActiveRolesTab({
   const rawProfile = useRequiredMyRecruiterProfileData();
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [editingJobId, setEditingJobId] = useState<string | null>(null);
+  const [repostingJobId, setRepostingJobId] = useState<string | null>(null);
+  const repostMutation = useRepostRecruiterJobMutation();
   const { data, isPending, isError, error } = useRecruiterJobsQuery();
   const jobs = data?.jobs ?? [];
   const workTypes = data?.workTypes ?? [];
+  const activeJobs = jobs.filter((job) => !job.isExpired);
+  const expiredJobs = jobs.filter((job) => job.isExpired);
+
+  async function handleRepost(jobId: string) {
+    setRepostingJobId(jobId);
+    const result = await repostMutation.mutateAsync(jobId);
+    setRepostingJobId(null);
+
+    if (!result.success) {
+      window.alert(result.error);
+    }
+  }
 
   return (
     <div>
@@ -71,15 +88,38 @@ export function RecruiterActiveRolesTab({
         </div>
       ) : null}
 
-      {!isPending && !isError && jobs.length > 0 ? (
+      {!isPending && !isError && activeJobs.length > 0 ? (
         <div className="space-y-4">
-          {jobs.map((role) => (
+          {activeJobs.map((role) => (
             <RecruiterJobCard
               key={role.id}
               role={role}
               onEdit={setEditingJobId}
             />
           ))}
+        </div>
+      ) : null}
+
+      {!isPending && !isError && expiredJobs.length > 0 ? (
+        <div className="mt-10">
+          <h3 className="mb-4 text-base font-semibold text-gray-900">
+            Expired Postings
+          </h3>
+          <p className="mb-4 text-sm text-gray-500">
+            These roles are hidden from candidates. Re-post to list them again
+            for 30 days, or edit the details before re-posting.
+          </p>
+          <div className="space-y-4">
+            {expiredJobs.map((role) => (
+              <RecruiterJobCard
+                key={role.id}
+                role={role}
+                onEdit={setEditingJobId}
+                onRepost={handleRepost}
+                isReposting={repostingJobId === role.id}
+              />
+            ))}
+          </div>
         </div>
       ) : null}
 

@@ -23,6 +23,9 @@ import {
   usePublishedJobDetailQuery,
   usePublishedJobsQuery,
 } from "@/lib/query/use-job-queries";
+import { fetchJobBoardFilters } from "@/lib/query/job-fetchers";
+import { jobKeys } from "@/lib/query/keys";
+import { useQuery } from "@tanstack/react-query";
 
 export function CandidateJobBoard() {
   return (
@@ -39,6 +42,7 @@ function CandidateJobBoardContent() {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [selectedLocation, setSelectedLocation] = useState("All Locations");
+  const [selectedIndustryId, setSelectedIndustryId] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
@@ -61,6 +65,7 @@ function CandidateJobBoardContent() {
       category: selectedCategory,
       workTypes: selectedTypes,
       location: selectedLocation,
+      industryCategoryId: selectedIndustryId,
       query: debouncedQuery,
       page,
       limit: CANDIDATE_JOBS_PAGE_SIZE,
@@ -69,10 +74,17 @@ function CandidateJobBoardContent() {
       debouncedQuery,
       page,
       selectedCategory,
+      selectedIndustryId,
       selectedLocation,
       selectedTypes,
     ],
   );
+
+  const { data: jobBoardFilters } = useQuery({
+    queryKey: [...jobKeys.all, "filters"],
+    queryFn: fetchJobBoardFilters,
+    staleTime: 300_000,
+  });
 
   const {
     data: jobsResult,
@@ -154,6 +166,7 @@ function CandidateJobBoardContent() {
     setSelectedCategory("All");
     setSelectedTypes([]);
     setSelectedLocation("All Locations");
+    setSelectedIndustryId(null);
     setPage(1);
   }, []);
 
@@ -176,10 +189,16 @@ function CandidateJobBoardContent() {
     [router],
   );
 
+  const handleIndustryChange = useCallback((industryId: string | null) => {
+    setSelectedIndustryId(industryId);
+    setPage(1);
+  }, []);
+
   const activeFilterCount = [
     selectedCategory !== "All",
     selectedTypes.length > 0,
     selectedLocation !== "All Locations",
+    Boolean(selectedIndustryId),
   ].filter(Boolean).length;
 
   if (isPending && !jobsResult) {
@@ -275,10 +294,13 @@ function CandidateJobBoardContent() {
               selectedCategory={selectedCategory}
               selectedTypes={selectedTypes}
               selectedLocation={selectedLocation}
+              selectedIndustryId={selectedIndustryId}
+              industries={jobBoardFilters?.industries ?? []}
               categoryCounts={categoryCounts}
               onCategoryChange={handleCategoryChange}
               onToggleType={toggleType}
               onLocationChange={handleLocationChange}
+              onIndustryChange={handleIndustryChange}
               onClearFilters={clearFilters}
             />
             <button
@@ -297,10 +319,13 @@ function CandidateJobBoardContent() {
           selectedCategory={selectedCategory}
           selectedTypes={selectedTypes}
           selectedLocation={selectedLocation}
+          selectedIndustryId={selectedIndustryId}
+          industries={jobBoardFilters?.industries ?? []}
           categoryCounts={categoryCounts}
           onCategoryChange={handleCategoryChange}
           onToggleType={toggleType}
           onLocationChange={handleLocationChange}
+          onIndustryChange={handleIndustryChange}
           onClearFilters={clearFilters}
           className="hidden w-64 shrink-0 xl:block"
         />

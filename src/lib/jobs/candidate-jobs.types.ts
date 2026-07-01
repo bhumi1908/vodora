@@ -36,4 +36,5 @@ export type CandidateJobFilters = {
   workTypes: string[];
   location: string;
   query: string;
+  industryCategoryId: string | null;
 };

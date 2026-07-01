@@ -9,14 +9,22 @@ import {
   JOB_WORK_TYPES,
 } from "@/lib/jobs/job-board-options";
 
+type JobBoardIndustry = {
+  id: string;
+  name: string;
+};
+
 type JobFiltersSidebarProps = {
   selectedCategory: string;
   selectedTypes: string[];
   selectedLocation: string;
+  selectedIndustryId: string | null;
+  industries: JobBoardIndustry[];
   categoryCounts: Record<string, number>;
   onCategoryChange: (category: string) => void;
   onToggleType: (type: string) => void;
   onLocationChange: (location: string) => void;
+  onIndustryChange: (industryId: string | null) => void;
   onClearFilters: () => void;
   className?: string;
 };
@@ -32,22 +40,27 @@ export function JobFiltersSidebar({
   selectedCategory,
   selectedTypes,
   selectedLocation,
+  selectedIndustryId,
+  industries,
   categoryCounts,
   onCategoryChange,
   onToggleType,
   onLocationChange,
+  onIndustryChange,
   onClearFilters,
   className = "",
 }: JobFiltersSidebarProps) {
   const hasActiveFilters =
     selectedCategory !== "All" ||
     selectedTypes.length > 0 ||
-    selectedLocation !== "All Locations";
+    selectedLocation !== "All Locations" ||
+    Boolean(selectedIndustryId);
 
   const activeFilterCount = [
     selectedCategory !== "All",
     selectedTypes.length > 0,
     selectedLocation !== "All Locations",
+    Boolean(selectedIndustryId),
   ].filter(Boolean).length;
 
   return (
@@ -73,6 +86,36 @@ export function JobFiltersSidebar({
             </button>
           ) : null}
         </div>
+
+        <FilterSection title="Industry">
+          <div className="space-y-1">
+            <button
+              type="button"
+              onClick={() => onIndustryChange(null)}
+              className={`w-full rounded-lg px-3 py-2 text-left text-sm font-medium transition-colors ${
+                !selectedIndustryId
+                  ? "bg-blue-50 text-blue-700"
+                  : "text-gray-600 hover:bg-gray-50"
+              }`}
+            >
+              All Industries
+            </button>
+            {industries.map((industry) => (
+              <button
+                key={industry.id}
+                type="button"
+                onClick={() => onIndustryChange(industry.id)}
+                className={`w-full rounded-lg px-3 py-2 text-left text-sm font-medium transition-colors ${
+                  selectedIndustryId === industry.id
+                    ? "bg-blue-50 text-blue-700"
+                    : "text-gray-600 hover:bg-gray-50"
+                }`}
+              >
+                {industry.name}
+              </button>
+            ))}
+          </div>
+        </FilterSection>
 
         <FilterSection title="Category">
           <div className="space-y-1">

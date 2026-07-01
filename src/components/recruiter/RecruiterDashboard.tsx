@@ -40,7 +40,9 @@ export function RecruiterDashboard({ data, recruiterUserId }: RecruiterDashboard
   );
 
   const activeJobs = useMemo(() => {
-    const published = (jobsData?.jobs ?? []).filter((job) => job.status === "published");
+    const published = (jobsData?.jobs ?? []).filter(
+      (job) => job.status === "published" && !job.isExpired,
+    );
 
     return [...published]
       .sort((left, right) => {

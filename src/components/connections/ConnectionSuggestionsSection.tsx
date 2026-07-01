@@ -189,7 +189,7 @@ export function ConnectionSuggestionsSection({
     const mixed = buildMixedSuggestions<SuggestionPoolEntry>(
       searchCandidates.map((candidate) => ({
         id: candidate.id,
-        connectionStatus: null,
+        connectionStatus: candidate.connectionStatus,
         item: {
           key: `candidate:${candidate.id}`,
           kind: "candidate" as const,
@@ -200,7 +200,7 @@ export function ConnectionSuggestionsSection({
             [candidate.title, candidate.category].filter(Boolean).join(" · ") ||
             "Candidate",
           profilePictureUrl: candidate.profilePictureUrl,
-          connectionStatus: null,
+          connectionStatus: candidate.connectionStatus,
         },
       })),
       peerRecruiters.map((recruiter) => ({

@@ -147,6 +147,7 @@ export function transformOwnCandidateProfileToEdit(
       documents,
     ),
     title: candidate.current_position ?? candidate.headline ?? "",
+    jobTitleId: candidate.job_title_id ?? "",
     company: candidate.current_company_name ?? "",
     phone: user.phone ?? "",
     website: candidate.linkedin_profile_url ?? "",

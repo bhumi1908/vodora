@@ -19,6 +19,7 @@ async function parseApiResult(response: Response): Promise<ApiResult> {
 export async function saveOverviewSection(payload: {
   about: string;
   title: string;
+  jobTitleId: string;
   company: string;
   phone: string;
   website: string;

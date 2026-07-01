@@ -8,11 +8,22 @@ import type { RecruiterJobListItem } from "@/lib/jobs/recruiter-jobs.types";
 type RecruiterJobCardProps = {
   role: RecruiterJobListItem;
   onEdit?: (jobId: string) => void;
+  onRepost?: (jobId: string) => void;
+  isReposting?: boolean;
 };
 
-export function RecruiterJobCard({ role, onEdit }: RecruiterJobCardProps) {
+export function RecruiterJobCard({
+  role,
+  onEdit,
+  onRepost,
+  isReposting = false,
+}: RecruiterJobCardProps) {
   return (
-    <div className="rounded-2xl border border-gray-200 p-4 transition-shadow hover:shadow-md sm:p-6">
+    <div
+      className={`rounded-2xl border p-4 transition-shadow hover:shadow-md sm:p-6 ${
+        role.isExpired ? "border-amber-200 bg-amber-50/40" : "border-gray-200"
+      }`}
+    >
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0 flex-1">
           <div className="mb-1 flex flex-wrap items-center gap-2">
@@ -22,7 +33,12 @@ export function RecruiterJobCard({ role, onEdit }: RecruiterJobCardProps) {
             >
               {role.title}
             </Link>
-            {role.urgent ? (
+            {role.isExpired ? (
+              <span className="rounded-full border border-amber-200 bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
+                Expired
+              </span>
+            ) : null}
+            {role.urgent && !role.isExpired ? (
               <span className="rounded-full border border-red-200 bg-red-50 px-2 py-0.5 text-xs font-medium text-red-600">
                 Urgent
               </span>
@@ -60,6 +76,16 @@ export function RecruiterJobCard({ role, onEdit }: RecruiterJobCardProps) {
         >
           View Applicants
         </Link>
+        {role.isExpired ? (
+          <button
+            type="button"
+            onClick={() => onRepost?.(role.id)}
+            disabled={!onRepost || isReposting}
+            className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-medium text-amber-800 transition-colors hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+          >
+            {isReposting ? "Re-posting…" : "Re-post"}
+          </button>
+        ) : null}
         <button
           type="button"
           onClick={() => onEdit?.(role.id)}

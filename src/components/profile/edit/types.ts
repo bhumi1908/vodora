@@ -49,6 +49,7 @@ export type CandidateProfileEditData = {
   avatarInitials: string;
   profilePictureUrl: string | null;
   title: string;
+  jobTitleId: string;
   company: string;
   phone: string;
   website: string;

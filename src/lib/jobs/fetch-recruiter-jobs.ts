@@ -8,6 +8,10 @@ import {
   transformRecruiterJobPostingRow,
   type RecruiterJobPostingRow,
 } from "@/lib/jobs/format-job-posting";
+import {
+  computeDefaultClosesAt,
+  isJobPostingActive,
+} from "@/lib/jobs/job-posting-active";
 import { computeAvgTimeToHireDays } from "@/lib/jobs/format-recruiter-job-stats";
 import type {
   RecruiterDashboardRecentApplicant,
@@ -131,6 +135,7 @@ async function enrichRecruiterJobRows(
     status: row.status,
     published_at: row.published_at,
     created_at: row.created_at,
+    closes_at: row.closes_at,
     work_types: {
       name: workTypeById.get(row.work_type_id) ?? "Full Time",
     },
@@ -386,7 +391,7 @@ export async function fetchRecruiterJobStats(
 
   const { data: postings, error: postingsError } = await supabase
     .from("job_postings")
-    .select("id, status, published_at, created_at")
+    .select("id, status, published_at, created_at, closes_at")
     .eq("recruiter_id", recruiterId);
 
   if (postingsError) {
@@ -410,8 +415,8 @@ export async function fetchRecruiterJobStats(
     };
   }
 
-  const activeRoles = jobPostings.filter(
-    (posting) => posting.status === "published",
+  const activeRoles = jobPostings.filter((posting) =>
+    isJobPostingActive(posting.status, posting.closes_at ?? null),
   ).length;
 
   const jobStartById = new Map(
@@ -591,6 +596,49 @@ export async function updateRecruiterJobPosting(
       requirements: payload.requirements,
       is_urgent: payload.isUrgent,
       status: payload.status,
+    })
+    .eq("id", jobId)
+    .eq("recruiter_id", recruiterId)
+    .select("id")
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}
+
+export async function repostRecruiterJobPosting(
+  supabase: Supabase,
+  recruiterId: string,
+  jobId: string,
+) {
+  const { data: existing, error: existingError } = await supabase
+    .from("job_postings")
+    .select("id, status, closes_at")
+    .eq("id", jobId)
+    .eq("recruiter_id", recruiterId)
+    .eq("status", "published")
+    .maybeSingle();
+
+  if (existingError) {
+    throw existingError;
+  }
+
+  if (!existing) {
+    return null;
+  }
+
+  const publishedAt = new Date().toISOString();
+  const closesAt = computeDefaultClosesAt(new Date(publishedAt));
+
+  const { data, error } = await supabase
+    .from("job_postings")
+    .update({
+      status: "published",
+      published_at: publishedAt,
+      closes_at: closesAt,
     })
     .eq("id", jobId)
     .eq("recruiter_id", recruiterId)

@@ -10,6 +10,8 @@ import {
   FormSuccess,
   FormTextarea,
 } from "@/components/auth/shared/FormFields";
+import { CountryCityFields } from "@/components/shared/CountryCityFields";
+import { JobTitleSelect } from "@/components/shared/JobTitleSelect";
 import { isOverviewDirty, type OverviewFields } from "@/components/profile/edit/profile-edit-dirty";
 import { ProfileEditSection } from "@/components/profile/edit/ProfileEditSection";
 import { SectionSaveButton } from "@/components/profile/edit/SectionSaveButton";
@@ -62,8 +64,16 @@ export function OverviewEditSection({
     field: K,
     fieldValue: (typeof value)[K],
   ) {
-    onChange({ ...value, [field]: fieldValue });
+    onChange({ [field]: fieldValue } as OverviewFields);
     clearField(field);
+    setError("");
+    setSuccess("");
+  }
+
+  function updateCountryCity(country: string, city: string) {
+    onChange({ country, city } as OverviewFields);
+    clearField("country");
+    clearField("city");
     setError("");
     setSuccess("");
   }
@@ -113,6 +123,14 @@ export function OverviewEditSection({
         />
       }
     >
+      <JobTitleSelect
+        id="profile-job-title"
+        label="Job Title"
+        value={value.jobTitleId}
+        onChange={(event) => updateField("jobTitleId", event.target.value)}
+        error={errors.jobTitleId}
+      />
+
       <AuthFormGrid>
         <FormField
           id="profile-title"
@@ -203,24 +221,18 @@ export function OverviewEditSection({
         />
       </AuthFormGrid>
 
-      <AuthFormGrid>
-        <FormField
-          id="profile-city"
-          label="City"
-          value={value.city}
-          onChange={(event) => updateField("city", event.target.value)}
-          placeholder="Melbourne"
-          error={errors.city}
-        />
-        <FormField
-          id="profile-country"
-          label="Country"
-          value={value.country}
-          onChange={(event) => updateField("country", event.target.value)}
-          placeholder="Australia"
-          error={errors.country}
-        />
-      </AuthFormGrid>
+      <CountryCityFields
+        idPrefix="profile"
+        country={value.country}
+        city={value.city}
+        onCountryChange={(nextCountry) =>
+          updateCountryCity(nextCountry, "")
+        }
+        onCityChange={(nextCity) => updateField("city", nextCity)}
+        countryError={errors.country}
+        cityError={errors.city}
+        required={false}
+      />
 
       <AuthFormGrid>
         <FormField

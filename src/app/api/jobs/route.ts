@@ -8,6 +8,7 @@ export async function GET(request: Request) {
   const category = searchParams.get("category") ?? "All";
   const location = searchParams.get("location") ?? "All Locations";
   const query = searchParams.get("q") ?? "";
+  const industryCategoryId = searchParams.get("industry") ?? null;
   const page = Math.max(1, Number.parseInt(searchParams.get("page") ?? "1", 10) || 1);
   const limit = Math.min(
     50,
@@ -28,14 +29,22 @@ export async function GET(request: Request) {
   }
 
   try {
-    const result = await fetchPublishedJobs(supabase, {
-      category,
-      workTypes,
-      location,
-      query,
-      page,
-      limit,
-    });
+    const result = await fetchPublishedJobs(
+      supabase,
+      {
+        category,
+        workTypes,
+        location,
+        query,
+        industryCategoryId:
+          industryCategoryId && industryCategoryId !== "all"
+            ? industryCategoryId
+            : null,
+        page,
+        limit,
+      },
+      user.id,
+    );
 
     return NextResponse.json({
       success: true,

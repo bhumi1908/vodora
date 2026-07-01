@@ -144,6 +144,7 @@ export function validateProfileFile(
 export type OverviewFieldErrors = FieldErrors<
   | "about"
   | "title"
+  | "jobTitleId"
   | "company"
   | "phone"
   | "website"
@@ -158,6 +159,7 @@ export type OverviewFieldErrors = FieldErrors<
 export function getOverviewFieldErrors(input: {
   about?: string;
   title?: string;
+  jobTitleId?: string;
   company?: string;
   phone?: string;
   website?: string;
@@ -249,6 +251,7 @@ export function getOverviewFieldErrors(input: {
 export function validateOverview(input: {
   about?: string;
   title?: string;
+  jobTitleId?: string;
   company?: string;
   phone?: string;
   website?: string;

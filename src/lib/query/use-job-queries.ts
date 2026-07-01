@@ -17,6 +17,7 @@ import {
   fetchPublishedJobs,
   fetchRecruiterJobById,
   fetchRecruiterJobs,
+  repostRecruiterJobPosting,
   updateRecruiterJobPosting,
 } from "@/lib/query/job-fetchers";
 import { jobKeys, type PublishedJobsQueryParams } from "@/lib/query/keys";
@@ -99,6 +100,20 @@ export function useUpdateRecruiterJobMutation(jobId: string) {
         void queryClient.invalidateQueries({
           queryKey: jobKeys.recruiterJobApplicants(jobId),
         });
+        void queryClient.invalidateQueries({ queryKey: jobKeys.all });
+      }
+    },
+  });
+}
+
+export function useRepostRecruiterJobMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (jobId: string) => repostRecruiterJobPosting(jobId),
+    onSuccess: (result) => {
+      if (result.success) {
+        void queryClient.invalidateQueries({ queryKey: jobKeys.recruiter() });
         void queryClient.invalidateQueries({ queryKey: jobKeys.all });
       }
     },

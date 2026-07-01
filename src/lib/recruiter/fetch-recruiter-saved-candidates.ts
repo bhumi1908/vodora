@@ -55,6 +55,7 @@ function normalizeCandidate(row: RpcCandidateRow): RecruiterSearchCandidate {
     isSaved: row.is_saved ?? true,
     category: row.category,
     totalYearsExperience: row.total_years_experience,
+    connectionStatus: null,
   };
 }
 

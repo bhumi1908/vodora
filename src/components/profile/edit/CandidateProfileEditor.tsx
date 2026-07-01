@@ -63,6 +63,7 @@ export function CandidateProfileEditor({
     () => ({
       about: profile.about,
       title: profile.title,
+      jobTitleId: profile.jobTitleId,
       company: profile.company,
       phone: profile.phone,
       website: profile.website,
@@ -80,6 +81,7 @@ export function CandidateProfileEditor({
     () => ({
       about: savedProfile.about,
       title: savedProfile.title,
+      jobTitleId: savedProfile.jobTitleId,
       company: savedProfile.company,
       phone: savedProfile.phone,
       website: savedProfile.website,

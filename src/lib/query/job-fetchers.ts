@@ -21,6 +21,14 @@ export type PublishedJobsResponse = {
   categoryCounts?: Record<string, number>;
 };
 
+export type JobBoardFiltersResponse = {
+  success: boolean;
+  error?: string;
+  filters?: {
+    industries: Array<{ id: string; name: string }>;
+  };
+};
+
 export type RecruiterJobsResponse = {
   success: boolean;
   error?: string;
@@ -64,6 +72,10 @@ export function buildPublishedJobsUrl(
     searchParams.append("workType", workType);
   }
 
+  if (params.industryCategoryId) {
+    searchParams.set("industry", params.industryCategoryId);
+  }
+
   if (params.page > 1) {
     searchParams.set("page", String(params.page));
   }
@@ -92,6 +104,19 @@ export async function fetchPublishedJobs(
     totalPages: payload.totalPages ?? 0,
     categoryCounts: payload.categoryCounts ?? {},
   };
+}
+
+export async function fetchJobBoardFilters(): Promise<{
+  industries: Array<{ id: string; name: string }>;
+}> {
+  const response = await fetch("/api/jobs/filters");
+  const payload = await parseJson<JobBoardFiltersResponse>(response);
+
+  if (!response.ok || !payload.success || !payload.filters) {
+    throw new Error(payload.error ?? "Could not load job filters.");
+  }
+
+  return payload.filters;
 }
 
 export async function fetchPublishedJobById(
@@ -186,6 +211,32 @@ export async function fetchRecruiterJobById(
   }
 
   return payload.job;
+}
+
+export async function repostRecruiterJobPosting(
+  jobId: string,
+): Promise<{ success: true; jobId: string } | { success: false; error: string }> {
+  const response = await fetch(`/api/recruiter/jobs/${jobId}/repost`, {
+    method: "POST",
+  });
+
+  const data = await parseJson<{
+    success: boolean;
+    error?: string;
+    jobId?: string;
+  }>(response);
+
+  if (!response.ok || !data.success || !data.jobId) {
+    return {
+      success: false,
+      error: data.error ?? "Could not re-post job.",
+    };
+  }
+
+  return {
+    success: true,
+    jobId: data.jobId,
+  };
 }
 
 export async function updateRecruiterJobPosting(
