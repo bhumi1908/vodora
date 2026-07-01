@@ -22,6 +22,7 @@ const CHROMELESS_ROUTE_PREFIXES = [
   "/reset-password",
   "/verify-email",
   "/reference/respond",
+  "/landingpage2",
 ];
 
 function isChromelessRoute(pathname: string) {
