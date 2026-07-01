@@ -15,6 +15,7 @@ import {
   TermsAgreement,
 } from "@/components/auth/shared/FormFields";
 import { SignupFormShell } from "@/components/auth/shared/SignupLayout";
+import { CountryCityFields } from "@/components/shared/CountryCityFields";
 import { useFieldErrors } from "@/hooks/useFieldErrors";
 import { showRegistrationSuccessToast } from "@/lib/auth-toast";
 import {
@@ -218,26 +219,15 @@ export function RecruiterSignupPage() {
           />
         </AuthFormGrid>
 
-        <AuthFormGrid>
-          <FormField
-            id="recruiter-country"
-            label="Country"
-            required
-            value={formData.country}
-            onChange={(e) => updateField("country", e.target.value)}
-            placeholder="Australia"
-            error={errors.country}
-          />
-          <FormField
-            id="recruiter-city"
-            label="City"
-            required
-            value={formData.city}
-            onChange={(e) => updateField("city", e.target.value)}
-            placeholder="Melbourne"
-            error={errors.city}
-          />
-        </AuthFormGrid>
+        <CountryCityFields
+          idPrefix="recruiter"
+          country={formData.country}
+          city={formData.city}
+          onCountryChange={(value) => updateField("country", value)}
+          onCityChange={(value) => updateField("city", value)}
+          countryError={errors.country}
+          cityError={errors.city}
+        />
 
         <FormField
           id="recruiter-website"

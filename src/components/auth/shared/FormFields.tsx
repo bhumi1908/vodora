@@ -88,6 +88,8 @@ interface FormSelectProps {
   required?: boolean;
   disabled?: boolean;
   error?: string;
+  searchable?: boolean;
+  searchPlaceholder?: string;
 }
 
 export function FormSelect({
@@ -100,6 +102,8 @@ export function FormSelect({
   required = false,
   disabled = false,
   error,
+  searchable = false,
+  searchPlaceholder,
 }: FormSelectProps) {
   return (
     <div>
@@ -116,6 +120,8 @@ export function FormSelect({
         options={options}
         placeholder={placeholder}
         error={error}
+        searchable={searchable}
+        searchPlaceholder={searchPlaceholder}
         aria-invalid={error ? true : undefined}
       />
       <FieldError message={error} />

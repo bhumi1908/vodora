@@ -37,6 +37,8 @@ type CustomSelectProps = {
   rounded?: "lg" | "xl";
   className?: string;
   rightAdornment?: ReactNode;
+  searchable?: boolean;
+  searchPlaceholder?: string;
   "aria-invalid"?: boolean;
   "aria-busy"?: boolean;
   "aria-labelledby"?: string;
@@ -94,6 +96,21 @@ function isPlaceholderValue(value: string, allowEmpty: boolean): boolean {
   return allowEmpty && !value;
 }
 
+function filterOptionsByQuery(
+  options: readonly SelectOption[],
+  query: string,
+): SelectOption[] {
+  const normalizedQuery = query.trim().toLowerCase();
+
+  if (!normalizedQuery) {
+    return [...options];
+  }
+
+  return options.filter((option) =>
+    option.label.toLowerCase().includes(normalizedQuery),
+  );
+}
+
 export function CustomSelect({
   id,
   value,
@@ -109,6 +126,8 @@ export function CustomSelect({
   rounded = "lg",
   className = "",
   rightAdornment,
+  searchable = false,
+  searchPlaceholder = "Search...",
   "aria-invalid": ariaInvalid,
   "aria-busy": ariaBusy,
   "aria-labelledby": ariaLabelledBy,
@@ -116,23 +135,71 @@ export function CustomSelect({
   const generatedId = useId();
   const selectId = id ?? generatedId;
   const listboxId = `${selectId}-listbox`;
+  const searchInputId = `${selectId}-search`;
   const containerRef = useRef<HTMLDivElement>(null);
+  const menuPanelRef = useRef<HTMLDivElement>(null);
   const listboxRef = useRef<HTMLUListElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const flatOptions = useMemo(
     () => flattenOptions(options, optionGroups),
     [options, optionGroups],
   );
 
-  const menuOptions = useMemo(() => {
-    if (!allowEmpty) {
+  const filteredFlatOptions = useMemo(() => {
+    if (!searchable) {
       return flatOptions;
     }
 
-    return [{ value: "", label: placeholder }, ...flatOptions];
-  }, [allowEmpty, flatOptions, placeholder]);
+    return filterOptionsByQuery(flatOptions, searchQuery);
+  }, [flatOptions, searchQuery, searchable]);
+
+  const filteredOptionGroups = useMemo(() => {
+    if (!searchable || !optionGroups?.length) {
+      return optionGroups;
+    }
+
+    const normalizedQuery = searchQuery.trim().toLowerCase();
+
+    if (!normalizedQuery) {
+      return optionGroups;
+    }
+
+    return optionGroups
+      .map((group) => ({
+        ...group,
+        options: group.options.filter((option) =>
+          option.label.toLowerCase().includes(normalizedQuery),
+        ),
+      }))
+      .filter((group) => group.options.length > 0);
+  }, [optionGroups, searchQuery, searchable]);
+
+  const menuOptions = useMemo(() => {
+    const selectableOptions = searchable ? filteredFlatOptions : flatOptions;
+
+    if (!allowEmpty) {
+      return selectableOptions;
+    }
+
+    const showPlaceholderOption = !searchable || !searchQuery.trim();
+
+    if (!showPlaceholderOption) {
+      return selectableOptions;
+    }
+
+    return [{ value: "", label: placeholder }, ...selectableOptions];
+  }, [
+    allowEmpty,
+    filteredFlatOptions,
+    flatOptions,
+    placeholder,
+    searchQuery,
+    searchable,
+  ]);
 
   const triggerLabel = getTriggerLabel(value, placeholder, allowEmpty, flatOptions);
   const showPlaceholderStyle = isPlaceholderValue(value, allowEmpty);
@@ -140,6 +207,11 @@ export function CustomSelect({
   const closeMenu = useCallback(() => {
     setIsOpen(false);
     setActiveIndex(-1);
+    setSearchQuery("");
+  }, []);
+
+  const openMenu = useCallback(() => {
+    setIsOpen(true);
   }, []);
 
   const selectValue = useCallback(
@@ -161,7 +233,18 @@ export function CustomSelect({
       }
     }
 
-    function handleScroll() {
+    function handleScroll(event: Event) {
+      const target = event.target;
+
+      if (
+        target instanceof Node &&
+        (menuPanelRef.current?.contains(target) ||
+          listboxRef.current?.contains(target) ||
+          containerRef.current?.contains(target))
+      ) {
+        return;
+      }
+
       closeMenu();
     }
 
@@ -180,8 +263,24 @@ export function CustomSelect({
 
     const selectedIndex = menuOptions.findIndex((option) => option.value === value);
     setActiveIndex(selectedIndex >= 0 ? selectedIndex : 0);
+
+    if (searchable) {
+      searchInputRef.current?.focus();
+      return;
+    }
+
     listboxRef.current?.focus();
-  }, [isOpen, menuOptions, value]);
+  }, [isOpen, menuOptions, searchable, value]);
+
+  useEffect(() => {
+    if (!isOpen || activeIndex < 0) {
+      return;
+    }
+
+    listboxRef.current
+      ?.querySelector<HTMLElement>(`[data-option-index="${activeIndex}"]`)
+      ?.scrollIntoView({ block: "nearest" });
+  }, [activeIndex, isOpen]);
 
   function handleTriggerKeyDown(event: KeyboardEvent<HTMLButtonElement>) {
     if (disabled) {
@@ -190,7 +289,33 @@ export function CustomSelect({
 
     if (event.key === "ArrowDown" || event.key === "ArrowUp" || event.key === "Enter" || event.key === " ") {
       event.preventDefault();
-      setIsOpen(true);
+      openMenu();
+    }
+  }
+
+  function handleSearchKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      closeMenu();
+      return;
+    }
+
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      listboxRef.current?.focus();
+      setActiveIndex((current) => Math.min(Math.max(current, 0) + 1, menuOptions.length - 1));
+      return;
+    }
+
+    if (event.key === "ArrowUp") {
+      event.preventDefault();
+      listboxRef.current?.focus();
+      setActiveIndex((current) => Math.max(Math.max(current, 0) - 1, 0));
+      return;
+    }
+
+    if (event.key === "Enter") {
+      event.preventDefault();
     }
   }
 
@@ -249,7 +374,11 @@ export function CustomSelect({
         aria-required={required || undefined}
         onClick={() => {
           if (!disabled) {
-            setIsOpen((current) => !current);
+            if (isOpen) {
+              closeMenu();
+            } else {
+              openMenu();
+            }
           }
         }}
         onKeyDown={handleTriggerKeyDown}
@@ -266,95 +395,136 @@ export function CustomSelect({
       )}
 
       {isOpen ? (
-        <ul
-          id={listboxId}
-          ref={listboxRef}
-          role="listbox"
-          aria-labelledby={selectId}
-          tabIndex={-1}
-          onKeyDown={handleListboxKeyDown}
-          className={`absolute z-30 mt-1 max-h-60 w-full overflow-auto border border-gray-200 bg-white py-1 shadow-lg ${ROUNDED_CLASSNAME[rounded]}`}
+        <div
+          ref={menuPanelRef}
+          className={`absolute z-30 mt-1 w-full border border-gray-200 bg-white shadow-lg ${ROUNDED_CLASSNAME[rounded]}`}
         >
-          {allowEmpty ? (
-            <li role="presentation">
-              <button
-                type="button"
-                role="option"
-                aria-selected={!value}
-                onMouseEnter={() => setActiveIndex(0)}
-                onClick={() => selectValue("")}
-                className={`${optionClassName} ${
-                  activeIndex === 0
-                    ? "bg-blue-50 text-blue-700"
-                    : "text-gray-400 hover:bg-blue-50 hover:text-blue-700"
-                }`}
-              >
-                {placeholder}
-              </button>
-            </li>
+          {searchable ? (
+            <div className="border-b border-gray-100 p-2">
+              <input
+                id={searchInputId}
+                ref={searchInputRef}
+                type="search"
+                value={searchQuery}
+                onChange={(event) => {
+                  setSearchQuery(event.target.value);
+                  setActiveIndex(0);
+                }}
+                onKeyDown={handleSearchKeyDown}
+                placeholder={searchPlaceholder}
+                aria-controls={listboxId}
+                aria-autocomplete="list"
+                className={`w-full border border-gray-300 bg-white outline-none transition-colors focus:border-transparent focus:ring-2 focus:ring-blue-500 ${ROUNDED_CLASSNAME[rounded]} ${size === "compact" ? "px-3 py-2 text-sm" : "px-3 py-2.5 text-base sm:text-sm"}`}
+              />
+            </div>
           ) : null}
 
-          {optionGroups?.length
-            ? optionGroups.map((group) => (
-                <li key={group.label} role="presentation">
-                  <p className="px-3 py-1.5 text-xs font-semibold tracking-wide text-gray-400 uppercase">
-                    {group.label}
-                  </p>
-                  <ul role="group" aria-label={group.label}>
-                    {group.options.map((option) => {
-                      const optionIndex = menuOptions.findIndex(
-                        (menuOption) => menuOption.value === option.value,
-                      );
-                      const isSelected = value === option.value;
-                      const isActive = activeIndex === optionIndex;
+          <ul
+            id={listboxId}
+            ref={listboxRef}
+            role="listbox"
+            aria-labelledby={selectId}
+            tabIndex={searchable ? -1 : 0}
+            onKeyDown={handleListboxKeyDown}
+            onWheel={(event) => {
+              event.stopPropagation();
+            }}
+            className={`max-h-60 overflow-y-auto overscroll-y-contain py-1 ${searchable ? "max-h-52" : ""}`}
+          >
+            {menuOptions.length === 0 ? (
+              <li
+                role="presentation"
+                className={`px-4 py-2.5 text-sm text-gray-500 ${MENU_SIZE_CLASSNAME[size]}`}
+              >
+                No results found
+              </li>
+            ) : null}
 
-                      return (
-                        <li key={option.value} role="presentation">
-                          <button
-                            type="button"
-                            role="option"
-                            aria-selected={isSelected}
-                            onMouseEnter={() => setActiveIndex(optionIndex)}
-                            onClick={() => selectValue(option.value)}
-                            className={`${optionClassName} ${
-                              isActive || isSelected
-                                ? "bg-blue-50 text-blue-700"
-                                : "text-gray-900 hover:bg-blue-50 hover:text-blue-700"
-                            }`}
-                          >
-                            {option.label}
-                          </button>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </li>
-              ))
-            : flatOptions.map((option, index) => {
-                const optionIndex = allowEmpty ? index + 1 : index;
-                const isSelected = value === option.value;
-                const isActive = activeIndex === optionIndex;
+            {allowEmpty && (!searchable || !searchQuery.trim()) && menuOptions.length > 0 ? (
+              <li role="presentation">
+                <button
+                  type="button"
+                  role="option"
+                  data-option-index={0}
+                  aria-selected={!value}
+                  onMouseEnter={() => setActiveIndex(0)}
+                  onClick={() => selectValue("")}
+                  className={`${optionClassName} ${
+                    activeIndex === 0
+                      ? "bg-blue-50 text-blue-700"
+                      : "text-gray-400 hover:bg-blue-50 hover:text-blue-700"
+                  }`}
+                >
+                  {placeholder}
+                </button>
+              </li>
+            ) : null}
 
-                return (
-                  <li key={option.value} role="presentation">
-                    <button
-                      type="button"
-                      role="option"
-                      aria-selected={isSelected}
-                      onMouseEnter={() => setActiveIndex(optionIndex)}
-                      onClick={() => selectValue(option.value)}
-                      className={`${optionClassName} ${
-                        isActive || isSelected
-                          ? "bg-blue-50 text-blue-700"
-                          : "text-gray-900 hover:bg-blue-50 hover:text-blue-700"
-                      }`}
-                    >
-                      {option.label}
-                    </button>
+            {filteredOptionGroups?.length
+              ? filteredOptionGroups.map((group) => (
+                  <li key={group.label} role="presentation">
+                    <p className="px-3 py-1.5 text-xs font-semibold tracking-wide text-gray-400 uppercase">
+                      {group.label}
+                    </p>
+                    <ul role="group" aria-label={group.label}>
+                      {group.options.map((option) => {
+                        const optionIndex = menuOptions.findIndex(
+                          (menuOption) => menuOption.value === option.value,
+                        );
+                        const isSelected = value === option.value;
+                        const isActive = activeIndex === optionIndex;
+
+                        return (
+                          <li key={option.value} role="presentation">
+                            <button
+                              type="button"
+                              role="option"
+                              data-option-index={optionIndex}
+                              aria-selected={isSelected}
+                              onMouseEnter={() => setActiveIndex(optionIndex)}
+                              onClick={() => selectValue(option.value)}
+                              className={`${optionClassName} ${
+                                isActive || isSelected
+                                  ? "bg-blue-50 text-blue-700"
+                                  : "text-gray-900 hover:bg-blue-50 hover:text-blue-700"
+                              }`}
+                            >
+                              {option.label}
+                            </button>
+                          </li>
+                        );
+                      })}
+                    </ul>
                   </li>
-                );
-              })}
-        </ul>
+                ))
+              : (searchable ? filteredFlatOptions : flatOptions).map((option, index) => {
+                  const optionIndex =
+                    allowEmpty && (!searchable || !searchQuery.trim()) ? index + 1 : index;
+                  const isSelected = value === option.value;
+                  const isActive = activeIndex === optionIndex;
+
+                  return (
+                    <li key={option.value} role="presentation">
+                      <button
+                        type="button"
+                        role="option"
+                        data-option-index={optionIndex}
+                        aria-selected={isSelected}
+                        onMouseEnter={() => setActiveIndex(optionIndex)}
+                        onClick={() => selectValue(option.value)}
+                        className={`${optionClassName} ${
+                          isActive || isSelected
+                            ? "bg-blue-50 text-blue-700"
+                            : "text-gray-900 hover:bg-blue-50 hover:text-blue-700"
+                        }`}
+                      >
+                        {option.label}
+                      </button>
+                    </li>
+                  );
+                })}
+          </ul>
+        </div>
       ) : null}
     </div>
   );

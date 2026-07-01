@@ -13,6 +13,7 @@ import {
   TermsAgreement,
 } from "@/components/auth/shared/FormFields";
 import { SignupFormShell } from "@/components/auth/shared/SignupLayout";
+import { CountryCityFields } from "@/components/shared/CountryCityFields";
 import { JobTitleSelect } from "@/components/shared/JobTitleSelect";
 import { useFieldErrors } from "@/hooks/useFieldErrors";
 import { showRegistrationSuccessToast } from "@/lib/auth-toast";
@@ -313,26 +314,15 @@ export function CandidateSignupPage({
           error={errors.password}
         />
 
-        <AuthFormGrid>
-          <FormField
-            id="candidate-country"
-            label="Country"
-            required
-            value={formData.country}
-            onChange={(e) => updateField("country", e.target.value)}
-            placeholder="Australia"
-            error={errors.country}
-          />
-          <FormField
-            id="candidate-city"
-            label="City"
-            required
-            value={formData.city}
-            onChange={(e) => updateField("city", e.target.value)}
-            placeholder="Melbourne"
-            error={errors.city}
-          />
-        </AuthFormGrid>
+        <CountryCityFields
+          idPrefix="candidate"
+          country={formData.country}
+          city={formData.city}
+          onCountryChange={(value) => updateField("country", value)}
+          onCityChange={(value) => updateField("city", value)}
+          countryError={errors.country}
+          cityError={errors.city}
+        />
 
         <JobTitleSelect
           id="candidate-job-title"
