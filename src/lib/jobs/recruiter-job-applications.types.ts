@@ -1,4 +1,9 @@
 import type { JobApplicationStatus } from "@/lib/jobs/candidate-jobs.types";
+import type {
+  CandidateProfileEducation,
+  CandidateProfileExperience,
+  CandidateProfileSkill,
+} from "@/lib/profile/types";
 import type { CandidateReferenceItem } from "@/lib/references/fetch-candidate-references";
 
 export type RecruiterJobApplicationDocument = {
@@ -22,6 +27,7 @@ export type RecruiterJobApplicantSummary = {
   profilePictureUrl: string | null;
   avatarInitials: string;
   status: JobApplicationStatus;
+  isNew: boolean;
   appliedAt: string;
   appliedLabel: string;
   coverLetter: string;
@@ -50,4 +56,9 @@ export type RecruiterJobApplicantsResponse = {
 
 export type RecruiterJobApplicantDetail = RecruiterJobApplicantSummary & {
   references: CandidateReferenceItem[];
+  website: string | null;
+  about: string | null;
+  experience: CandidateProfileExperience[];
+  education: CandidateProfileEducation[];
+  skills: CandidateProfileSkill[];
 };

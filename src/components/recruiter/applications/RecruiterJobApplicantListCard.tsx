@@ -3,6 +3,7 @@
 import { ChevronRight, FileText, MapPin, Shield } from "lucide-react";
 
 import { ApplicationStatusBadge } from "@/components/recruiter/applications/ApplicationStatusBadge";
+import { ApplicantNewBadge } from "@/components/recruiter/applications/ApplicantNewBadge";
 import type { RecruiterJobApplicantSummary } from "@/lib/jobs/recruiter-job-applications.types";
 
 type RecruiterJobApplicantListCardProps = {
@@ -48,6 +49,7 @@ export function RecruiterJobApplicantListCard({
               {applicant.name}
             </h3>
             <ApplicationStatusBadge status={applicant.status} compact />
+            {applicant.isNew ? <ApplicantNewBadge compact /> : null}
           </div>
 
           {applicant.title ? (

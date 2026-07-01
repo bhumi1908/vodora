@@ -176,3 +176,26 @@ export async function updateRecruiterJobApplicantStatus(
 
   return payload.status;
 }
+
+export async function markRecruiterJobApplicantAsRead(
+  jobId: string,
+  applicationId: string,
+): Promise<void> {
+  const response = await fetch(
+    `/api/recruiter/jobs/${encodeURIComponent(jobId)}/applications/${encodeURIComponent(applicationId)}`,
+    {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ markAsRead: true }),
+    },
+  );
+
+  const payload = await parseJson<{
+    success: boolean;
+    error?: string;
+  }>(response);
+
+  if (!response.ok || !payload.success) {
+    throw new Error(payload.error ?? "Could not mark application as read.");
+  }
+}

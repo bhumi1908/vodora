@@ -11,10 +11,7 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
-import {
-  SELECT_RIGHT_PADDING_CLASSNAME,
-  SelectField,
-} from "@/components/shared/SelectField";
+import { CustomSelect } from "@/components/shared/SelectField";
 import { ReferenceSharePermissionsFields } from "@/components/profile/reference/ReferenceSharePermissionsFields";
 import {
   buildSharingPayload,
@@ -400,22 +397,19 @@ export function ShareReferencesModal({
                   >
                     Link expiry
                   </label>
-                  <SelectField>
-                    <select
-                      id="share-expiry"
-                      value={expiresInDays}
-                      onChange={(event) =>
-                        setExpiresInDays(Number(event.target.value))
-                      }
-                      className={`w-full appearance-none rounded-lg border border-gray-300 py-2 pl-3 ${SELECT_RIGHT_PADDING_CLASSNAME} text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                    >
-                      {REFERENCE_EXPIRY_OPTIONS.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </SelectField>
+                  <CustomSelect
+                    id="share-expiry"
+                    value={String(expiresInDays)}
+                    onChange={(event) =>
+                      setExpiresInDays(Number(event.target.value))
+                    }
+                    options={REFERENCE_EXPIRY_OPTIONS.map((option) => ({
+                      value: String(option.value),
+                      label: option.label,
+                    }))}
+                    allowEmpty={false}
+                    size="compact"
+                  />
                 </section>
               ) : (
                 <section className="space-y-2">
@@ -431,23 +425,19 @@ export function ShareReferencesModal({
                       on their profile.
                     </div>
                   ) : (
-                    <SelectField>
-                      <select
-                        id="share-recruiter"
-                        value={selectedRecruiterId}
-                        onChange={(event) =>
-                          setSelectedRecruiterId(event.target.value)
-                        }
-                        className={`w-full appearance-none rounded-lg border border-gray-300 py-2 pl-3 ${SELECT_RIGHT_PADDING_CLASSNAME} text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                      >
-                        <option value="">Select a recruiter…</option>
-                        {connectedRecruiters.map((recruiter) => (
-                          <option key={recruiter.recruiterId} value={recruiter.recruiterId}>
-                            {recruiter.name} · {recruiter.company}
-                          </option>
-                        ))}
-                      </select>
-                    </SelectField>
+                    <CustomSelect
+                      id="share-recruiter"
+                      value={selectedRecruiterId}
+                      onChange={(event) =>
+                        setSelectedRecruiterId(event.target.value)
+                      }
+                      options={connectedRecruiters.map((recruiter) => ({
+                        value: recruiter.recruiterId,
+                        label: `${recruiter.name} · ${recruiter.company}`,
+                      }))}
+                      placeholder="Select a recruiter…"
+                      size="compact"
+                    />
                   )}
                 </section>
               )}

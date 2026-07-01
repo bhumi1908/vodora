@@ -22,6 +22,7 @@ import {
   RECRUITER_SAVED_PATH,
   RECRUITER_SEARCH_PATH,
 } from "@/lib/auth/routes";
+import { useUserProfilePicture } from "@/lib/auth/use-user-profile-picture";
 import { createClient } from "@/lib/supabase/client";
 
 const recruiterNavItems = [
@@ -156,6 +157,7 @@ export function RecruiterAppHeader() {
   const [lastPathname, setLastPathname] = useState(pathname);
   const { user, authLoading, setUser } = useAuthUser();
   const companyName = useRecruiterCompanyName(user);
+  const profilePictureUrl = useUserProfilePicture(user, user ? "recruiter" : null);
 
   if (pathname !== lastPathname) {
     setLastPathname(pathname);
@@ -236,6 +238,7 @@ export function RecruiterAppHeader() {
                     <RecruiterUserProfileMenu
                       user={user}
                       companyName={companyName}
+                      profilePictureUrl={profilePictureUrl}
                       onSignOut={() => setUser(null)}
                     />
                   ) : null}
@@ -300,6 +303,7 @@ export function RecruiterAppHeader() {
                     <RecruiterUserProfileMenu
                       user={user}
                       companyName={companyName}
+                      profilePictureUrl={profilePictureUrl}
                       variant="mobile"
                       onNavigate={closeMobileMenu}
                       onSignOut={() => setUser(null)}

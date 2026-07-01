@@ -1,5 +1,4 @@
 import {
-  ArrowRight,
   Briefcase,
   CheckCircle,
   Eye,
@@ -9,6 +8,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
+import { PendingConnectionsCard } from "@/components/candidate/PendingConnectionsCard";
 import { Skeleton } from "@/components/ui/Skeleton";
 import {
   DashboardStatCard,
@@ -144,38 +144,6 @@ function ProfileCompletionSidebar({
   );
 }
 
-function PendingConnectionsCard({ counts }: { counts: ConnectionCounts }) {
-  if (counts.pendingReceived === 0 && counts.pendingSent === 0) {
-    return null;
-  }
-
-  return (
-    <div className="rounded-2xl border border-gray-200 bg-white p-6">
-      <div className="mb-3 flex items-center justify-between">
-        <h2 className="font-semibold text-gray-900">Connection Requests</h2>
-        <Link
-          href={CANDIDATE_CONNECTIONS_PATH}
-          className="flex items-center gap-1 text-xs font-medium text-blue-600 transition-colors hover:text-blue-700"
-        >
-          View all <ArrowRight className="h-3.5 w-3.5" />
-        </Link>
-      </div>
-      <div className="flex flex-wrap gap-2">
-        {counts.pendingReceived > 0 ? (
-          <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-800">
-            {counts.pendingReceived} waiting for you
-          </span>
-        ) : null}
-        {counts.pendingSent > 0 ? (
-          <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-800">
-            {counts.pendingSent} pending sent
-          </span>
-        ) : null}
-      </div>
-    </div>
-  );
-}
-
 export function CandidateDashboardSidebar({
   context,
   profileCompletionPercent,
@@ -193,7 +161,7 @@ export function CandidateDashboardSidebar({
         items={profileCompletionItems}
       />
 
-      <PendingConnectionsCard counts={connectionCounts} />
+      <PendingConnectionsCard initialCounts={connectionCounts} />
 
       <div className="rounded-2xl border border-gray-200 bg-white p-6">
         <div className="mb-4 flex items-center gap-3">

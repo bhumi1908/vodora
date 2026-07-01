@@ -39,13 +39,22 @@ export function RecruiterDashboard({ data, recruiterUserId }: RecruiterDashboard
     [jobsData?.stats],
   );
 
-  const activeJobs = useMemo(
-    () =>
-      (jobsData?.jobs ?? [])
-        .filter((job) => job.status === "published")
-        .slice(0, 3),
-    [jobsData?.jobs],
-  );
+  const activeJobs = useMemo(() => {
+    const published = (jobsData?.jobs ?? []).filter((job) => job.status === "published");
+
+    return [...published]
+      .sort((left, right) => {
+        const leftHasNew = left.newApplicantCount > 0;
+        const rightHasNew = right.newApplicantCount > 0;
+
+        if (leftHasNew !== rightHasNew) {
+          return leftHasNew ? -1 : 1;
+        }
+
+        return 0;
+      })
+      .slice(0, 3);
+  }, [jobsData?.jobs]);
 
   return (
     <div className="mx-auto max-w-[1440px] px-4 py-8 sm:px-6 lg:px-8">

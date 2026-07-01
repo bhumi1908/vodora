@@ -2,7 +2,9 @@
 
 import { X } from "lucide-react";
 import type { ReactNode } from "react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+
+const MODAL_ANIMATION_MS = 220;
 
 type ModalProps = {
   open: boolean;
@@ -14,6 +16,10 @@ type ModalProps = {
   maxWidthClassName?: string;
 };
 
+function prefersReducedMotion(): boolean {
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
 export function Modal({
   open,
   onClose,
@@ -23,8 +29,49 @@ export function Modal({
   footer,
   maxWidthClassName = "max-w-lg",
 }: ModalProps) {
+  const [mounted, setMounted] = useState(open);
+  const [visible, setVisible] = useState(open);
+
   useEffect(() => {
-    if (!open) {
+    if (open) {
+      setMounted(true);
+
+      if (prefersReducedMotion()) {
+        setVisible(true);
+        return;
+      }
+
+      const frame = window.requestAnimationFrame(() => {
+        window.requestAnimationFrame(() => {
+          setVisible(true);
+        });
+      });
+
+      return () => {
+        window.cancelAnimationFrame(frame);
+      };
+    }
+
+    setVisible(false);
+  }, [open]);
+
+  useEffect(() => {
+    if (!mounted || visible) {
+      return;
+    }
+
+    const duration = prefersReducedMotion() ? 0 : MODAL_ANIMATION_MS;
+    const timer = window.setTimeout(() => {
+      setMounted(false);
+    }, duration);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [mounted, visible]);
+
+  useEffect(() => {
+    if (!mounted) {
       return;
     }
 
@@ -41,9 +88,9 @@ export function Modal({
       document.removeEventListener("keydown", handleEscape);
       document.body.style.overflow = "";
     };
-  }, [open, onClose]);
+  }, [mounted, onClose]);
 
-  if (!open) {
+  if (!mounted) {
     return null;
   }
 
@@ -54,7 +101,9 @@ export function Modal({
       <button
         type="button"
         aria-label={`Close ${title} modal`}
-        className="absolute inset-0 bg-black/40"
+        className={`modal-backdrop absolute inset-0 bg-black/40 ${
+          visible ? "modal-backdrop-visible" : ""
+        }`}
         onClick={onClose}
       />
 
@@ -62,7 +111,9 @@ export function Modal({
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className={`relative z-10 flex max-h-[90vh] w-full flex-col rounded-lg border border-gray-200 bg-white shadow-xl ${maxWidthClassName}`}
+        className={`modal-panel relative z-10 flex max-h-[90vh] w-full flex-col rounded-lg border border-gray-200 bg-white shadow-xl ${maxWidthClassName} ${
+          visible ? "modal-panel-visible" : ""
+        }`}
       >
         <div className="flex shrink-0 items-start justify-between border-b border-gray-200 px-4 py-4 sm:px-6">
           <div className="min-w-0 pr-4">

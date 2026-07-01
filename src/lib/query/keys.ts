@@ -14,6 +14,8 @@ export const recruiterKeys = {
   saved: (page: number, limit: number) =>
     [...recruiterKeys.all, "saved", { page, limit }] as const,
   filters: () => [...recruiterKeys.all, "filters"] as const,
+  peerSuggestions: (limit: number) =>
+    [...recruiterKeys.all, "peer-suggestions", limit] as const,
   candidateProfile: (vodoraId: string) =>
     [...recruiterKeys.all, "candidate", vodoraId] as const,
 };

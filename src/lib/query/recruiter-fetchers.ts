@@ -5,6 +5,7 @@ import type {
   RecruiterSearchResult,
 } from "@/lib/recruiter/search.types";
 import type { RecruiterCandidateProfileResult } from "@/lib/recruiter/recruiter-candidate-profile.types";
+import type { RecruiterDirectoryEntry } from "@/lib/recruiter/recruiter-directory.types";
 
 export const RECRUITER_SEARCH_PAGE_SIZE = 10;
 export const RECRUITER_SAVED_PAGE_SIZE = 10;
@@ -207,4 +208,21 @@ export async function toggleRecruiterCandidateSave(
   }
 
   return { saved: payload.saved ?? false };
+}
+
+export async function fetchRecruiterPeerSuggestions(
+  limit: number,
+): Promise<RecruiterDirectoryEntry[]> {
+  const response = await fetch(
+    `/api/recruiter/recruiters?limit=${encodeURIComponent(String(limit))}`,
+  );
+  const payload = await parseJson<
+    ApiSuccess<{ recruiters?: RecruiterDirectoryEntry[] }>
+  >(response);
+
+  if (!response.ok || !payload.success) {
+    throw new Error(payload.error ?? "Could not load recruiter suggestions.");
+  }
+
+  return payload.recruiters ?? [];
 }

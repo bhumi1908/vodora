@@ -8,6 +8,7 @@ import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { showLogoutSuccessToast } from "@/lib/auth-toast";
+import { ProfilePictureAvatar } from "@/components/ui/ProfilePictureAvatar";
 import { clearQueryCacheOnLogout } from "@/lib/query/logout";
 
 const DEFAULT_PROFILE_PATH = "/my-profile";
@@ -44,6 +45,7 @@ function getInitials(user: User): string {
 type UserProfileMenuProps = {
   user: User;
   profileHref?: string;
+  profilePictureUrl?: string | null;
   onSignOut?: () => void;
   variant?: "desktop" | "mobile";
   onNavigate?: () => void;
@@ -52,6 +54,7 @@ type UserProfileMenuProps = {
 export function UserProfileMenu({
   user,
   profileHref = DEFAULT_PROFILE_PATH,
+  profilePictureUrl = null,
   onSignOut,
   variant = "desktop",
   onNavigate,
@@ -61,6 +64,9 @@ export function UserProfileMenu({
   const [open, setOpen] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  const displayName = getDisplayName(user);
+  const initials = getInitials(user);
 
   useEffect(() => {
     if (!open) {
@@ -109,12 +115,16 @@ export function UserProfileMenu({
     return (
       <div className="space-y-2">
         <div className="flex items-center gap-3 rounded-lg bg-gray-50 px-4 py-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-600 text-sm font-medium text-white">
-            {getInitials(user)}
-          </div>
+          <ProfilePictureAvatar
+            name={displayName}
+            initials={initials}
+            profilePictureUrl={profilePictureUrl}
+            containerClassName="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-blue-600"
+            initialsClassName="text-sm font-medium text-white"
+          />
           <div className="min-w-0">
             <p className="truncate text-sm font-medium text-gray-900">
-              {getDisplayName(user)}
+              {displayName}
             </p>
             <p className="truncate text-xs text-gray-500">{user.email}</p>
           </div>
@@ -158,11 +168,15 @@ export function UserProfileMenu({
         aria-haspopup="menu"
         onClick={() => setOpen((current) => !current)}
       >
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-xs font-medium text-white">
-          {getInitials(user)}
-        </div>
+        <ProfilePictureAvatar
+          name={displayName}
+          initials={initials}
+          profilePictureUrl={profilePictureUrl}
+          containerClassName="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-blue-600"
+          initialsClassName="text-xs font-medium text-white"
+        />
         <span className="hidden max-w-[120px] truncate text-sm font-medium text-gray-700 lg:inline">
-          {getDisplayName(user)}
+          {displayName}
         </span>
         <ChevronDown
           className={`h-4 w-4 text-gray-500 transition-transform ${open ? "rotate-180" : ""}`}
@@ -176,7 +190,7 @@ export function UserProfileMenu({
         >
           <div className="border-b border-gray-100 px-4 py-3">
             <p className="truncate text-sm font-medium text-gray-900">
-              {getDisplayName(user)}
+              {displayName}
             </p>
             <p className="truncate text-xs text-gray-500">{user.email}</p>
           </div>

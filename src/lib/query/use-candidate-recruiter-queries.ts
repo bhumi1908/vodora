@@ -19,11 +19,16 @@ export function useRecruiterDirectoryFiltersQuery() {
   });
 }
 
-export function useRecruiterDirectoryQuery(params: RecruiterDirectoryQueryParams) {
+export function useRecruiterDirectoryQuery(
+  params: RecruiterDirectoryQueryParams & { enabled?: boolean },
+) {
+  const { enabled = true, ...queryParams } = params;
+
   return useQuery({
-    queryKey: candidateRecruiterKeys.list(params),
-    queryFn: () => fetchRecruiterDirectory(params),
+    queryKey: candidateRecruiterKeys.list(queryParams),
+    queryFn: () => fetchRecruiterDirectory(queryParams),
     staleTime: STALE_TIME_MS,
     placeholderData: (previous) => previous,
+    enabled,
   });
 }

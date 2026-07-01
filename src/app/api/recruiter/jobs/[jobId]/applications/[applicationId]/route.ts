@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import type { JobApplicationStatus } from "@/lib/jobs/candidate-jobs.types";
 import {
   fetchRecruiterJobApplicantDetail,
+  markRecruiterJobApplicationAsRead,
   updateRecruiterJobApplicationStatus,
 } from "@/lib/jobs/fetch-recruiter-job-applications";
 import {
@@ -55,15 +56,48 @@ export async function GET(_request: Request, context: RouteContext) {
 
 export async function PATCH(request: Request, context: RouteContext) {
   const { jobId, applicationId } = await context.params;
-  let body: { status?: string };
+  let body: { status?: string; markAsRead?: boolean };
 
   try {
-    body = (await request.json()) as { status?: string };
+    body = (await request.json()) as { status?: string; markAsRead?: boolean };
   } catch {
     return NextResponse.json(
       { success: false, error: "Invalid request body." },
       { status: 400 },
     );
+  }
+
+  const supabase = await createClient();
+  const recruiterContext = await requireOwnRecruiter(supabase);
+
+  if (!recruiterContext) {
+    return NextResponse.json(
+      { success: false, error: "Unauthorized." },
+      { status: 401 },
+    );
+  }
+
+  if (body.markAsRead) {
+    const result = await markRecruiterJobApplicationAsRead(
+      supabase,
+      recruiterContext.recruiterId,
+      jobId,
+      applicationId,
+    );
+
+    if (!result.success) {
+      const status =
+        result.error === "Job not found." || result.error === "Application not found."
+          ? 404
+          : 500;
+
+      return NextResponse.json(
+        { success: false, error: result.error ?? "Could not mark application as read." },
+        { status },
+      );
+    }
+
+    return NextResponse.json({ success: true, isNew: false });
   }
 
   const requestedStatus = body.status?.trim();
@@ -81,16 +115,6 @@ export async function PATCH(request: Request, context: RouteContext) {
     return NextResponse.json(
       { success: false, error: "Invalid application status." },
       { status: 400 },
-    );
-  }
-
-  const supabase = await createClient();
-  const recruiterContext = await requireOwnRecruiter(supabase);
-
-  if (!recruiterContext) {
-    return NextResponse.json(
-      { success: false, error: "Unauthorized." },
-      { status: 401 },
     );
   }
 

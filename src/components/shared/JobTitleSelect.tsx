@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import type { ChangeEvent } from "react";
 
-import { FieldError, getSelectFieldClassName } from "@/components/auth/shared/FormFields";
-import { SelectField } from "@/components/shared/SelectField";
+import { FieldError } from "@/components/auth/shared/FormFields";
+import { CustomSelect } from "@/components/shared/SelectField";
 import type { JobTitleOptionGroup } from "@/lib/job-titles/types";
 
 function hasOptionGroups(optionGroups?: JobTitleOptionGroup[]): boolean {
@@ -107,29 +107,18 @@ export function JobTitleSelect({
         {label}
         {required ? " *" : ""}
       </label>
-      <SelectField>
-        <select
-          id={id}
-          required={required}
-          value={value}
-          onChange={onChange}
-          disabled={disabled || isLoading}
-          aria-invalid={displayError ? true : undefined}
-          aria-busy={isLoading}
-          className={getSelectFieldClassName(displayError)}
-        >
-          <option value="">{selectPlaceholder}</option>
-          {optionGroups.map((group) => (
-            <optgroup key={group.label} label={group.label}>
-              {group.options.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </optgroup>
-          ))}
-        </select>
-      </SelectField>
+      <CustomSelect
+        id={id}
+        required={required}
+        value={value}
+        onChange={onChange}
+        optionGroups={optionGroups}
+        placeholder={selectPlaceholder}
+        disabled={disabled || isLoading}
+        error={displayError}
+        aria-invalid={displayError ? true : undefined}
+        aria-busy={isLoading}
+      />
       <FieldError message={displayError} />
     </div>
   );

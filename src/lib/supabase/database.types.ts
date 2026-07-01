@@ -559,6 +559,7 @@ export type Database = {
           cover_letter_document_id: string | null;
           id: string;
           included_reference_ids: string[];
+          is_new: boolean;
           job_posting_id: string;
           references_attached: boolean;
           resume_document_id: string | null;
@@ -572,6 +573,7 @@ export type Database = {
           cover_letter_document_id?: string | null;
           id?: string;
           included_reference_ids?: string[];
+          is_new?: boolean;
           job_posting_id: string;
           references_attached?: boolean;
           resume_document_id?: string | null;
@@ -585,6 +587,7 @@ export type Database = {
           cover_letter_document_id?: string | null;
           id?: string;
           included_reference_ids?: string[];
+          is_new?: boolean;
           job_posting_id?: string;
           references_attached?: boolean;
           resume_document_id?: string | null;

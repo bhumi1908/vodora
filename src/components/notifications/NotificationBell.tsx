@@ -11,20 +11,66 @@ import {
   useNotificationCountsQuery,
 } from "@/lib/query/use-notification-queries";
 
+const DROPDOWN_ANIMATION_MS = 200;
+
 type NotificationBellProps = {
   className?: string;
 };
+
+function prefersReducedMotion(): boolean {
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
 
 export function NotificationBell({ className = "" }: NotificationBellProps) {
   const router = useRouter();
   const containerRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const [visible, setVisible] = useState(false);
   const { data: counts } = useNotificationCountsQuery();
   const markReadMutation = useMarkNotificationReadMutation();
 
   const unreadCount = counts?.unread ?? 0;
   const badgeLabel =
     unreadCount > 9 ? "9+" : unreadCount > 0 ? String(unreadCount) : null;
+
+  useEffect(() => {
+    if (open) {
+      setMounted(true);
+
+      if (prefersReducedMotion()) {
+        setVisible(true);
+        return;
+      }
+
+      const frame = window.requestAnimationFrame(() => {
+        window.requestAnimationFrame(() => {
+          setVisible(true);
+        });
+      });
+
+      return () => {
+        window.cancelAnimationFrame(frame);
+      };
+    }
+
+    setVisible(false);
+  }, [open]);
+
+  useEffect(() => {
+    if (!mounted || visible) {
+      return;
+    }
+
+    const duration = prefersReducedMotion() ? 0 : DROPDOWN_ANIMATION_MS;
+    const timer = window.setTimeout(() => {
+      setMounted(false);
+    }, duration);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [mounted, visible]);
 
   useEffect(() => {
     if (!open) {
@@ -90,8 +136,11 @@ export function NotificationBell({ className = "" }: NotificationBellProps) {
         ) : null}
       </button>
 
-      {open ? (
-        <NotificationDropdown onOpenNotification={handleOpenNotification} />
+      {mounted ? (
+        <NotificationDropdown
+          visible={visible}
+          onOpenNotification={handleOpenNotification}
+        />
       ) : null}
     </div>
   );

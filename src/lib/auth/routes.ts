@@ -36,8 +36,21 @@ export function getCandidatePeerProfilePath(vodoraId: string): string {
   return `/candidates/${encodeURIComponent(vodoraId)}`;
 }
 
-export function getRecruiterJobApplicantsPath(jobId: string): string {
-  return `/recruiter/jobs/${encodeURIComponent(jobId)}/applicants`;
+export function getRecruiterJobApplicantsPath(
+  jobId: string,
+  applicationId?: string,
+): string {
+  const basePath = `/recruiter/jobs/${encodeURIComponent(jobId)}/applicants`;
+
+  if (!applicationId) {
+    return basePath;
+  }
+
+  const searchParams = new URLSearchParams({
+    application: applicationId,
+  });
+
+  return `${basePath}?${searchParams.toString()}`;
 }
 
 export function getReferenceSharePath(shareToken: string): string {

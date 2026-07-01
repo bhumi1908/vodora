@@ -10,7 +10,7 @@ export function ConnectionListSkeleton() {
         >
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="flex flex-1 gap-4">
-              <Skeleton className="h-14 w-14 shrink-0 rounded-2xl sm:h-16 sm:w-16" />
+              <Skeleton className="h-14 w-14 shrink-0 rounded-full" />
               <div className="flex-1 space-y-2.5">
                 <div className="flex gap-2">
                   <Skeleton className="h-5 w-36" />

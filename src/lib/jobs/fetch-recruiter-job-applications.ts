@@ -189,6 +189,7 @@ function buildApplicantSummary(
       profile?.avatarInitials ??
       getInitials(candidateDetails.first_name, candidateDetails.last_name),
     status: mapApplicationStatus(application.status),
+    isNew: application.is_new,
     appliedAt: application.applied_at,
     appliedLabel: formatRelativePosted(application.applied_at),
     coverLetter: application.cover_letter?.trim() ?? "",
@@ -402,6 +403,11 @@ export async function fetchRecruiterJobApplicantDetail(
     data: {
       ...summary,
       references,
+      website: profile?.website ?? null,
+      about: profile?.about ?? null,
+      experience: profile?.experience ?? [],
+      education: profile?.education ?? [],
+      skills: profile?.skills ?? [],
     },
     error: null,
   };
@@ -438,6 +444,49 @@ export async function updateRecruiterJobApplicationStatus(
   const { error: updateError } = await supabase
     .from("job_applications")
     .update({ status: toDbApplicationStatus(status) })
+    .eq("id", applicationId);
+
+  if (updateError) {
+    return { success: false, error: updateError.message };
+  }
+
+  return { success: true, error: null };
+}
+
+export async function markRecruiterJobApplicationAsRead(
+  supabase: Supabase,
+  recruiterId: string,
+  jobId: string,
+  applicationId: string,
+): Promise<{ success: boolean; error: string | null }> {
+  const job = await verifyRecruiterOwnsJob(supabase, recruiterId, jobId);
+
+  if (!job) {
+    return { success: false, error: "Job not found." };
+  }
+
+  const { data: application, error: fetchError } = await supabase
+    .from("job_applications")
+    .select("id, is_new")
+    .eq("id", applicationId)
+    .eq("job_posting_id", jobId)
+    .maybeSingle();
+
+  if (fetchError) {
+    return { success: false, error: fetchError.message };
+  }
+
+  if (!application) {
+    return { success: false, error: "Application not found." };
+  }
+
+  if (!application.is_new) {
+    return { success: true, error: null };
+  }
+
+  const { error: updateError } = await supabase
+    .from("job_applications")
+    .update({ is_new: false })
     .eq("id", applicationId);
 
   if (updateError) {

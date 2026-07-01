@@ -10,10 +10,14 @@ import {
 } from "@/lib/jobs/format-job-posting";
 import { computeAvgTimeToHireDays } from "@/lib/jobs/format-recruiter-job-stats";
 import type {
+  RecruiterDashboardRecentApplicant,
   RecruiterJobDetail,
+  RecruiterJobListItem,
   RecruiterJobStats,
   WorkTypeOption,
 } from "@/lib/jobs/recruiter-jobs.types";
+import { getInitials } from "@/lib/profile/format";
+import { fetchRecruiterCandidateProfilesBatch } from "@/lib/recruiter/fetch-recruiter-candidate-profile";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import type { Database } from "@/lib/supabase/database.types";
@@ -21,6 +25,30 @@ import type { Database } from "@/lib/supabase/database.types";
 type Supabase = SupabaseClient<Database>;
 
 type JobPostingDbRow = Database["public"]["Tables"]["job_postings"]["Row"];
+type JobApplicationDbRow = Database["public"]["Tables"]["job_applications"]["Row"];
+
+type DashboardNewApplicationRow = Pick<
+  JobApplicationDbRow,
+  | "id"
+  | "job_posting_id"
+  | "candidate_id"
+  | "is_new"
+  | "applied_at"
+  | "references_attached"
+  | "included_reference_ids"
+>;
+
+type RpcCandidateDetailsRow = {
+  candidate_id: string;
+  vodora_id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  title: string | null;
+  company: string | null;
+};
+
+const RECENT_NEW_APPLICANTS_LIMIT = 2;
 
 const EMPTY_RECRUITER_JOB_STATS: RecruiterJobStats = {
   totalPlacements: 0,
@@ -110,6 +138,226 @@ async function enrichRecruiterJobRows(
   }));
 }
 
+function parseCandidateDetailsBatch(data: unknown): RpcCandidateDetailsRow[] {
+  if (!Array.isArray(data)) {
+    return [];
+  }
+
+  return data.flatMap((item) => {
+    if (!item || typeof item !== "object") {
+      return [];
+    }
+
+    const row = item as Partial<RpcCandidateDetailsRow>;
+
+    if (
+      !row.candidate_id ||
+      !row.vodora_id ||
+      !row.first_name ||
+      !row.last_name ||
+      !row.email?.trim()
+    ) {
+      return [];
+    }
+
+    return [row as RpcCandidateDetailsRow];
+  });
+}
+
+function parseVerifiedReferenceCountsBatch(
+  data: unknown,
+): Map<string, number> {
+  const counts = new Map<string, number>();
+
+  if (!data || typeof data !== "object" || Array.isArray(data)) {
+    return counts;
+  }
+
+  for (const [candidateId, count] of Object.entries(data)) {
+    if (typeof count === "number" && Number.isFinite(count)) {
+      counts.set(candidateId, count);
+    }
+  }
+
+  return counts;
+}
+
+async function fetchCandidateDetailsBatch(
+  supabase: Supabase,
+  candidateIds: string[],
+): Promise<Map<string, RpcCandidateDetailsRow>> {
+  if (candidateIds.length === 0) {
+    return new Map();
+  }
+
+  const { data, error } = await supabase.rpc(
+    "get_reference_collection_candidate_details_batch",
+    {
+      p_candidate_ids: candidateIds,
+    },
+  );
+
+  if (error) {
+    return new Map();
+  }
+
+  return new Map(
+    parseCandidateDetailsBatch(data).map((row) => [row.candidate_id, row]),
+  );
+}
+
+async function fetchVerifiedReferenceCountsBatch(
+  supabase: Supabase,
+  candidateIds: string[],
+): Promise<Map<string, number>> {
+  if (candidateIds.length === 0) {
+    return new Map();
+  }
+
+  const { data, error } = await supabase.rpc("count_verified_references_batch", {
+    p_candidate_ids: candidateIds,
+  });
+
+  if (error) {
+    return new Map();
+  }
+
+  return parseVerifiedReferenceCountsBatch(data);
+}
+
+function computeReferenceCount(
+  application: DashboardNewApplicationRow,
+  verifiedReferenceCount: number,
+): number {
+  if (!application.references_attached) {
+    return 0;
+  }
+
+  if (application.included_reference_ids.length > 0) {
+    return application.included_reference_ids.length;
+  }
+
+  return verifiedReferenceCount;
+}
+
+async function enrichRecruiterJobsWithNewApplicants(
+  supabase: Supabase,
+  jobs: RecruiterJobListItem[],
+): Promise<RecruiterJobListItem[]> {
+  if (jobs.length === 0) {
+    return jobs;
+  }
+
+  const jobIds = jobs.map((job) => job.id);
+
+  const { data: applicationRows, error } = await supabase
+    .from("job_applications")
+    .select(
+      "id, job_posting_id, candidate_id, is_new, applied_at, references_attached, included_reference_ids",
+    )
+    .in("job_posting_id", jobIds)
+    .order("applied_at", { ascending: false });
+
+  if (error) {
+    return jobs;
+  }
+
+  const applications = applicationRows ?? [];
+  const newApplicantCountByJobId = new Map<string, number>();
+  const recentNewApplicationsByJobId = new Map<string, DashboardNewApplicationRow[]>();
+
+  for (const application of applications) {
+    if (!application.is_new) {
+      continue;
+    }
+
+    newApplicantCountByJobId.set(
+      application.job_posting_id,
+      (newApplicantCountByJobId.get(application.job_posting_id) ?? 0) + 1,
+    );
+
+    const recentApplications =
+      recentNewApplicationsByJobId.get(application.job_posting_id) ?? [];
+
+    if (recentApplications.length < RECENT_NEW_APPLICANTS_LIMIT) {
+      recentNewApplicationsByJobId.set(application.job_posting_id, [
+        ...recentApplications,
+        application,
+      ]);
+    }
+  }
+
+  const recentApplications = [...recentNewApplicationsByJobId.values()].flat();
+
+  if (recentApplications.length === 0) {
+    return jobs.map((job) => ({
+      ...job,
+      newApplicantCount: newApplicantCountByJobId.get(job.id) ?? 0,
+    }));
+  }
+
+  const candidateIds = [
+    ...new Set(recentApplications.map((application) => application.candidate_id)),
+  ];
+  const referenceCountCandidateIds = recentApplications
+    .filter(
+      (application) =>
+        application.references_attached &&
+        application.included_reference_ids.length === 0,
+    )
+    .map((application) => application.candidate_id);
+
+  const [candidateDetailsById, verifiedReferenceCounts] = await Promise.all([
+    fetchCandidateDetailsBatch(supabase, candidateIds),
+    fetchVerifiedReferenceCountsBatch(supabase, referenceCountCandidateIds),
+  ]);
+
+  const vodoraIds = [...candidateDetailsById.values()].map((row) => row.vodora_id);
+  const profilesByVodoraId = await fetchRecruiterCandidateProfilesBatch(
+    supabase,
+    vodoraIds,
+  );
+
+  const recentApplicantsByJobId = new Map<string, RecruiterDashboardRecentApplicant[]>();
+
+  for (const [jobId, jobApplications] of recentNewApplicationsByJobId) {
+    const recentApplicants = jobApplications.flatMap((application) => {
+      const candidateDetails = candidateDetailsById.get(application.candidate_id);
+
+      if (!candidateDetails) {
+        return [];
+      }
+
+      const profile = profilesByVodoraId.get(candidateDetails.vodora_id) ?? null;
+      const name =
+        `${candidateDetails.first_name} ${candidateDetails.last_name}`.trim();
+
+      return [
+        {
+          applicationId: application.id,
+          name,
+          avatarInitials:
+            profile?.avatarInitials ??
+            getInitials(candidateDetails.first_name, candidateDetails.last_name),
+          profilePictureUrl: profile?.profilePictureUrl ?? null,
+          verifiedReferenceCount: computeReferenceCount(
+            application,
+            verifiedReferenceCounts.get(application.candidate_id) ?? 0,
+          ),
+        },
+      ];
+    });
+
+    recentApplicantsByJobId.set(jobId, recentApplicants);
+  }
+
+  return jobs.map((job) => ({
+    ...job,
+    newApplicantCount: newApplicantCountByJobId.get(job.id) ?? 0,
+    recentNewApplicants: recentApplicantsByJobId.get(job.id) ?? [],
+  }));
+}
+
 export async function fetchRecruiterJobPostings(
   supabase: Supabase,
   recruiterId: string,
@@ -126,7 +374,8 @@ export async function fetchRecruiterJobPostings(
   }
 
   const enrichedRows = await enrichRecruiterJobRows(supabase, data ?? []);
-  return enrichedRows.map(transformRecruiterJobPostingRow);
+  const jobs = enrichedRows.map(transformRecruiterJobPostingRow);
+  return enrichRecruiterJobsWithNewApplicants(supabase, jobs);
 }
 
 export async function fetchRecruiterJobStats(

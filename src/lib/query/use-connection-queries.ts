@@ -27,10 +27,11 @@ export function useCandidateConnectionsQuery(
   tab: ConnectionTab,
   page: number,
   enabled = true,
+  limit = CONNECTION_PAGE_SIZE,
 ) {
   return useQuery({
-    queryKey: connectionKeys.list("candidate", tab, page, CONNECTION_PAGE_SIZE),
-    queryFn: () => fetchCandidateConnectionList(tab, page, CONNECTION_PAGE_SIZE),
+    queryKey: connectionKeys.list("candidate", tab, page, limit),
+    queryFn: () => fetchCandidateConnectionList(tab, page, limit),
     enabled,
   });
 }

@@ -12,10 +12,7 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
-import {
-  SELECT_RIGHT_PADDING_CLASSNAME,
-  SelectField,
-} from "@/components/shared/SelectField";
+import { CustomSelect } from "@/components/shared/SelectField";
 
 import { ReferenceQuestionnaireFields } from "@/components/profile/reference/ReferenceQuestionnaireFields";
 import {
@@ -79,22 +76,16 @@ function Select({
         {label}
         {required ? <span className="ml-0.5 text-red-500">*</span> : null}
       </label>
-      <SelectField>
-        <select
-          value={value}
-          onChange={(event) => onChange(event.target.value)}
-          className={`w-full appearance-none rounded-xl border bg-white py-2.5 pl-4 ${SELECT_RIGHT_PADDING_CLASSNAME} text-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-            error ? "border-red-500" : "border-gray-300"
-          }`}
-        >
-          <option value="">Select…</option>
-          {options.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-      </SelectField>
+      <CustomSelect
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        options={options}
+        placeholder="Select…"
+        required={required}
+        error={error}
+        size="comfortable"
+        rounded="xl"
+      />
       {error ? <p className="mt-1 text-sm text-red-600">{error}</p> : null}
     </div>
   );

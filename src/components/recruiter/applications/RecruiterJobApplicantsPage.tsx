@@ -8,6 +8,7 @@ import {
   SearchX,
   Users,
 } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { RecruiterJobApplicantDetailPanel } from "@/components/recruiter/applications/RecruiterJobApplicantDetailPanel";
@@ -26,12 +27,19 @@ type RecruiterJobApplicantsPageProps = {
 type MobileView = "list" | "detail";
 
 export function RecruiterJobApplicantsPage({ jobId }: RecruiterJobApplicantsPageProps) {
+  const searchParams = useSearchParams();
+  const initialApplicationId = searchParams.get("application");
   const { data, isPending, isError, error } = useRecruiterJobApplicantsQuery(jobId);
   const [searchQuery, setSearchQuery] = useState("");
   const [page, setPage] = useState(1);
-  const [mobileView, setMobileView] = useState<MobileView>("list");
+  const [mobileView, setMobileView] = useState<MobileView>(
+    initialApplicationId ? "detail" : "list",
+  );
   const [selectedApplicationId, setSelectedApplicationId] = useState<string | null>(
-    null,
+    initialApplicationId,
+  );
+  const [hasAppliedInitialApplication, setHasAppliedInitialApplication] = useState(
+    !initialApplicationId,
   );
 
   const applicants = data?.applicants ?? [];
@@ -127,10 +135,31 @@ export function RecruiterJobApplicantsPage({ jobId }: RecruiterJobApplicantsPage
   }, [applicants.length, filteredApplicants, isSearchEmpty, selectedApplicationId]);
 
   useEffect(() => {
-    if (!selectedApplicationId && applicants.length > 0) {
+    if (hasAppliedInitialApplication || applicants.length === 0) {
+      return;
+    }
+
+    const matchingApplicant = applicants.find(
+      (applicant) => applicant.applicationId === initialApplicationId,
+    );
+
+    if (matchingApplicant) {
+      setSelectedApplicationId(matchingApplicant.applicationId);
+      setMobileView("detail");
+    }
+
+    setHasAppliedInitialApplication(true);
+  }, [
+    applicants,
+    hasAppliedInitialApplication,
+    initialApplicationId,
+  ]);
+
+  useEffect(() => {
+    if (!selectedApplicationId && applicants.length > 0 && hasAppliedInitialApplication) {
       setSelectedApplicationId(applicants[0].applicationId);
     }
-  }, [applicants, selectedApplicationId]);
+  }, [applicants, hasAppliedInitialApplication, selectedApplicationId]);
 
   const handleSelectApplicant = useCallback((applicationId: string) => {
     setSelectedApplicationId(applicationId);

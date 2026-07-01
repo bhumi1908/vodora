@@ -3,10 +3,7 @@
 import { Check, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
-import {
-  SELECT_RIGHT_PADDING_CLASSNAME,
-  SelectField,
-} from "@/components/shared/SelectField";
+import { CustomSelect } from "@/components/shared/SelectField";
 
 import {
   SPOTLIGHT_BLOCK_TYPES,
@@ -292,22 +289,22 @@ export function SpotlightBlockEditor({
               <label className="mb-1.5 block text-xs font-medium text-gray-500">
                 Language
               </label>
-              <SelectField>
-                <select
-                  value={data.language}
-                  onChange={(event) =>
-                    setData((current) => ({
-                      ...current,
-                      language: event.target.value,
-                    }))
-                  }
-                  className={`w-full appearance-none rounded-xl border border-gray-300 bg-white py-2.5 pl-4 ${SELECT_RIGHT_PADDING_CLASSNAME} text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none`}
-                >
-                  {SPOTLIGHT_CODE_LANGUAGES.map((language) => (
-                    <option key={language}>{language}</option>
-                  ))}
-                </select>
-              </SelectField>
+              <CustomSelect
+                value={data.language ?? "JavaScript"}
+                onChange={(event) =>
+                  setData((current) => ({
+                    ...current,
+                    language: event.target.value,
+                  }))
+                }
+                options={SPOTLIGHT_CODE_LANGUAGES.map((language) => ({
+                  value: language,
+                  label: language,
+                }))}
+                allowEmpty={false}
+                size="comfortable"
+                rounded="xl"
+              />
             </div>
             <div>
               <label className="mb-1.5 block text-xs font-medium text-gray-500">

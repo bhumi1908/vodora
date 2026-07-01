@@ -7,6 +7,7 @@ import {
   fetchRecruiterApplicationTotal,
   fetchRecruiterJobApplicantDetail,
   fetchRecruiterJobApplicants,
+  markRecruiterJobApplicantAsRead,
   submitJobApplication,
   updateRecruiterJobApplicantStatus,
 } from "@/lib/query/job-application-fetchers";
@@ -25,6 +26,10 @@ import type {
 } from "@/lib/jobs/recruiter-jobs.types";
 import type { SubmitJobApplicationPayload } from "@/lib/jobs/job-application.types";
 import type { JobApplicationStatus } from "@/lib/jobs/candidate-jobs.types";
+import type {
+  RecruiterJobApplicantDetail,
+  RecruiterJobApplicantsResponse,
+} from "@/lib/jobs/recruiter-job-applications.types";
 
 const STALE_TIME_MS = 60_000;
 
@@ -196,6 +201,39 @@ export function useUpdateRecruiterJobApplicantStatusMutation(jobId: string) {
         queryKey: jobKeys.recruiterJobApplicant(jobId, variables.applicationId),
       });
       void queryClient.invalidateQueries({ queryKey: jobKeys.recruiter() });
+    },
+  });
+}
+
+export function useMarkRecruiterJobApplicantAsReadMutation(jobId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ applicationId }: { applicationId: string }) =>
+      markRecruiterJobApplicantAsRead(jobId, applicationId),
+    onSuccess: (_result, variables) => {
+      queryClient.setQueryData<RecruiterJobApplicantsResponse>(
+        jobKeys.recruiterJobApplicants(jobId),
+        (current) => {
+          if (!current) {
+            return current;
+          }
+
+          return {
+            ...current,
+            applicants: current.applicants.map((applicant) =>
+              applicant.applicationId === variables.applicationId
+                ? { ...applicant, isNew: false }
+                : applicant,
+            ),
+          };
+        },
+      );
+
+      queryClient.setQueryData<RecruiterJobApplicantDetail>(
+        jobKeys.recruiterJobApplicant(jobId, variables.applicationId),
+        (current) => (current ? { ...current, isNew: false } : current),
+      );
     },
   });
 }

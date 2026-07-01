@@ -9,6 +9,7 @@ import { useQueryClient } from "@tanstack/react-query";
 
 import { showLogoutSuccessToast } from "@/lib/auth-toast";
 import { RECRUITER_PROFILE_PATH } from "@/lib/auth/routes";
+import { ProfilePictureAvatar } from "@/components/ui/ProfilePictureAvatar";
 import { clearQueryCacheOnLogout } from "@/lib/query/logout";
 
 function getDisplayName(user: User): string {
@@ -43,6 +44,7 @@ function getInitials(user: User): string {
 type RecruiterUserProfileMenuProps = {
   user: User;
   companyName: string | null;
+  profilePictureUrl?: string | null;
   onSignOut?: () => void;
   variant?: "desktop" | "mobile";
   onNavigate?: () => void;
@@ -51,6 +53,7 @@ type RecruiterUserProfileMenuProps = {
 export function RecruiterUserProfileMenu({
   user,
   companyName,
+  profilePictureUrl = null,
   onSignOut,
   variant = "desktop",
   onNavigate,
@@ -61,6 +64,7 @@ export function RecruiterUserProfileMenu({
   const [isSigningOut, setIsSigningOut] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const displayName = getDisplayName(user);
+  const initials = getInitials(user);
 
   useEffect(() => {
     if (!open) {
@@ -109,9 +113,13 @@ export function RecruiterUserProfileMenu({
     return (
       <div className="space-y-2">
         <div className="flex items-center gap-3 rounded-lg bg-gray-50 px-4 py-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-100 text-sm font-semibold text-blue-700">
-            {getInitials(user)}
-          </div>
+          <ProfilePictureAvatar
+            name={displayName}
+            initials={initials}
+            profilePictureUrl={profilePictureUrl}
+            containerClassName="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-blue-100"
+            initialsClassName="text-sm font-semibold text-blue-700"
+          />
           <div className="min-w-0">
             <p className="truncate text-sm font-medium text-gray-900">
               {displayName}
@@ -162,9 +170,13 @@ export function RecruiterUserProfileMenu({
         aria-haspopup="menu"
         onClick={() => setOpen((current) => !current)}
       >
-        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-100 text-sm font-semibold text-blue-700">
-          {getInitials(user)}
-        </div>
+        <ProfilePictureAvatar
+          name={displayName}
+          initials={initials}
+          profilePictureUrl={profilePictureUrl}
+          containerClassName="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-blue-100"
+          initialsClassName="text-sm font-semibold text-blue-700"
+        />
         <div className="hidden min-w-0 text-left lg:block">
           <p className="truncate text-sm font-medium text-gray-900">
             {displayName}

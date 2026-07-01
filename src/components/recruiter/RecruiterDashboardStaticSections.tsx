@@ -21,6 +21,7 @@ import {
   DashboardStatGrid,
 } from "@/components/ui/DashboardStatCard";
 import {
+  getRecruiterJobApplicantsPath,
   RECRUITER_PROFILE_PATH,
   RECRUITER_PROFILE_ROLES_PATH,
   RECRUITER_SAVED_PATH,
@@ -34,6 +35,95 @@ import {
 } from "@/lib/profile/format";
 import type { RecruiterJobListItem } from "@/lib/jobs/recruiter-jobs.types";
 import type { RecruiterDashboardContext } from "@/lib/recruiter/dashboard.types";
+
+function formatVerifiedRefsLabel(count: number): string {
+  return `${count} verified ref${count === 1 ? "" : "s"}`;
+}
+
+function ActiveJobPostSimpleCard({ job }: { job: RecruiterJobListItem }) {
+  return (
+    <div className="overflow-hidden rounded-xl border border-gray-100">
+      <div className="flex items-center gap-3 bg-gray-50 p-3">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-100">
+          <Briefcase className="h-4 w-4 text-blue-600" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-medium text-gray-900">{job.title}</p>
+          <p className="text-xs text-gray-500">
+            {job.applicants} applicant{job.applicants === 1 ? "" : "s"} · {job.posted}
+          </p>
+        </div>
+        {job.urgent ? (
+          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700">
+            Urgent
+          </span>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+function ActiveJobPostWithNewApplicantsCard({ job }: { job: RecruiterJobListItem }) {
+  return (
+    <div className="overflow-hidden rounded-xl border border-gray-100">
+      <div className="flex items-center gap-3 bg-gray-50 p-3">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-100">
+          <Briefcase className="h-4 w-4 text-blue-600" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-medium text-gray-900">{job.title}</p>
+          <p className="text-xs text-gray-500">
+            {job.applicants} applicant{job.applicants === 1 ? "" : "s"} · {job.posted}
+          </p>
+        </div>
+        <span className="shrink-0 rounded-full bg-blue-600 px-2 py-0.5 text-xs font-semibold text-white">
+          {job.newApplicantCount} new
+        </span>
+      </div>
+
+      {job.recentNewApplicants.length > 0 ? (
+        <div className="border-t border-gray-100 bg-white p-3">
+          <p className="mb-2 text-xs font-medium text-gray-500">Recent applicants</p>
+          <div className="space-y-2">
+            {job.recentNewApplicants.map((applicant) => (
+              <div
+                key={applicant.applicationId}
+                className="flex items-center gap-2.5"
+              >
+                {applicant.profilePictureUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={applicant.profilePictureUrl}
+                    alt=""
+                    className="h-8 w-8 shrink-0 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-100 text-xs font-semibold text-blue-700">
+                    {applicant.avatarInitials}
+                  </div>
+                )}
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-gray-900">
+                    {applicant.name}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {formatVerifiedRefsLabel(applicant.verifiedReferenceCount)}
+                  </p>
+                </div>
+                <Link
+                  href={getRecruiterJobApplicantsPath(job.id, applicant.applicationId)}
+                  className="shrink-0 text-xs font-medium text-blue-600 transition-colors hover:text-blue-700"
+                >
+                  View →
+                </Link>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
 
 const CANDIDATES_VIEWED_STAT = {
   label: "Candidates Viewed",
@@ -137,32 +227,13 @@ export function RecruiterDashboardSidebar({
           </div>
         ) : activeJobs.length > 0 ? (
           <div className="space-y-3">
-            {activeJobs.map((job) => (
-              <div
-                key={job.id}
-                className="overflow-hidden rounded-xl border border-gray-100"
-              >
-                <div className="flex items-center gap-3 bg-gray-50 p-3">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-100">
-                    <Briefcase className="h-4 w-4 text-blue-600" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-gray-900">
-                      {job.title}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      {job.applicants} applicant{job.applicants === 1 ? "" : "s"}{" "}
-                      · {job.posted}
-                    </p>
-                  </div>
-                  {job.urgent ? (
-                    <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700">
-                      Urgent
-                    </span>
-                  ) : null}
-                </div>
-              </div>
-            ))}
+            {activeJobs.map((job) =>
+              job.newApplicantCount > 0 ? (
+                <ActiveJobPostWithNewApplicantsCard key={job.id} job={job} />
+              ) : (
+                <ActiveJobPostSimpleCard key={job.id} job={job} />
+              ),
+            )}
           </div>
         ) : (
           <p className="rounded-xl border border-dashed border-gray-200 bg-gray-50 px-4 py-6 text-center text-sm text-gray-500">

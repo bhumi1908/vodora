@@ -7,6 +7,14 @@ export type RecruiterJobStats = {
   hoursSavedThisMonth: number;
 };
 
+export type RecruiterDashboardRecentApplicant = {
+  applicationId: string;
+  name: string;
+  avatarInitials: string;
+  profilePictureUrl: string | null;
+  verifiedReferenceCount: number;
+};
+
 export type RecruiterJobListItem = {
   id: string;
   title: string;
@@ -17,6 +25,8 @@ export type RecruiterJobListItem = {
   posted: string;
   urgent: boolean;
   status: string;
+  newApplicantCount: number;
+  recentNewApplicants: RecruiterDashboardRecentApplicant[];
 };
 
 export type WorkTypeOption = {

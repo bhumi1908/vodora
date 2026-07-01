@@ -2,6 +2,7 @@
 
 import { ArrowRight, BellOff } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
 
 import {
   NotificationDropdownHeaderSkeleton,
@@ -9,6 +10,10 @@ import {
 } from "@/components/notifications/NotificationDropdownSkeleton";
 import { NotificationItem } from "@/components/notifications/NotificationItem";
 import { NOTIFICATIONS_PATH } from "@/lib/auth/routes";
+import {
+  NOTIFICATION_OPEN_MS,
+  prefersReducedMotion,
+} from "@/lib/notifications/notification-animation";
 import { NOTIFICATION_PAGE_SIZE } from "@/lib/notifications/notification-options";
 import type { NotificationItem as NotificationItemType } from "@/lib/notifications/notification.types";
 import {
@@ -18,16 +23,19 @@ import {
 } from "@/lib/query/use-notification-queries";
 
 type NotificationDropdownProps = {
+  visible: boolean;
   onOpenNotification: (notification: NotificationItemType) => void;
 };
 
 export function NotificationDropdown({
+  visible,
   onOpenNotification,
 }: NotificationDropdownProps) {
   const { data: counts } = useNotificationCountsQuery();
   const { data, isPending, isError, isFetching, isLoading } =
     useNotificationsQuery(1, NOTIFICATION_PAGE_SIZE, "unread", true);
   const markAllReadMutation = useMarkAllNotificationsReadMutation();
+  const [openingId, setOpeningId] = useState<string | null>(null);
 
   const notifications = data?.notifications ?? [];
   const unreadCount = counts?.unread ?? notifications.length;
@@ -36,16 +44,35 @@ export function NotificationDropdown({
     (isLoading || isPending) && notifications.length === 0;
 
   function handleOpen(notification: NotificationItemType) {
-    onOpenNotification(notification);
+    if (openingId) {
+      return;
+    }
+
+    if (prefersReducedMotion()) {
+      onOpenNotification(notification);
+      return;
+    }
+
+    setOpeningId(notification.id);
+    window.setTimeout(() => {
+      onOpenNotification(notification);
+      setOpeningId(null);
+    }, NOTIFICATION_OPEN_MS);
   }
 
   function handleMarkAllRead() {
+    if (markAllReadMutation.isPending || notifications.length === 0) {
+      return;
+    }
+
     markAllReadMutation.mutate();
   }
 
   return (
     <div
-      className="absolute right-0 top-full z-50 mt-2 w-[min(100vw-2rem,24rem)] overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg"
+      className={`dropdown-panel absolute right-0 top-full z-50 mt-2 w-[min(100vw-2rem,24rem)] overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg ${
+        visible ? "dropdown-panel-visible" : ""
+      }`}
       role="dialog"
       aria-label="Notifications"
     >
@@ -88,7 +115,7 @@ export function NotificationDropdown({
             </p>
           </div>
         ) : notifications.length === 0 ? (
-          <div className="flex flex-col items-center gap-2 px-4 py-10 text-center">
+          <div className="notification-empty-state flex flex-col items-center gap-2 px-4 py-10 text-center">
             <BellOff className="h-8 w-8 text-gray-300" />
             <p className="text-sm font-medium text-gray-900">
               {hasUnread ? "No unread notifications" : "You're all caught up"}
@@ -99,12 +126,15 @@ export function NotificationDropdown({
           </div>
         ) : (
           <>
-            {notifications.map((notification) => (
+            {notifications.map((notification, index) => (
               <NotificationItem
                 key={notification.id}
                 notification={notification}
                 onOpen={handleOpen}
                 showDelete={false}
+                animateIn={visible}
+                enterDelayMs={index * 35}
+                opening={openingId === notification.id}
               />
             ))}
             {isFetching && !isPending ? (

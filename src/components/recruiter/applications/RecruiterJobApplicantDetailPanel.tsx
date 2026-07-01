@@ -3,6 +3,7 @@
 import {
   Briefcase,
   ChevronRight,
+  Globe,
   Loader2,
   Mail,
   MapPin,
@@ -10,20 +11,22 @@ import {
   User,
 } from "lucide-react";
 import Link from "next/link";
+import { useEffect, useRef } from "react";
 
-import {
-  SELECT_RIGHT_PADDING_CLASSNAME,
-  SelectField,
-} from "@/components/shared/SelectField";
+import { CustomSelect } from "@/components/shared/SelectField";
 import { ApplicationDocumentRow } from "@/components/recruiter/applications/ApplicationDocumentRow";
 import { ApplicationStatusBadge } from "@/components/recruiter/applications/ApplicationStatusBadge";
+import { ProfileEducationSection } from "@/components/profile/ProfileEducationSection";
+import { ProfileExperienceSection } from "@/components/profile/ProfileExperienceSection";
 import { ReferenceCard } from "@/components/profile/reference/ReferenceCard";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { getRecruiterCandidateProfilePath } from "@/lib/auth/routes";
 import type { JobApplicationStatus } from "@/lib/jobs/candidate-jobs.types";
 import { JOB_APPLICATION_STATUS_OPTIONS } from "@/lib/jobs/map-application-status";
 import type { RecruiterJobApplicantDetail } from "@/lib/jobs/recruiter-job-applications.types";
+import { formatWebsiteHref, formatWebsiteLabel } from "@/lib/profile/format";
 import {
+  useMarkRecruiterJobApplicantAsReadMutation,
   useRecruiterJobApplicantDetailQuery,
   useUpdateRecruiterJobApplicantStatusMutation,
 } from "@/lib/query/use-job-queries";
@@ -47,6 +50,30 @@ export function RecruiterJobApplicantDetailPanel({
   } = useRecruiterJobApplicantDetailQuery(jobId, applicationId);
 
   const updateStatusMutation = useUpdateRecruiterJobApplicantStatusMutation(jobId);
+  const { mutate: markAsRead } = useMarkRecruiterJobApplicantAsReadMutation(jobId);
+  const markAsReadTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (markAsReadTimerRef.current) {
+      clearTimeout(markAsReadTimerRef.current);
+      markAsReadTimerRef.current = null;
+    }
+
+    if (isPending || isError || !applicant?.isNew) {
+      return;
+    }
+
+    markAsReadTimerRef.current = setTimeout(() => {
+      markAsRead({ applicationId });
+    }, 1000);
+
+    return () => {
+      if (markAsReadTimerRef.current) {
+        clearTimeout(markAsReadTimerRef.current);
+        markAsReadTimerRef.current = null;
+      }
+    };
+  }, [applicationId, applicant?.isNew, isError, isPending, markAsRead]);
 
   if (isPending) {
     return <RecruiterJobApplicantDetailSkeleton name={summaryName} />;
@@ -114,30 +141,29 @@ export function RecruiterJobApplicantDetailPanel({
 
           <div className="flex flex-col gap-2 sm:items-end">
             <ApplicationStatusBadge status={applicant.status} />
-            <label className="flex flex-col gap-1 text-xs text-gray-500">
+            <label className="flex w-full flex-col gap-1.5 text-sm text-gray-500 sm:w-52">
               Update status
-              <SelectField
+              <CustomSelect
+                id="applicant-status-select"
+                value={applicant.status}
+                onChange={(event) =>
+                  handleStatusChange(event.target.value as JobApplicationStatus)
+                }
+                disabled={updateStatusMutation.isPending}
+                options={JOB_APPLICATION_STATUS_OPTIONS.map((status) => ({
+                  value: status,
+                  label: status,
+                }))}
+                allowEmpty={false}
+                size="default"
+                rounded="xl"
+                className="w-full font-medium text-gray-700"
                 rightAdornment={
                   updateStatusMutation.isPending ? (
-                    <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-blue-600" />
+                    <Loader2 className="absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 animate-spin text-blue-600" />
                   ) : undefined
                 }
-              >
-                <select
-                  value={applicant.status}
-                  onChange={(event) =>
-                    handleStatusChange(event.target.value as JobApplicationStatus)
-                  }
-                  disabled={updateStatusMutation.isPending}
-                  className={`appearance-none rounded-xl border border-gray-200 bg-white py-2 pl-3 ${SELECT_RIGHT_PADDING_CLASSNAME} text-sm font-medium text-gray-700 outline-none transition-colors focus:border-blue-300 focus:ring-2 focus:ring-blue-100 disabled:opacity-60`}
-                >
-                  {JOB_APPLICATION_STATUS_OPTIONS.map((status) => (
-                    <option key={status} value={status}>
-                      {status}
-                    </option>
-                  ))}
-                </select>
-              </SelectField>
+              />
             </label>
           </div>
         </div>
@@ -190,7 +216,92 @@ export function RecruiterJobApplicantDetailPanel({
       </section>
 
       <ReferencesSection applicant={applicant} />
+
+      <ApplicantProfileDetailsSection applicant={applicant} />
     </div>
+  );
+}
+
+function ApplicantProfileDetailsSection({
+  applicant,
+}: {
+  applicant: RecruiterJobApplicantDetail;
+}) {
+  const hasAbout = Boolean(applicant.about?.trim());
+  const hasWebsite = Boolean(applicant.website?.trim());
+  const hasSkills = applicant.skills.length > 0;
+
+  return (
+    <>
+      <section className="rounded-2xl border border-gray-200 bg-white p-5 sm:p-6">
+        <h3 className="mb-4 text-base font-semibold text-gray-900">
+          Contact &amp; profile
+        </h3>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <ContactRow icon={Mail} label="Email" value={applicant.email} />
+          {applicant.phone ? (
+            <ContactRow icon={Phone} label="Phone" value={applicant.phone} />
+          ) : null}
+          {applicant.location ? (
+            <ContactRow icon={MapPin} label="Location" value={applicant.location} />
+          ) : null}
+          {hasWebsite && applicant.website ? (
+            <div className="flex items-start gap-2 text-sm">
+              <Globe className="mt-0.5 h-4 w-4 shrink-0 text-gray-400" />
+              <div className="min-w-0">
+                <p className="text-xs text-gray-500">Website</p>
+                <a
+                  href={formatWebsiteHref(applicant.website)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="truncate font-medium text-blue-600 hover:text-blue-700"
+                >
+                  {formatWebsiteLabel(applicant.website)}
+                </a>
+              </div>
+            </div>
+          ) : null}
+        </div>
+        {hasAbout && applicant.about ? (
+          <div className="mt-5 border-t border-gray-100 pt-5">
+            <p className="mb-2 text-xs font-medium text-gray-500">About</p>
+            <p className="text-sm leading-relaxed whitespace-pre-wrap text-gray-700">
+              {applicant.about}
+            </p>
+          </div>
+        ) : null}
+      </section>
+
+      <ProfileExperienceSection experience={applicant.experience} />
+
+      <ProfileEducationSection education={applicant.education} />
+
+      {hasSkills ? (
+        <section className="rounded-2xl border border-gray-200 bg-white p-5 sm:p-6">
+          <h3 className="mb-4 text-base font-semibold text-gray-900">Skills</h3>
+          <div className="flex flex-wrap gap-2">
+            {applicant.skills.map((skill) => {
+              const proficiency = skill.proficiency
+                ? skill.proficiency.charAt(0).toUpperCase() +
+                  skill.proficiency.slice(1)
+                : null;
+              const label = proficiency
+                ? `${skill.name} · ${proficiency}`
+                : skill.name;
+
+              return (
+                <span
+                  key={skill.id}
+                  className="rounded-full bg-gray-100 px-4 py-2 text-sm font-medium text-gray-800"
+                >
+                  {label}
+                </span>
+              );
+            })}
+          </div>
+        </section>
+      ) : null}
+    </>
   );
 }
 

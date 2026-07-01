@@ -6,6 +6,7 @@ import { Suspense, useEffect, useState } from "react";
 
 import { NotificationDropdownSkeleton } from "@/components/notifications/NotificationDropdownSkeleton";
 import { NotificationItem } from "@/components/notifications/NotificationItem";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Pagination } from "@/components/ui/Pagination";
 import { NOTIFICATION_PAGE_SIZE } from "@/lib/notifications/notification-options";
 import type {
@@ -54,6 +55,7 @@ function NotificationsPageContent() {
     const rawPage = Number(searchParams.get("page") ?? "1");
     return Number.isFinite(rawPage) && rawPage > 0 ? Math.floor(rawPage) : 1;
   });
+  const [clearAllConfirmOpen, setClearAllConfirmOpen] = useState(false);
 
   const { data: counts } = useNotificationCountsQuery();
   const { data, isPending, isError, isFetching } = useNotificationsQuery(
@@ -109,18 +111,17 @@ function NotificationsPageContent() {
     deleteMutation.mutate(notificationId);
   }
 
-  function handleClearAll() {
-    if (
-      !window.confirm(
-        "Clear all notifications? This permanently removes them from your inbox.",
-      )
-    ) {
-      return;
-    }
+  function handleClearAllClick() {
+    setClearAllConfirmOpen(true);
+  }
 
+  function handleConfirmClearAll() {
     clearAllMutation.mutate(undefined, {
       onSuccess: () => {
         setPage(1);
+      },
+      onSettled: () => {
+        setClearAllConfirmOpen(false);
       },
     });
   }
@@ -145,7 +146,7 @@ function NotificationsPageContent() {
             type="button"
             className="shrink-0 cursor-pointer rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-gray-600 transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50"
             disabled={clearAllMutation.isPending}
-            onClick={handleClearAll}
+            onClick={handleClearAllClick}
           >
             Clear all
           </button>
@@ -227,6 +228,18 @@ function NotificationsPageContent() {
           />
         </div>
       ) : null}
+
+      <ConfirmDialog
+        open={clearAllConfirmOpen}
+        onClose={() => setClearAllConfirmOpen(false)}
+        onConfirm={handleConfirmClearAll}
+        title="Are you sure?"
+        description="Clear all notifications? This permanently removes them from your inbox."
+        confirmLabel="Clear all"
+        cancelLabel="Cancel"
+        isConfirming={clearAllMutation.isPending}
+        confirmVariant="danger"
+      />
     </div>
   );
 }

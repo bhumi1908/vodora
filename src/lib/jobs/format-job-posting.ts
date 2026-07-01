@@ -168,6 +168,8 @@ export function transformRecruiterJobPostingRow(
     posted: formatRelativePosted(row.published_at, row.created_at),
     urgent: row.is_urgent,
     status: row.status,
+    newApplicantCount: 0,
+    recentNewApplicants: [],
   };
 }
 

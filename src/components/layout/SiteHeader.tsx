@@ -18,6 +18,7 @@ import {
   getDashboardPath,
 } from "@/lib/auth/routes";
 import { useAccountType } from "@/lib/auth/use-account-type";
+import { useUserProfilePicture } from "@/lib/auth/use-user-profile-picture";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
 
@@ -110,6 +111,7 @@ export function SiteHeader() {
   const [lastPathname, setLastPathname] = useState(pathname);
   const { user, authLoading, setUser } = useAuthUser();
   const accountType = useAccountType(user);
+  const profilePictureUrl = useUserProfilePicture(user, accountType);
   const isLanding = pathname === "/";
   const profileHref =
     accountType === "recruiter" ? RECRUITER_PROFILE_PATH : "/my-profile";
@@ -212,6 +214,7 @@ export function SiteHeader() {
                       <UserProfileMenu
                         user={user}
                         profileHref={profileHref}
+                        profilePictureUrl={profilePictureUrl}
                         variant="desktop"
                         onSignOut={() => setUser(null)}
                       />
@@ -285,6 +288,7 @@ export function SiteHeader() {
                         <UserProfileMenu
                           user={user}
                           profileHref={profileHref}
+                          profilePictureUrl={profilePictureUrl}
                           variant="mobile"
                           onNavigate={closeMobileMenu}
                           onSignOut={() => setUser(null)}

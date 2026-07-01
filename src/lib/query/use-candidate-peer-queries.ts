@@ -23,10 +23,15 @@ export function useCandidatePeerSearchFiltersQuery(
   });
 }
 
-export function useCandidatePeerSearchQuery(params: CandidatePeerSearchQueryParams) {
+export function useCandidatePeerSearchQuery(
+  params: CandidatePeerSearchQueryParams & { enabled?: boolean },
+) {
+  const { enabled = true, ...queryParams } = params;
+
   return useQuery({
-    queryKey: candidatePeerKeys.search(params),
-    queryFn: () => fetchCandidatePeerSearchResults(params),
+    queryKey: candidatePeerKeys.search(queryParams),
+    queryFn: () => fetchCandidatePeerSearchResults(queryParams),
+    enabled,
   });
 }
 

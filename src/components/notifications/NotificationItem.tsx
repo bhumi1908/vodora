@@ -25,6 +25,9 @@ type NotificationItemProps = {
   onDelete?: (notificationId: string) => void;
   deleting?: boolean;
   showDelete?: boolean;
+  animateIn?: boolean;
+  enterDelayMs?: number;
+  opening?: boolean;
 };
 
 type NotificationVisual = {
@@ -61,15 +64,42 @@ export function NotificationItem({
   onDelete,
   deleting = false,
   showDelete = true,
+  animateIn,
+  enterDelayMs = 0,
+  opening = false,
 }: NotificationItemProps) {
   const isUnread = !notification.readAt;
   const { Icon, iconClassName } = getNotificationVisual(notification.type);
+  const usesMotion = animateIn !== undefined || opening;
+
+  const animationClassName = [
+    usesMotion ? "notification-item-motion" : "",
+    animateIn !== undefined && !opening
+      ? animateIn
+        ? "notification-item-enter-visible"
+        : "notification-item-enter"
+      : "",
+    opening ? "notification-item-opening" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  const animationStyle =
+    usesMotion && animateIn
+      ? {
+          transitionDelay: `${enterDelayMs}ms`,
+        }
+      : undefined;
 
   return (
-    <div className="group relative px-2 first:pt-2 last:pb-2">
+    <div
+      className={`group relative px-2 first:pt-2 last:pb-2 ${animationClassName}`}
+      style={animationStyle}
+    >
       <button
         type="button"
-        className={`flex w-full cursor-pointer gap-3 rounded-lg px-3 py-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40 ${
+        disabled={opening}
+        className={`flex w-full cursor-pointer gap-3 rounded-lg px-3 py-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40 disabled:cursor-default ${
           showDelete ? "pr-10" : ""
         } ${
           isUnread

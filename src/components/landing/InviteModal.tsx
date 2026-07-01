@@ -71,7 +71,7 @@ export function InviteModal({ onClose }: InviteModalProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
       <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white shadow-2xl">
-        <div className="flex items-start justify-between p-6 pb-0 sm:p-8">
+        <div className="sticky top-0 z-10 flex items-start justify-between border-b border-gray-100 bg-white px-6 py-5">
           <div>
             <h2 className="text-xl font-semibold text-gray-900 sm:text-2xl">
               Invite & Connect
@@ -83,14 +83,14 @@ export function InviteModal({ onClose }: InviteModalProps) {
           <button
             type="button"
             onClick={onClose}
-            className="mt-1 text-gray-400 transition-colors hover:text-gray-700"
+            className="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
             aria-label="Close modal"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        <div className="space-y-6 p-6 sm:p-8">
+        <div className="space-y-5 px-6 py-5">
           <div className="rounded-xl border border-blue-100 bg-blue-50 p-4 sm:p-5">
             <div className="mb-3 flex items-center gap-2">
               <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded bg-blue-600">
