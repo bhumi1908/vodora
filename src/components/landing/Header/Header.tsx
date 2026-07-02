@@ -75,22 +75,6 @@ export function LandingHeader() {
             />
 
             <div className="flex items-center gap-3">
-
-              <div className="hidden items-center gap-2 lg:flex">
-                {SOCIAL_LINKS.map(({ label, href, Icon }) => (
-                  <a
-                    key={label}
-                    href={href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label={label}
-                    className="flex h-8 w-8 items-center justify-center rounded-full text-white transition-colors hover:opacity-90"
-                  >
-                    <Icon />
-                  </a>
-                ))}
-              </div>
-
               <button
                 type="button"
                 className="rounded-md p-2 text-white transition-colors hover:bg-white/10 lg:hidden"
