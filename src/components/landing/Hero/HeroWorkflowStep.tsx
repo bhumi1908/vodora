@@ -53,10 +53,10 @@ export function HeroWorkflowStep({
         </div>
 
         <div className="min-w-0 flex-1 pt-0.5 md:mt-5 md:max-w-[240px] md:px-1">
-          <p className="text-sm font-bold leading-snug text-white md:whitespace-nowrap md:text-base  lg:text-[18px]">
+          <p className="text-sm font-bold leading-snug text-white md:whitespace-nowrap md:text-base md:font-normal  lg:text-[18px]">
             {title}
           </p>
-          <p className="text-sm font-bold leading-snug text-white md:whitespace-nowrap md:text-base lg:text-[18px]">
+          <p className="text-sm font-bold leading-snug text-white md:whitespace-nowrap md:text-base md:font-normal lg:text-[18px]">
             {subTitle}
           </p>
         </div>
