@@ -5,7 +5,7 @@ export function StepSeparators() {
   const emptyRowCount = HOW_IT_WORKS.separatorCount - WORK_STEPS.length;
 
   return (
-    <div className="flex min-h-[200px] w-full flex-1 flex-col pl-0 sm:min-h-[320px] lg:min-h-[480px]">
+    <div className="flex min-h-[200px] w-full min-w-0 flex-1 flex-col sm:min-h-[320px] lg:min-h-[480px] ">
       {WORK_STEPS.map((step, index) => (
         <WorkStepRow
           key={step.id}

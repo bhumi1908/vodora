@@ -10,7 +10,7 @@ export function HireFeatureCard({
   iconSrc,
 }: HireFeatureCardProps) {
   return (
-    <article className="flex aspect-[434/539] w-full flex-col  bg-[#F4F4F4] p-6 sm:p-8 lg:aspect-auto lg:h-[539px] lg:w-[434px] lg:shrink-0 lg:p-10">
+    <article className="flex h-full w-full flex-col justify-between bg-[#F4F4F4] p-6 sm:p-8 lg:h-[450px] lg:p-8 xl:h-[539px] xl:w-[434px] xl:shrink-0 xl:p-10">
       <div>
         <Image
           src={encodeURI(iconSrc)}
@@ -24,7 +24,6 @@ export function HireFeatureCard({
           {title}
         </h3>
       </div>
-    <div className="flex flex-col justify-end h-full">
       <p className="text-sm font-normal leading-relaxed text-black sm:text-base">
         {descriptionLines.map((line) => (
           <span key={line} className="block">
@@ -32,7 +31,6 @@ export function HireFeatureCard({
           </span>
         ))}
       </p>
-      </div>
     </article>
   );
 }

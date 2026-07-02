@@ -23,7 +23,7 @@ export function WorkStepRow({ step, isLast = false }: WorkStepRowProps) {
   return (
     <div
       className={[
-        "flex flex-1 items-start gap-3 px-4 py-5 sm:items-center sm:justify-center sm:gap-8 sm:px-10 sm:py-0 lg:gap-10",
+        "flex w-full min-w-0 flex-1 items-start gap-4  py-5 sm:gap-5 sm:py-6 md:items-center md:gap-6 md:py-7 lg:gap-7  lg:py-8 xl:gap-10 pl-4 md:pl-8",
         !isLast ? "border-b border-[#CCCCCC]" : "",
       ]
         .filter(Boolean)
@@ -40,10 +40,10 @@ export function WorkStepRow({ step, isLast = false }: WorkStepRowProps) {
       </div>
 
       <div className="min-w-0 flex-1">
-        <h3 className="text-lg font-bold leading-snug text-black text-xl sm:text-[21px] w-fit leading-[21px]">
+        <h3 className=" font-bold  text-black text-[16px] sm:text-[21px] w-fit leading-[21px] !leading-[29px]">
           {step.title}
         </h3>
-        <p className="mt-2 text-sm leading-relaxed text-black sm:pr-10 sm:text-[19px]">
+        <p className="mt-2 text-sm leading-relaxed text-black sm:text-base md:pr-2 lg:pr-6 lg:text-[19px] xl:pr-10">
           {step.description}
         </p>
       </div>
@@ -55,7 +55,7 @@ export function WorkStepRow({ step, isLast = false }: WorkStepRowProps) {
         size="md"
         aria-label={step.buttonAriaLabel}
         onClick={handleAction}
-        className="mt-1 shrink-0 sm:mt-0"
+        className="mt-0.5 shrink-0 self-start md:self-center"
       />
     </div>
   );

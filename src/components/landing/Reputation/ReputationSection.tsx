@@ -9,7 +9,7 @@ export function ReputationSection() {
     <>
       <section
         aria-label="Your reputation, ready to travel"
-        className={`relative  overflow-hidden bg-[#1D8B8A]  pt-12 pb-6 sm:pt-16 sm:pb-16 lg:pt-20 lg:pb-20 ${poppins.className}`}
+        className={`relative overflow-hidden w-full min-w-0 py-12 sm:py-16 lg:py-20 bg-[#1D8B8A] ${poppins.className}`}
       >
         <Image
           src={REPUTATION_BG}
@@ -19,7 +19,7 @@ export function ReputationSection() {
           sizes="100vw"
         />
 
-        <div className="relative z-10 mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-8">
+        <div className="relative z-10 mx-auto w-full min-w-0 max-w-screen-2xl px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col items-stretch gap-10 sm:gap-12 lg:flex-row lg:items-center lg:justify-between lg:gap-16">
             <div className="w-full min-w-0 flex-1 lg:max-w-[58%] xl:max-w-[60%]">
               <ReputationContent />
@@ -40,9 +40,9 @@ export function ReputationSection() {
 
       <section
         aria-label="Your references are yours to keep"
-        className={`bg-[#F1F2F4] pt-6 pb-12 py-12 sm:py-16 lg:py-20 ${poppins.className}`}
+        className={`w-full min-w-0 overflow-x-hidden py-12 sm:py-16 lg:py-20 bg-[#F1F2F4] ${poppins.className}`}
       >
-        <div className="mx-auto max-w-screen-2xl px-4 sm:px-4 lg:px-6">
+        <div className="mx-auto w-full min-w-0 max-w-screen-2xl px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col items-stretch gap-10 sm:gap-12 lg:flex-row lg:items-center lg:gap-12 xl:gap-16">
             <div className="w-full min-w-0 lg:w-1/2">
               <div className="relative mx-auto aspect-[489/746]  max-w-[489px]  max-h-[730px] overflow-hidden rounded-xl lg:mx-0 lg:max-w-none">

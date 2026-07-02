@@ -14,10 +14,10 @@ export function VerificationSection() {
   return (
     <section
       aria-label="Multi-layer verification"
-      className={`overflow-x-hidden bg-[#FAFAFA] py-12 sm:py-16 lg:py-16 ${poppins.className}`}
+      className={`w-full min-w-0 overflow-x-hidden py-12 sm:py-16 lg:py-20 bg-[#FAFAFA] ${poppins.className}`}
     >
-      <div className="mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-10 flex flex-col gap-6 sm:mb-12 sm:flex-row sm:items-start sm:justify-between lg:mb-10">
+      <div className="mx-auto w-full min-w-0 max-w-screen-2xl px-4 sm:px-6 lg:px-8">
+        <div className="mb-10 flex flex-col gap-6 sm:mb-12 sm:flex-row sm:items-start sm:justify-between lg:mb-14">
           <div className="max-w-3xl">
             <h2 className="text-3xl font-bold leading-tight text-black sm:text-4xl lg:text-[2.5rem]">
               {VERIFICATION_SECTION.title}

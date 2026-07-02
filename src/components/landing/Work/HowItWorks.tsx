@@ -7,9 +7,9 @@ export function HowItWorks() {
   return (
     <section
       aria-label="How Vodora works"
-      className={`bg-white py-16 sm:py-20 lg:py-24 ${poppins.className}`}
+      className={`w-full min-w-0 overflow-x-hidden py-12 sm:py-16 lg:py-20 bg-white ${poppins.className}`}
     >
-      <div className="mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto w-full min-w-0 max-w-screen-2xl px-4 sm:px-6 lg:px-8">
         <h2 className="mb-10 text-center text-3xl font-bold text-gray-900 sm:mb-12 sm:text-4xl lg:mb-16 lg:text-[2.5rem]">
           {HOW_IT_WORKS.title}
         </h2>

@@ -8,7 +8,7 @@ export function ReferencesCtaSection() {
   return (
     <section
       aria-label="References verified once, used forever"
-      className={`relative overflow-hidden bg-[#1D8B8A]  py-12 sm:py-16 lg:py-20 ${poppins.className}`}
+      className={`relative overflow-hidden w-full min-w-0 py-12 sm:py-16 lg:py-20 bg-[#1D8B8A] ${poppins.className}`}
     >
       <Image
         src={REFERENCES_CTA_BG}
@@ -18,7 +18,7 @@ export function ReferencesCtaSection() {
         sizes="100vw"
       />
 
-      <div className="relative z-10 mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-8">
+      <div className="relative z-10 mx-auto w-full min-w-0 max-w-screen-2xl px-4 sm:px-6 lg:px-8">
         <ReferencesCtaContent />
       </div>
     </section>

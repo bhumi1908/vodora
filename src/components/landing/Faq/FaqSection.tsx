@@ -6,14 +6,14 @@ export function FaqSection() {
   return (
     <section
       aria-label="Frequently asked questions"
-      className={`bg-[#F5F5F5] py-12 sm:py-16 lg:py-20 ${poppins.className}`}
+      className={`w-full min-w-0 overflow-x-hidden py-12 sm:py-16 lg:py-20 bg-[#F5F5F5] ${poppins.className}`}
     >
-      <div className="mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto w-full min-w-0 max-w-screen-2xl px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl">
           <h2 className="text-3xl font-bold leading-tight text-black sm:text-[50px] sm:leading-[60px] lg:text-[50px] lg:leading-[60px]">
             {FAQ_SECTION.title}
           </h2>
-          <div className="w-full">
+          <div className="w-full min-w-0">
           <p className="mt-4  text-base font-normal  leading-[25px] sm:mt-5 sm:text-lg sm:leading-[1.6]">
             {FAQ_SECTION.description}
           </p>
