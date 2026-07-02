@@ -6,7 +6,7 @@ import { Workflow } from "./Workflow";
 export function Hero() {
   return (
     <section
-      className="relative flex min-h-screen flex-col overflow-hidden bg-black"
+      className="relative flex min-h-screen flex-col overflow-hidden bg-black rounded-b-[60px]"
       aria-label="Hero"
     >
       <Image
@@ -17,7 +17,7 @@ export function Hero() {
         className="object-cover object-center"
         sizes="100vw"
       />
-      <div className="absolute inset-0 bg-black/65" aria-hidden="true" />
+      <div className="absolute inset-0" aria-hidden="true" />
 
       <div className="relative z-10 flex flex-col gap-10 sm:gap-20 justify-center flex-1 w-full mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-8">
         <div className="flex items-center pt-20 sm:pt-16">
@@ -26,7 +26,7 @@ export function Hero() {
           </div>
         </div>
 
-        <div className="pb-10">
+        <div className="pt-10">
           <Workflow />
         </div>
       </div>

@@ -2,7 +2,7 @@
 
 import { ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
-
+import { Workflow } from "./Workflow";
 import { ClipButton } from "@/components/ui/Button";
 import { REFERENCES_CTA_SECTION } from "./constants";
 
@@ -26,25 +26,8 @@ export function ReferencesCtaContent() {
           </span>
         ))}
       </p>
-
-      <div className="mt-2 flex items-end justify-center sm:mt-6 lg:mt-8">
-        <ClipButton
-          text={REFERENCES_CTA_SECTION.cta.text}
-          variant="outline"
-          clipPosition="left"
-          size="md"
-          className="[&_span:first-child]:!border-white [&_span:first-child]:!text-[#236B69]"
-          onClick={handleCta}
-        />
-        <ClipButton
-          icon={<ArrowRight className="h-4 w-4" />}
-          variant="outline"
-          clipPosition="right"
-          className="-ml-2 [&_span_span]:!text-white"
-          size="md"
-          aria-label="Go to create profile"
-          onClick={handleCta}
-        />
+      <div className="mt-2 flex items-end justify-center sm:mt-6 lg:mt-8">  
+          <Workflow />
       </div>
     </div>
   );

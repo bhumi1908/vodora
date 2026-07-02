@@ -1,15 +1,5 @@
-export interface WorkflowStep {
-  readonly id: string;
-  readonly title: string;
-}
 
-export const WORKFLOW_STEPS: WorkflowStep[] = [
-  { id: "request", title: "Candidate requests a reference" },
-  { id: "provide", title: "Manager Provides a reference" },
-  { id: "verify", title: "Vodora verifies and stores it" },
-  { id: "share", title: "Candidate shares with recruiter" },
-  { id: "hired", title: "Gets hired" },
-];
+
 
 export const HERO_CONTENT = {
   headlineLines: ["Build the profile", "that works for you"],
@@ -32,3 +22,17 @@ export const AVATAR_IMAGES = [
   "/Images/user-3.png",
   "/Images/user-4.png",
 ] as const;
+
+interface HeroWorkflowStep {
+  readonly id: string;
+  readonly title: string;
+  readonly subTitle: string;
+}
+
+export const HERO_WORKFLOW_STEPS: HeroWorkflowStep[] = [
+  { id: "request", title: "Candidate Requests", subTitle: "A Reference" },
+  { id: "provide", title: "Manager Provides", subTitle: "The Reference" },
+  { id: "verify", title: "Vodora Verifies", subTitle: "And Stores It" },
+  { id: "share", title: "Candidate Shares", subTitle: "With Recruiters" },
+  { id: "hired", title: "Candidate Gets", subTitle: "Hired Faster" },
+];
