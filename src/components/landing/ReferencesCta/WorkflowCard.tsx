@@ -26,20 +26,20 @@ export function WorkflowCard({
         </div>
 
         {!isFirstCard && (
-          <div className="absolute top-1/2 -left-px z-10 h-10 w-5 -translate-y-1/2 overflow-hidden sm:h-15 sm:w-7 sm:rotate-180">
+          <div className="absolute top-1/2 left-0 z-10 h-10 w-5 -translate-y-1/2 overflow-hidden sm:h-15 sm:w-7 rotate-180">
             <div className="size-10 rounded-full border border-white bg-[#1D8B8A] sm:size-15" />
           </div>
         )}
 
         {!isLastCard && (
-          <div className="absolute top-1/2 -right-px z-10 h-10 w-5 -translate-y-1/2 overflow-hidden sm:h-15 sm:w-7">
-            <div className="size-10 rounded-full border border-white bg-[#1D8B8A] sm:size-15 rotate-90" />
+          <div className="absolute top-1/2 right-0 z-10 h-10 w-5 -translate-y-1/2 overflow-hidden sm:h-15 sm:w-7">
+            <div className="size-10 rounded-full border border-white bg-[#1D8B8A] sm:size-15" />
           </div>
         )}
       </div>
 
       {!isLastCard && (
-        <div className="absolute top-1/2 right-[-22px] z-20 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-white backdrop-blur-sm sm:right-[-26px] sm:h-11 sm:w-11">
+        <div className="absolute top-1/2 right-[-20px] z-20 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-white backdrop-blur-sm sm:right-[-26px] sm:h-11 sm:w-11">
           <ArrowRight className="h-3.5 w-3.5 text-[#1D8B8A]" />
         </div>
       )}
