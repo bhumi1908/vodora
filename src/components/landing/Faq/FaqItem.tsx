@@ -24,18 +24,16 @@ export function FaqItem({ item, index, isOpen, onToggle }: FaqItemProps) {
         onClick={onToggle}
         aria-expanded={isOpen}
         aria-controls={panelId}
-        className={`flex w-full min-w-0 items-start gap-3 py-5 text-left transition-[border-color] duration-300 ease-out motion-reduce:transition-none sm:gap-6 sm:py-6 md:items-center md:py-8 lg:gap-8 ${
+        className={`flex w-full min-w-0 items-baseline gap-2 py-5 text-left transition-[border-color] duration-300 ease-out motion-reduce:transition-none sm:gap-4 sm:py-6 lg:items-center lg:gap-8 lg:py-8 ${
           isOpen ? "border-b border-black" : ""
         }`}
       >
-        <span
-          className={`w-7 shrink-0 pt-0.5 text-sm font-normal tabular-nums leading-none text-[#BDCCD4] sm:w-8 sm:pt-0 sm:text-[50px] lg:w-10 lg:text-[50px] `}
-        >
+        <span className="w-8 shrink-0 text-sm font-normal tabular-nums leading-none text-[#BDCCD4] sm:w-9 sm:text-base md:text-lg lg:w-14 lg:text-[50px]">
           {numberLabel}
         </span>
 
         <span
-          className={`min-w-0 flex-1 break-words pl-1 text-lg font-normal leading-snug transition-colors duration-300 ease-out motion-reduce:transition-none sm:pl-4 sm:text-xl sm:leading-snug md:text-2xl lg:text-3xl lg:leading-[44px] xl:text-[49px] xl:leading-[58px] ${
+          className={`min-w-0 flex-1 break-words text-lg font-normal leading-snug transition-colors duration-300 ease-out motion-reduce:transition-none sm:text-xl sm:leading-snug md:text-2xl lg:text-3xl lg:leading-[44px] xl:text-[49px] xl:leading-[58px] ${
             isOpen ? "text-[#1D8B8A]" : "text-black"
           }`}
         >
@@ -44,7 +42,7 @@ export function FaqItem({ item, index, isOpen, onToggle }: FaqItemProps) {
 
         <span
           aria-hidden="true"
-          className={`shrink-0 pt-0.5 text-2xl font-light leading-none transition-colors duration-300 ease-out motion-reduce:transition-none sm:pt-0 sm:text-3xl lg:text-[33px] ${
+          className={`shrink-0 self-center text-2xl font-light leading-none transition-colors duration-300 ease-out motion-reduce:transition-none sm:text-3xl lg:text-[33px] ${
             isOpen ? "text-[#1D8B8A]" : "text-black"
           }`}
         >

@@ -26,14 +26,14 @@ export function WorkflowCard({
         </div>
 
         {!isFirstCard && (
-          <div className="absolute top-1/2 left-0 z-10 h-10 w-5 -translate-y-1/2 overflow-hidden sm:h-15 sm:w-7 rotate-180">
-            <div className="size-10 rounded-full border border-white bg-[#1D8B8A] sm:size-15" />
+          <div className="absolute top-1/2 -left-px z-10 h-10 w-5 -translate-y-1/2 overflow-hidden sm:h-15 sm:w-7 rotate-180">
+            <div className="size-10 rounded-full border border-white bg-references-textured sm:size-15" />
           </div>
         )}
 
         {!isLastCard && (
-          <div className="absolute top-1/2 right-0 z-10 h-10 w-5 -translate-y-1/2 overflow-hidden sm:h-15 sm:w-7">
-            <div className="size-10 rounded-full border border-white bg-[#1D8B8A] sm:size-15" />
+          <div className="absolute top-1/2 -right-px z-10 h-10 w-5 -translate-y-1/2 overflow-hidden sm:h-15 sm:w-7">
+            <div className="size-10 rotate-90 rounded-full border border-white bg-references-textured sm:size-15" />
           </div>
         )}
       </div>

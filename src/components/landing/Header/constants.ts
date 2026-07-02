@@ -1,6 +1,6 @@
 import type { ComponentType, SVGProps } from "react";
 
-import { FacebookIcon, InstagramIcon, LinkedInIcon } from "./SocialIcons";
+// import { FacebookIcon, InstagramIcon, LinkedInIcon } from "./SocialIcons";
 
 export interface NavItemConfig {
   readonly label: string;
@@ -30,8 +30,8 @@ export const NAV_ITEMS: NavItemConfig[] = [
   { label: "Sign Up", href: "/signup" },
 ];
 
-export const SOCIAL_LINKS: SocialLinkConfig[] = [
-  { label: "Facebook", href: "https://facebook.com", Icon: FacebookIcon },
-  { label: "Instagram", href: "https://instagram.com", Icon: InstagramIcon },
-  { label: "LinkedIn", href: "https://linkedin.com", Icon: LinkedInIcon },
-];
+// export const SOCIAL_LINKS: SocialLinkConfig[] = [
+//   { label: "Facebook", href: "https://facebook.com", Icon: FacebookIcon },
+//   { label: "Instagram", href: "https://instagram.com", Icon: InstagramIcon },
+//   { label: "LinkedIn", href: "https://linkedin.com", Icon: LinkedInIcon },
+// ];

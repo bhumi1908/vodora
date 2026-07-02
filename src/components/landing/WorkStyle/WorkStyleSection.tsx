@@ -2,7 +2,6 @@
 
 import { useHorizontalCarousel } from "@/hooks/useHorizontalCarousel";
 import { AnimateIn } from "@/components/landing/shared/AnimateIn";
-import { poppins } from "../Work/fonts";
 import { WORK_STYLE_CARDS, WORK_STYLE_SECTION } from "./constants";
 import { WorkStyleCard } from "./WorkStyleCard";
 import { WorkStyleNav } from "./WorkStyleNav";
@@ -24,11 +23,10 @@ export function WorkStyleSection() {
   return (
     <section
       aria-label="One profile for every work style"
-
-      className={`mx-auto max-w-screen-2xl overflow-x-hidden bg-white px-4 py-12 sm:px-6 sm:py-16 lg:px-8 lg:py-20 ${poppins.className}`}
+      className="w-full min-w-0 overflow-x-hidden bg-white py-12 sm:py-16 lg:py-20"
     >
-      <div className="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col gap-10 lg:flex-row lg:items-start lg:gap-8 xl:gap-12">
+      <div className="mx-auto w-full min-w-0 max-w-screen-2xl px-4 sm:px-6 lg:px-8">
+        <div className="flex flex-col gap-10 sm:gap-12 lg:flex-row lg:items-start lg:gap-10 xl:gap-12">
           <AnimateIn variant="fade-left" className="w-full shrink-0 lg:max-w-[38%] xl:max-w-[420px]">
             <h2 className="text-3xl font-bold leading-tight text-black sm:text-4xl lg:text-[2.5rem]">
               {WORK_STYLE_SECTION.titleLine1}

@@ -15,6 +15,7 @@ import Link from "next/link";
 
 import { FaqAccordion } from "@/components/landing/shared/FaqAccordion";
 import { AnimateIn } from "@/components/landing/shared/AnimateIn";
+import { LandingSmoothScroll } from "@/components/landing/shared/LandingSmoothScroll";
 import { SectionContainer } from "@/components/landing/shared/SectionContainer";
 import { RecruiterSiteHeader } from "@/components/layout/RecruiterSiteHeader";
 
@@ -39,6 +40,7 @@ const recruiterFaqs = [
 
 export function RecruiterLandingPage() {
   return (
+    <LandingSmoothScroll>
     <div className="min-h-screen bg-white">
       <RecruiterSiteHeader />
       <RecruiterHero />
@@ -51,6 +53,7 @@ export function RecruiterLandingPage() {
       <FaqAccordion items={recruiterFaqs} title="FAQs" compact />
       <RecruiterCTA />
     </div>
+    </LandingSmoothScroll>
   );
 }
 

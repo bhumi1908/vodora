@@ -2,13 +2,12 @@ import { AnimateIn } from "@/components/landing/shared/AnimateIn";
 import { HOW_IT_WORKS } from "./constants";
 import { StepSeparators } from "./StepSeparators";
 import { WorkImageColumn } from "./WorkImageColumn";
-import { poppins } from "./fonts";
 
 export function HowItWorks() {
   return (
     <section
       aria-label="How Vodora works"
-      className={`w-full min-w-0 overflow-x-hidden py-12 sm:py-16 lg:py-20 bg-white ${poppins.className}`}
+      className="w-full min-w-0 overflow-x-hidden py-12 sm:py-16 lg:py-20 bg-white"
     >
       <div className="mx-auto w-full min-w-0 max-w-screen-2xl px-4 sm:px-6 lg:px-8">
         <AnimateIn>

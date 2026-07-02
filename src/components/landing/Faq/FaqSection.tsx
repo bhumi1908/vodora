@@ -1,5 +1,4 @@
 import { AnimateIn } from "@/components/landing/shared/AnimateIn";
-import { poppins } from "../Work/fonts";
 import { FaqAccordion } from "./FaqAccordion";
 import { FAQ_ITEMS, FAQ_SECTION } from "./constants";
 
@@ -7,7 +6,7 @@ export function FaqSection() {
   return (
     <section
       aria-label="Frequently asked questions"
-      className={`w-full min-w-0 overflow-x-hidden py-12 sm:py-16 lg:py-20 bg-[#F5F5F5] ${poppins.className}`}
+      className="w-full min-w-0 overflow-x-hidden py-12 sm:py-16 lg:py-20 bg-[#F5F5F5]"
     >
       <div className="mx-auto w-full min-w-0 max-w-screen-2xl px-4 sm:px-6 lg:px-8">
         <AnimateIn className="max-w-3xl">

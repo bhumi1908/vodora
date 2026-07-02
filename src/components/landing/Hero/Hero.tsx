@@ -6,7 +6,7 @@ import { Workflow } from "./Workflow";
 export function Hero() {
   return (
     <section
-      className="relative flex min-h-screen flex-col overflow-hidden bg-black rounded-b-[60px]"
+      className="relative flex min-h-screen flex-col overflow-hidden bg-black rounded-b-none md:rounded-b-[60px]"
       aria-label="Hero"
     >
       <Image
@@ -26,7 +26,7 @@ export function Hero() {
           </div>
         </div>
 
-        <div className="min-w-0 pt-10 pb-10 sm:pb-0">
+        <div className="min-w-0 pt-10 pb-14 md:pb-0">
           <Workflow />
         </div>
       </div>

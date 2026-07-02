@@ -23,9 +23,9 @@ export function ReputationContent() {
         ))}
       </h2>
 
-      <p className="max-w-none text-base leading-relaxed text-white sm:text-lg  lg:max-w-xl lg:text-[21px] xl:max-w-none">
+      <p className="max-w-none text-base leading-relaxed text-white sm:text-lg lg:max-w-xl lg:text-[21px] 2xl:max-w-none">
         {REPUTATION_SECTION.descriptionLines.map((line) => (
-          <span key={line} className="block xl:whitespace-nowrap pr-10">
+          <span key={line} className="block 2xl:whitespace-nowrap">
             {line}
           </span>
         ))}
@@ -70,7 +70,7 @@ export function ReputationOwnershipContent() {
             className="text-2xl font-normal leading-snug text-[#808080] sm:text-3xl sm:leading-snug lg:text-[48px] lg:leading-[68px]"
           >
             {group.map((line) => (
-              <span key={line} className="block xl:whitespace-nowrap">
+              <span key={line} className="block 2xl:whitespace-nowrap">
                 {line}
               </span>
             ))}
@@ -80,13 +80,13 @@ export function ReputationOwnershipContent() {
 
       <p className="mt-8 text-base font-normal leading-relaxed text-black sm:mt-10 sm:text-lg lg:mt-12">
         {REPUTATION_OWNERSHIP.paragraphLines.map((line) => (
-          <span key={line} className="block xl:whitespace-nowrap">
+          <span key={line} className="block 2xl:whitespace-nowrap">
             {line}
           </span>
         ))}
       </p>
 
-      <div className="mt-8 flex   sm:mt-10 lg:mt-12">
+      <div className="mt-8 flex sm:mt-10 lg:mt-12">
         <ClipButton
           text={REPUTATION_OWNERSHIP.cta.text}
           variant="primary"

@@ -10,10 +10,11 @@ import { TrustIssuesSection } from "@/components/landing/TrustIssues/TrustIssues
 import { HowItWorks } from "@/components/landing/Work/HowItWorks";
 import { ReputationSection } from "@/components/landing/Reputation/ReputationSection";
 import { VerificationSection } from "@/components/landing/Verification/VerificationSection";
+import { poppins } from "@/components/landing/Work/fonts";
 
 export default function LandingPage2() {
   return (
-    <>
+    <div className={`${poppins.className} min-w-0 overflow-x-hidden antialiased`}>
       <main>
         <LandingHeader />
         <Hero />
@@ -28,6 +29,6 @@ export default function LandingPage2() {
         <FaqSection />
       </main>
       <LandingFooter />
-    </>
+    </div>
   );
 }

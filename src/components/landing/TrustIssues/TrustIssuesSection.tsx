@@ -1,5 +1,4 @@
 import { AnimateIn } from "@/components/landing/shared/AnimateIn";
-import { poppins } from "../Work/fonts";
 import { TrustTabs } from "./TrustTabs";
 import { TRUST_TABS } from "./constants";
 
@@ -7,7 +6,7 @@ export function TrustIssuesSection() {
   return (
     <section
       aria-label="Hiring trust issues"
-      className={`bg-[#FAFAFA] py-16 sm:py-20 lg:py-24 ${poppins.className}`}
+      className="bg-[#FAFAFA] py-16 sm:py-20 lg:py-24"
     >
       <div className="mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-8 sm:gap-10">

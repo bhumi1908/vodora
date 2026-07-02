@@ -1,13 +1,12 @@
 import { AnimateIn } from "@/components/landing/shared/AnimateIn";
-import { poppins } from "../Work/fonts";
-import { AboutContent } from "./AboutContent";import { AboutImageCard } from "./AboutImageCard";
+import { AboutContent } from "./AboutContent"; import { AboutImageCard } from "./AboutImageCard";
 import { ABOUT_CONTENT, ABOUT_IMAGE_CARD, ABOUT_STATS } from "./constants";
 
 export function AboutSection() {
   return (
     <section
       aria-label="About Vodora"
-      className={`bg-[#FAFAFA] py-16 sm:py-20 lg:py-24 ${poppins.className}`}
+      className="bg-[#FAFAFA] py-16 sm:py-20 lg:py-24"
     >
       <div className="mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-12 lg:flex-row lg:gap-0">
@@ -38,7 +37,8 @@ export function AboutSection() {
               stats={ABOUT_STATS}
             />
           </AnimateIn>
-        </div>      </div>
+        </div>
+      </div>
     </section>
   );
 }

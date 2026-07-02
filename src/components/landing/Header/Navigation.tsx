@@ -13,7 +13,7 @@ export function Navigation({ items, activeHref, onItemClick }: NavigationProps) 
   return (
     <nav
       aria-label="Main navigation"
-      className="hidden items-center gap-1 rounded-lg bg-white px-1 py-1 shadow-sm lg:flex"
+      className="hidden min-w-0 shrink items-center gap-0.5 rounded-lg bg-white px-1 py-1 shadow-sm lg:flex xl:gap-1"
     >
       {visibleItems.map((item) => (
         <NavItem

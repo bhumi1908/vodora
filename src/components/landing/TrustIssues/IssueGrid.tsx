@@ -8,14 +8,20 @@ interface IssueGridProps {
 
 export function IssueGrid({ issues }: IssueGridProps) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 border border-[#E6E6E6] rounded-lg overflow-hidden">
+    <div className="grid grid-cols-1 items-stretch overflow-hidden rounded-lg border border-[#E6E6E6] sm:grid-cols-2 lg:grid-cols-4 *:min-w-0">
       {issues.map((issue, index) => (
-        <AnimateIn key={issue.number} delay={index * 70} variant="scale-in">
+        <AnimateIn
+          key={issue.number}
+          delay={index * 70}
+          variant="scale-in"
+          className="flex h-full min-h-0 min-w-0 flex-col"
+        >
           <IssueCard
             number={issue.number}
             title={issue.title}
             description={issue.description}
-            isFirst={issue.isFirst}
+            index={index}
+            total={issues.length}
           />
         </AnimateIn>
       ))}

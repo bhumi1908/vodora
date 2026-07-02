@@ -8,6 +8,7 @@ export function Workflow() {
         {HERO_WORKFLOW_STEPS.map((step, index) => (
           <HeroWorkflowStep
             key={step.id}
+            index={index}
             title={step.title}
             subTitle={step.subTitle}
             isLast={index === HERO_WORKFLOW_STEPS.length - 1}

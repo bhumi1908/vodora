@@ -20,7 +20,7 @@ export function NavItem({
       <Link
         href={href}
         onClick={onClick}
-        className="hidden rounded-md bg-[#1D8B8A] px-12 py-3 text-sm font-semibold uppercase tracking-widest text-white transition-colors hover:bg-[#166F6E] active:bg-[#125E5D] lg:inline-block"
+        className="hidden rounded-md bg-[#1D8B8A] px-6 py-3 text-sm font-semibold uppercase tracking-wide text-white transition-colors hover:bg-[#166F6E] active:bg-[#125E5D] lg:inline-block xl:px-8 xl:tracking-widest"
       >
         {label}
       </Link>
@@ -31,9 +31,9 @@ export function NavItem({
     <Link
       href={href}
       onClick={onClick}
-      className={`px-3 py-1.5 text-sm font-semibold uppercase tracking-widest transition-colors ${active
-          ? "text-[#1D8B8A]"
-          : "text-gray-800 hover:text-[#1D8B8A]"
+      className={`px-2 py-1.5 text-sm font-semibold uppercase tracking-wide transition-colors xl:px-3 xl:tracking-widest ${active
+        ? "text-[#1D8B8A]"
+        : "text-black hover:text-[#1D8B8A]"
         }`}
     >
       {label}

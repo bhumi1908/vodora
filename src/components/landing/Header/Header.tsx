@@ -9,7 +9,7 @@ import { useEffect, useRef, useState } from "react";
 import { AnimateIn } from "@/components/landing/shared/AnimateIn";
 import { MobileMenu } from "./MobileMenu";
 import { Navigation } from "./Navigation";
-import { NAV_ITEMS, SOCIAL_LINKS } from "./constants";
+import { NAV_ITEMS } from "./constants";
 
 export function LandingHeader() {
   const pathname = usePathname();
@@ -42,39 +42,39 @@ export function LandingHeader() {
   }
 
   const headerBg = mobileMenuOpen
-    ? "bg-black"
+    ? "bg-black border-b border-white/10"
     : scrolled
-      ? "bg-black/70 backdrop-blur-md backdrop-saturate-150 shadow-lg shadow-black/20"
+      ? "bg-black/75 backdrop-blur-md backdrop-saturate-150 border-b border-white/10 shadow-lg shadow-black/25"
       : "bg-transparent";
 
   return (
     <header className={`fixed top-0 w-full z-50 transition-all duration-300 ${headerBg}`}>
       <AnimateIn immediate variant="fade-in" duration={500}>
         <div className="mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-8">
-          <div className="flex h-fit sm:py-6 py-4 items-center justify-between gap-4">
-          <Link
-            href="/"
-            aria-label="Vodora home"
-            className="shrink-0"
-            onClick={closeMobileMenu}
-          >
-            <Image
-              src="/Images/logo-svg.svg"
-              alt="Vodora"
-              width={176}
-              height={28}
-              priority
-              className="h-[20px] lg:h-[28px] w-auto"
-            />
-          </Link>
-          <div className="flex items-center gap-16">
-            <Navigation
-              items={NAV_ITEMS}
-              activeHref={pathname}
-              onItemClick={closeMobileMenu}
-            />
+          <div className="flex h-fit items-center justify-between gap-4 py-4 sm:py-5">
+            <Link
+              href="/"
+              aria-label="Vodora home"
+              className="shrink-0"
+              onClick={closeMobileMenu}
+            >
+              <Image
+                src="/Images/logo-svg.svg"
+                alt="Vodora"
+                width={176}
+                height={28}
+                priority
+                className="h-[20px] w-auto lg:h-[28px]"
+              />
+            </Link>
 
-            <div className="flex items-center gap-3">
+            <div className="flex min-w-0 items-center gap-3">
+              <Navigation
+                items={NAV_ITEMS}
+                activeHref={pathname}
+                onItemClick={closeMobileMenu}
+              />
+
               <button
                 type="button"
                 className="rounded-md p-2 text-white transition-colors hover:bg-white/10 lg:hidden"
@@ -89,7 +89,6 @@ export function LandingHeader() {
                 )}
               </button>
             </div>
-          </div>
           </div>
         </div>
       </AnimateIn>

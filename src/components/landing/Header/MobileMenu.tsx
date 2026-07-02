@@ -32,7 +32,7 @@ export function MobileMenu({ items, activeHref, onClose }: MobileMenuProps) {
                 key={item.href}
                 href={item.href}
                 onClick={onClose}
-                className={`block rounded-md px-4 py-3 text-sm font-semibold uppercase tracking-widest transition-colors ${isActiveNavHref(item.href, activeHref)
+                className={`block rounded-md px-4 py-3 text-sm font-semibold uppercase tracking-wide transition-colors ${isActiveNavHref(item.href, activeHref)
                     ? "text-[#1D8B8A]"
                     : "text-white hover:text-[#1D8B8A]"
                   }`}
@@ -49,7 +49,7 @@ export function MobileMenu({ items, activeHref, onClose }: MobileMenuProps) {
                   key={item.href}
                   href={item.href}
                   onClick={onClose}
-                  className="block w-full rounded-md bg-[#1D8B8A] px-4 py-3 text-center text-sm font-semibold uppercase tracking-widest text-white transition-colors hover:bg-[#166F6E] active:bg-[#125E5D]"
+                  className="block w-full rounded-md bg-[#1D8B8A] px-4 py-3 text-center text-sm font-semibold uppercase tracking-wide text-white transition-colors hover:bg-[#166F6E] active:bg-[#125E5D]"
                 >
                   {item.label}
                 </Link>

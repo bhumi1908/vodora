@@ -18,6 +18,7 @@ import Link from "next/link";
 
 import { FaqAccordion } from "@/components/landing/shared/FaqAccordion";
 import { AnimateIn } from "@/components/landing/shared/AnimateIn";
+import { LandingSmoothScroll } from "@/components/landing/shared/LandingSmoothScroll";
 
 const candidateFaqs = [
   {
@@ -48,6 +49,7 @@ const candidateFaqs = [
 
 export function LandingPage() {
   return (
+    <LandingSmoothScroll>
     <div className="min-h-screen bg-white">
       <Hero />
       <Problem />
@@ -66,6 +68,7 @@ export function LandingPage() {
       />
       <FinalCTA />
     </div>
+    </LandingSmoothScroll>
   );
 }
 

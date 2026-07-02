@@ -22,36 +22,36 @@ export const FAQ_ITEMS: readonly FaqItemConfig[] = [
   {
     id: "free-for-candidates",
     question: "Is Vodora free for candidates?",
-    subtitle: "",
+    subtitle: "Completely Free for Candidates",
     answer:
-      "",
+      "Yes — creating a professional profile and collecting verified references on Vodora is completely free for candidates. There are no hidden fees, no paywalls on your reputation, and no subscription required to keep your profile active. You own your data from day one and can use it throughout your career, forever.",
   },
   {
     id: "different-from-linkedin",
     question: "How is Vodora different from LinkedIn?",
-    subtitle: "",
+    subtitle: "Trust Infrastructure, Not a Social Network",
     answer:
-      "",
+      "Vodora is professional trust infrastructure, not a social network. While LinkedIn is built around connections, content, and engagement, Vodora focuses on what actually matters in hiring: verified employment history, authenticated references, and a portable professional reputation you control. Your credibility is built on evidence and validation — not likes, posts, or unverified endorsements.",
   },
   {
     id: "control-visibility",
     question: "Can I control who sees my references?",
-    subtitle: "",
+    subtitle: "Share on Your Terms",
     answer:
-      "",
+      "Absolutely. You have complete control over who can view your references and profile. Vodora is built on permission-based access — you decide when to share, with whom, and what they can see. Your professional reputation belongs to you, and it is never exposed by default. You share it only when and how you choose.",
   },
   {
     id: "recruiter-pricing",
     question: "Do recruiters pay to use Vodora?",
-    subtitle: "",
+    subtitle: "Powerful Tools for Hiring Teams",
     answer:
-      "",
+      "Recruiters have access to a powerful suite of search and hiring tools designed to surface verified talent and authenticated references — not unverified claims. Vodora gives hiring teams advanced discovery, trust signals, and reference validation built into every profile. Contact us to learn about recruiter account options and pricing tailored to your team.",
   },
   {
     id: "reference-duration",
     question: "How long do references stay on my profile?",
-    subtitle: "",
+    subtitle: "Forever Yours",
     answer:
-      "",
+      "Forever. Once a reference is verified and added to your Vodora profile, it stays with you throughout your career. There is no expiry date, no platform lock-in, and no risk of losing your endorsements when you change jobs. You own your professional reputation — and Vodora is built to preserve it for the long term.",
   },
 ] as const;

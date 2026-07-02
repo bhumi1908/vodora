@@ -2,7 +2,6 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { AnimateIn } from "@/components/landing/shared/AnimateIn";
-import { poppins } from "../Work/fonts";
 import { FooterColumn } from "./FooterColumn";
 import {
   FOOTER_COLUMNS,
@@ -14,7 +13,7 @@ export function LandingFooter() {
   return (
     <footer
       aria-label="Site footer"
-      className={`bg-black py-12 text-white sm:py-16 lg:py-20 ${poppins.className}`}
+      className="bg-black py-12 text-white sm:py-16 lg:py-20"
     >
       <div className="mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-10 lg:flex-row lg:items-start  lg:gap-16 sm:gap-24 xl:gap-24">

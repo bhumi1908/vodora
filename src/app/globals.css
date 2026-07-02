@@ -15,6 +15,24 @@ body {
   font-family: system-ui, -apple-system, sans-serif;
 }
 
+.bg-references-textured {
+  background-color: #1d8b8a;
+  background-image:
+    linear-gradient(rgba(29, 139, 138, 0.6), rgba(29, 139, 138, 0.6)),
+    url("/Images/ReputationBG.png");
+  background-size: cover, cover;
+  background-position: center center, center center;
+  background-attachment: fixed, fixed;
+  background-repeat: no-repeat, no-repeat;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html.landing-page-scroll {
+    scroll-behavior: smooth;
+    scroll-padding-top: 5.5rem;
+  }
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .animate-in {
     opacity: 0;
@@ -114,6 +132,72 @@ body {
     opacity: 0;
     animation: workflow-arrow-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
   }
+
+  @keyframes hero-workflow-dot-in {
+    from {
+      opacity: 0;
+      transform: scale(0.45);
+    }
+
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes hero-workflow-line-v {
+    from {
+      transform: translateX(-50%) scaleY(0);
+    }
+
+    to {
+      transform: translateX(-50%) scaleY(1);
+    }
+  }
+
+  @keyframes hero-workflow-line-h {
+    from {
+      transform: translateY(-50%) scaleX(0);
+    }
+
+    to {
+      transform: translateY(-50%) scaleX(1);
+    }
+  }
+
+  @keyframes hero-workflow-text-in {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .hero-workflow-dot-in {
+    opacity: 0;
+    animation: hero-workflow-dot-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .hero-workflow-line-v {
+    transform: translateX(-50%) scaleY(0);
+    transform-origin: top center;
+    animation: hero-workflow-line-v 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .hero-workflow-line-h {
+    transform: translateY(-50%) scaleX(0);
+    transform-origin: left center;
+    animation: hero-workflow-line-h 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .hero-workflow-text-in {
+    opacity: 0;
+    animation: hero-workflow-text-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -125,10 +209,24 @@ body {
   .animate-float,
   .animate-shimmer-bar,
   .tab-fade-in,
-  .workflow-arrow-in {
+  .workflow-arrow-in,
+  .hero-workflow-dot-in,
+  .hero-workflow-text-in {
     animation: none;
     opacity: 1;
     transform: none;
+  }
+
+  .hero-workflow-line-v {
+    animation: none;
+    opacity: 1;
+    transform: translateX(-50%) scaleY(1);
+  }
+
+  .hero-workflow-line-h {
+    animation: none;
+    opacity: 1;
+    transform: translateY(-50%) scaleX(1);
   }
 
   .motion-safe\:animate-\[shimmer_1\.5s_ease-in-out_infinite\] {

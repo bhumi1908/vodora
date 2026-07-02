@@ -2,7 +2,6 @@
 
 import { useHorizontalCarousel } from "@/hooks/useHorizontalCarousel";
 import { AnimateIn } from "@/components/landing/shared/AnimateIn";
-import { poppins } from "../Work/fonts";
 import { VERIFICATION_CARDS, VERIFICATION_SECTION } from "./constants";
 import { VerificationCard } from "./VerificationCard";
 import { VerificationNav } from "./VerificationNav";
@@ -26,7 +25,7 @@ export function VerificationSection() {
   return (
     <section
       aria-label="Multi-layer verification"
-      className={`w-full min-w-0 overflow-x-hidden py-12 sm:py-16 lg:py-20 bg-[#FAFAFA] ${poppins.className}`}
+      className="w-full min-w-0 overflow-x-hidden py-12 sm:py-16 lg:py-20 bg-[#FAFAFA]"
     >
       <div className="mx-auto w-full min-w-0 max-w-screen-2xl px-4 sm:px-6 lg:px-8">
         <div className="mb-10 flex flex-col gap-6 sm:mb-12 sm:flex-row sm:items-start sm:justify-between lg:mb-14">
