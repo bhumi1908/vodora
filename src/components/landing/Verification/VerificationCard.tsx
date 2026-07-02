@@ -27,7 +27,8 @@ export function VerificationCard({ card }: VerificationCardProps) {
             alt={card.imageAlt}
             width={card.imageWidth}
             height={card.imageHeight}
-            className="h-full w-full rounded-xl object-cover"
+            draggable={false}
+            className="pointer-events-none h-full w-full select-none rounded-xl object-cover"
           />
         </div>
 

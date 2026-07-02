@@ -25,7 +25,6 @@ export function Hero() {
             <HeroContent />
           </div>
         </div>
-        
 
         <div className="pb-10">
           <Workflow />

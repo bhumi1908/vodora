@@ -1,5 +1,6 @@
 import Image from "next/image";
 
+import { AnimateIn } from "@/components/landing/shared/AnimateIn";
 import { poppins } from "../Work/fonts";
 import { REPUTATION_BG, REPUTATION_OWNERSHIP, REPUTATION_SECTION } from "./constants";
 import { ReputationContent, ReputationOwnershipContent } from "./ReputationContent";
@@ -21,11 +22,11 @@ export function ReputationSection() {
 
         <div className="relative z-10 mx-auto w-full min-w-0 max-w-screen-2xl px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col items-stretch gap-10 sm:gap-12 lg:flex-row lg:items-center lg:justify-between lg:gap-16">
-            <div className="w-full min-w-0 flex-1 lg:max-w-[58%] xl:max-w-[60%]">
+            <AnimateIn variant="fade-left" className="w-full min-w-0 flex-1 lg:max-w-[58%] xl:max-w-[60%]">
               <ReputationContent />
-            </div>
+            </AnimateIn>
 
-            <div className="relative mx-auto h-[260px] w-[260px] shrink-0 sm:h-[300px] sm:w-[300px] lg:mx-0 lg:h-[340px] lg:w-[340px] xl:h-[367px] xl:w-[382px] lg:mr-10 xl:mr-12">
+            <AnimateIn delay={150} variant="fade-right" className="relative mx-auto h-[260px] w-[260px] shrink-0 sm:h-[300px] sm:w-[300px] lg:mx-0 lg:h-[340px] lg:w-[340px] xl:h-[367px] xl:w-[382px] lg:mr-10 xl:mr-12">
               <Image
                 src={REPUTATION_SECTION.image.src}
                 alt={REPUTATION_SECTION.image.alt}
@@ -33,7 +34,7 @@ export function ReputationSection() {
                 className="object-contain object-center"
                 sizes="(max-width: 640px) 260px, (max-width: 1024px) 300px, 382px"
               />
-            </div>
+            </AnimateIn>
           </div>
         </div>
       </section>
@@ -44,7 +45,7 @@ export function ReputationSection() {
       >
         <div className="mx-auto w-full min-w-0 max-w-screen-2xl px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col items-stretch gap-10 sm:gap-12 lg:flex-row lg:items-center lg:gap-12 xl:gap-16">
-            <div className="w-full min-w-0 lg:w-1/2">
+            <AnimateIn variant="fade-left" className="w-full min-w-0 lg:w-1/2">
               <div className="relative mx-auto aspect-[489/746]  max-w-[489px]  max-h-[730px] overflow-hidden rounded-xl lg:mx-0 lg:max-w-none">
                 <Image
                   src={encodeURI(REPUTATION_OWNERSHIP.image.src)}
@@ -54,11 +55,11 @@ export function ReputationSection() {
                   className="h-full w-full object-cover"
                 />
               </div>
-            </div>
+            </AnimateIn>
 
-            <div className="w-full min-w-0  lg:pr-8 xl:pl-12">
+            <AnimateIn delay={150} variant="fade-right" className="w-full min-w-0  lg:pr-8 xl:pl-12">
               <ReputationOwnershipContent />
-            </div>
+            </AnimateIn>
           </div>
         </div>
       </section>

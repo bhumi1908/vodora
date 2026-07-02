@@ -27,11 +27,11 @@ export function AboutContent({
 
   return (
     <div className="flex flex-col gap-3 lg:gap-4">
-      <span className="text-sm sm:text-base font-semibold uppercase tracking-widest text-[#1D8B8A]">
+      <span className="text-sm sm:text-base font-semibold uppercase  tracking-[0.4em] text-[#1D8B8A]">
         {label}
       </span>
 
-      <h2 className="text-3xl font-bold leading-tight text-black sm:text-4xl lg:text-[2.5rem] mb-1 sm:mb-2">
+      <h2 className="text-3xl font-bold leading-tight text-black sm:text-4xl mb-1 sm:mb-2">
         {heading}
       </h2>
 

@@ -9,13 +9,17 @@ interface WorkStyleCardProps {
 export function WorkStyleCard({ card }: WorkStyleCardProps) {
   return (
     <article className="flex h-full flex-col overflow-hidden">
-      <div className="relative !aspect-[374/384] w-full shrink-0 overflow-hidden bg-white">
+      <div
+        className="relative w-full shrink-0 overflow-hidden bg-white"
+        style={{ aspectRatio: `${card.imageWidth}/${card.imageHeight}` }}
+      >
         <Image
           src={encodeURI(card.imageSrc)}
           alt={card.imageAlt}
-          width={374}
-          height={384}
-          className="h-full w-full object-cover object-center"
+          width={card.imageWidth}
+          height={card.imageHeight}
+          draggable={false}
+          className="pointer-events-none h-full w-full select-none object-cover object-center"
         />
       </div>
 
@@ -23,7 +27,7 @@ export function WorkStyleCard({ card }: WorkStyleCardProps) {
         <h3 className="text-lg font-bold leading-snug text-black sm:text-xl">
           {card.title}
         </h3>
-        <p className="mt-2 text-sm font-normal leading-relaxed  sm:text-base">
+        <p className="mt-2 text-sm font-normal leading-relaxed text-[#6B7280] sm:text-base">
           {card.description}
         </p>
       </div>

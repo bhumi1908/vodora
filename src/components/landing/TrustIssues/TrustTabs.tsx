@@ -49,7 +49,9 @@ export function TrustTabs({ tabs, defaultTabId }: TrustTabsProps) {
         </div>
       </div>
 
-      <IssueGrid issues={issues} />
+      <div key={selectedTab} className="tab-fade-in">
+        <IssueGrid issues={issues} />
+      </div>
     </div>
   );
 }

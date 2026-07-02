@@ -5,6 +5,14 @@ import { FacebookIcon, InstagramIcon, LinkedInIcon } from "./SocialIcons";
 export interface NavItemConfig {
   readonly label: string;
   readonly href: string;
+  readonly variant?: "link" | "button";
+  /** When true, the item is omitted from both desktop and mobile navigation. */
+  readonly hidden?: boolean;
+}
+
+export function isActiveNavHref(itemHref: string, activeHref: string): boolean {
+  if (itemHref === "/") return activeHref === "/";
+  return activeHref === itemHref || activeHref.startsWith(`${itemHref}/`);
 }
 
 export interface SocialLinkConfig {
@@ -14,11 +22,12 @@ export interface SocialLinkConfig {
 }
 
 export const NAV_ITEMS: NavItemConfig[] = [
-  { label: "Home", href: "/" },
+  { label: "Home", href: "/", variant: "button" },
   { label: "Candidates", href: "/find-candidates" },
   { label: "Job Board", href: "/jobs" },
   { label: "Find Recruiters", href: "/find-recruiters" },
   { label: "Login", href: "/login" },
+  { label: "Sign Up", href: "/signup" },
 ];
 
 export const SOCIAL_LINKS: SocialLinkConfig[] = [

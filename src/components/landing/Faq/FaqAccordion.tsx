@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import { AnimateIn } from "@/components/landing/shared/AnimateIn";
 import type { FaqItemConfig } from "./constants";
 import { FaqItem } from "./FaqItem";
 
@@ -15,15 +16,16 @@ export function FaqAccordion({ items }: FaqAccordionProps) {
   return (
     <div className="gap-4 flex flex-col border-[#E4E4E7]">
       {items.map((item, index) => (
-        <FaqItem
-          key={item.id}
-          item={item}
-          index={index}
-          isOpen={openIndex === index}
-          onToggle={() =>
-            setOpenIndex(openIndex === index ? null : index)
-          }
-        />
+        <AnimateIn key={item.id} delay={index * 60} variant="fade-up">
+          <FaqItem
+            item={item}
+            index={index}
+            isOpen={openIndex === index}
+            onToggle={() =>
+              setOpenIndex(openIndex === index ? null : index)
+            }
+          />
+        </AnimateIn>
       ))}
     </div>
   );

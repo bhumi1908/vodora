@@ -1,5 +1,6 @@
 import Image from "next/image";
 
+import { AnimateIn } from "@/components/landing/shared/AnimateIn";
 import { poppins } from "../Work/fonts";
 import { REFERENCES_CTA_BG } from "./constants";
 import { ReferencesCtaContent } from "./ReferencesCtaContent";
@@ -19,7 +20,9 @@ export function ReferencesCtaSection() {
       />
 
       <div className="relative z-10 mx-auto w-full min-w-0 max-w-screen-2xl px-4 sm:px-6 lg:px-8">
-        <ReferencesCtaContent />
+        <AnimateIn variant="fade-up">
+          <ReferencesCtaContent />
+        </AnimateIn>
       </div>
     </section>
   );

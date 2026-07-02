@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
+import { AnimateIn } from "@/components/landing/shared/AnimateIn";
 import { MobileMenu } from "./MobileMenu";
 import { Navigation } from "./Navigation";
 import { NAV_ITEMS, SOCIAL_LINKS } from "./constants";
@@ -48,8 +49,9 @@ export function LandingHeader() {
 
   return (
     <header className={`fixed top-0 w-full z-50 transition-all duration-300 ${headerBg}`}>
-      <div className="mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-8">
-        <div className="flex h-fit sm:py-6 py-4 items-center justify-between gap-4">
+      <AnimateIn immediate variant="fade-in" duration={500}>
+        <div className="mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-8">
+          <div className="flex h-fit sm:py-6 py-4 items-center justify-between gap-4">
           <Link
             href="/"
             aria-label="Vodora home"
@@ -62,7 +64,7 @@ export function LandingHeader() {
               width={176}
               height={28}
               priority
-              className="h-[20px] md:h-[28px] w-auto"
+              className="h-[20px] lg:h-[28px] w-auto"
             />
           </Link>
           <div className="flex items-center gap-16">
@@ -74,7 +76,7 @@ export function LandingHeader() {
 
             <div className="flex items-center gap-3">
 
-              <div className="hidden items-center gap-2 md:flex">
+              <div className="hidden items-center gap-2 lg:flex">
                 {SOCIAL_LINKS.map(({ label, href, Icon }) => (
                   <a
                     key={label}
@@ -91,7 +93,7 @@ export function LandingHeader() {
 
               <button
                 type="button"
-                className="rounded-md p-2 text-white transition-colors hover:bg-white/10 md:hidden"
+                className="rounded-md p-2 text-white transition-colors hover:bg-white/10 lg:hidden"
                 aria-expanded={mobileMenuOpen}
                 aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
                 onClick={() => setMobileMenuOpen((open) => !open)}
@@ -104,8 +106,9 @@ export function LandingHeader() {
               </button>
             </div>
           </div>
+          </div>
         </div>
-      </div>
+      </AnimateIn>
 
       {mobileMenuOpen && (
         <MobileMenu

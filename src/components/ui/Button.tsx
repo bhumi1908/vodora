@@ -50,12 +50,12 @@ const CLIP_RIGHT = "polygon(12px 0%, 100% 0%, 100% 100%, 0% 100%)";
 const CLIP_LEFT = "polygon(0% 0%, 100% 0%, calc(100% - 12px) 100%, 0% 100%)";
 
 function textBlockClasses(variant: ClipButtonProps["variant"], sz: (typeof sizeMap)[SizeKey]): string {
-  const base = `flex items-center rounded-md font-semibold uppercase tracking-widest transition-colors duration-150 ${sz.textPad} ${sz.font}`;
+  const base = `flex items-center rounded-md uppercase tracking-widest transition-colors duration-150 ${sz.textPad} ${sz.font}`;
   if (variant === "primary") {
     return `${base} bg-[#1D8B8A] text-white group-hover:bg-[#166F6E] group-active:bg-[#125E5D]`;
   }
   if (variant === "outline") {
-    return `${base} bg-white text-[#1D8B8A] border border-[#1D8B8A] group-hover:bg-[#EBF5F5] group-active:bg-[#D6ECEC]`;
+    return `${base} bg-white text-[#1D8B8A] group-hover:bg-[#EBF5F5] group-active:bg-[#D6ECEC]`;
   }
   return base;
 }
@@ -105,7 +105,7 @@ export const ClipButton = React.forwardRef<HTMLButtonElement, ClipButtonProps>(
       "group inline-flex items-stretch gap-1.5 cursor-pointer",
       "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D8B8A] focus-visible:ring-offset-2",
       "transition-transform duration-150 active:scale-[0.98]",
-      disabled ? "opacity-50 cursor-not-allowed pointer-events-none" : "",
+      disabled ? "opacity-50 cursor-not-allowed" : "",
       className ?? "",
     ]
       .filter(Boolean)
