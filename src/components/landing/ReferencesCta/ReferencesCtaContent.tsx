@@ -40,7 +40,7 @@ export function ReferencesCtaContent() {
           icon={<ArrowRight className="h-4 w-4" />}
           variant="outline"
           clipPosition="right"
-          className="-ml-2 [&_span_span]:!bg-[#236B69] [&_span_span]:!text-white hover:[&_span_span]:!bg-[#1a5553]"
+          className="-ml-2 [&_span_span]:!text-white"
           size="md"
           aria-label="Go to create profile"
           onClick={handleCta}

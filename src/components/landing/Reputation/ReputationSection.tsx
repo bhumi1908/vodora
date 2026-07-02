@@ -9,7 +9,7 @@ export function ReputationSection() {
     <>
       <section
         aria-label="Your reputation, ready to travel"
-        className={`relative  overflow-hidden bg-[#1D8B8A]  pt-12 pb-6 sm:pt-16 sm:pb-8 lg:pt-20 lg:pb-10 ${poppins.className}`}
+        className={`relative  overflow-hidden bg-[#1D8B8A]  pt-12 pb-6 sm:pt-16 sm:pb-16 lg:pt-20 lg:pb-20 ${poppins.className}`}
       >
         <Image
           src={REPUTATION_BG}

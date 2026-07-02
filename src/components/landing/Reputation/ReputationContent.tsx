@@ -37,14 +37,14 @@ export function ReputationContent() {
           variant="outline"
           clipPosition="left"
           size="md"
-          className="[&_span:first-child]:!border-white [&_span:first-child]:!text-[#236B69]"
+          className="[&_span:first-child]:!border-white [&_span:first-child]:!text-[#1D8B8A]"
           onClick={handleCta}
         />
         <ClipButton
           icon={<ArrowRight className="h-4 w-4" />}
           variant="outline"
           clipPosition="right"
-          className="-ml-2 [&_span_span]:!bg-[#236B69] [&_span_span]:!text-white hover:[&_span_span]:!bg-[#1a5553]"
+          className="-ml-2 [&_span_span]:!text-white"
           size="md"
           aria-label="Go to create profile"
           onClick={handleCta}
@@ -67,7 +67,7 @@ export function ReputationOwnershipContent() {
         {REPUTATION_OWNERSHIP.headlineGroups.map((group) => (
           <h2
             key={group[0]}
-            className="text-2xl font-normal leading-snug text-[#666666] sm:text-3xl sm:leading-snug lg:text-[48px] lg:leading-[68px]"
+            className="text-2xl font-normal leading-snug text-[#808080] sm:text-3xl sm:leading-snug lg:text-[48px] lg:leading-[68px]"
           >
             {group.map((line) => (
               <span key={line} className="block xl:whitespace-nowrap">
@@ -86,7 +86,7 @@ export function ReputationOwnershipContent() {
         ))}
       </p>
 
-      <div className="mt-8 flex items-end sm:mt-10 lg:mt-12">
+      <div className="mt-8 flex   sm:mt-10 lg:mt-12">
         <ClipButton
           text={REPUTATION_OWNERSHIP.cta.text}
           variant="primary"

@@ -8,7 +8,7 @@ export function ReferencesCtaSection() {
   return (
     <section
       aria-label="References verified once, used forever"
-      className={`relative overflow-hidden bg-[#1D8B8A] py-12 sm:py-16 lg:py-20 ${poppins.className}`}
+      className={`relative overflow-hidden bg-[#1D8B8A]  py-12 sm:py-16 lg:py-20 ${poppins.className}`}
     >
       <Image
         src={REFERENCES_CTA_BG}

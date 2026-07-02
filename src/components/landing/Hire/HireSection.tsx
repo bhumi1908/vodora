@@ -8,8 +8,8 @@ export function HireSection() {
       aria-label="Hire faster, verify less"
       className={`bg-white flex flex-col items-center justify-center py-12 sm:py-16 lg:py-12 ${poppins.className}`}
     >
-      <div className="mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-8">
-        <div className="max-w-3xl">
+      <div className=" max-w-screen-2xl px-4 sm:px-6 lg:px-8">
+        <div className="max-w-2xl">
           <h2 className="text-3xl  font-bold leading-[49px] text-black sm:text-4xl lg:text-[2.5rem]">
             {HIRE_SECTION.title}
           </h2>

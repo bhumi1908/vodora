@@ -1,6 +1,8 @@
 import { AboutSection } from "@/components/landing/About/AboutSection";
 import { HireSection } from "@/components/landing/Hire/HireSection";
 import { ReferencesCtaSection } from "@/components/landing/ReferencesCta/ReferencesCtaSection";
+import { FaqSection } from "@/components/landing/Faq/FaqSection";
+import { LandingFooter } from "@/components/landing/Footer/LandingFooter";
 import { WorkStyleSection } from "@/components/landing/WorkStyle/WorkStyleSection";
 import { LandingHeader } from "@/components/landing/Header/Header";
 import { Hero } from "@/components/landing/Hero/Hero";
@@ -23,7 +25,9 @@ export default function LandingPage2() {
         <HireSection />
         <ReferencesCtaSection />
         <WorkStyleSection />
+        <FaqSection />
       </main>
+      <LandingFooter />
     </>
   );
 }
