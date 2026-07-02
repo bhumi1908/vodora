@@ -7,29 +7,40 @@ interface WorkflowCardProps {
   readonly subTitle: string;
 }
 
-export function WorkflowCard({ title, isFirstCard = false, isLastCard = false, subTitle}: WorkflowCardProps) {
+export function WorkflowCard({
+  title,
+  isFirstCard = false,
+  isLastCard = false,
+  subTitle,
+}: WorkflowCardProps) {
   return (
-    <div className="flex shrink-0 items-center relative">
-      <div className="flex min-h-[80px] sm:min-h-[150px] lg:min-h-[140px] xl:min-h-[160px] w-full items-center rounded-lg border border-white px-12 text-center justify-center sm:w-[300px] relative">
+    <div className="relative flex shrink-0 items-center">
+      <div className="relative flex min-h-[80px] w-[260px] shrink-0 items-center justify-center rounded-lg border border-white px-6 text-center sm:min-h-[150px] sm:w-[300px] sm:px-12 lg:min-h-[140px] xl:min-h-[160px]">
         <div className="flex flex-col items-center justify-center">
-        <p className="text-sm sm:text-xl font-bold leading-snug text-white">{title}</p>
-        <p className="text-sm sm:text-[18px] text-center font-normal leading-snug text-white">{subTitle}</p>
+          <p className="text-sm font-bold leading-snug text-white sm:text-xl">
+            {title}
+          </p>
+          <p className="text-center text-sm font-normal leading-snug text-white sm:text-[18px]">
+            {subTitle}
+          </p>
         </div>
+
         {!isFirstCard && (
-          <div className="absolute top-[-11px] sm:top-1/2 translate-y-0 sm:-translate-y-1/2 left-1/2 sm:-left-px -translate-x-1/2 sm:translate-x-0 h-10 sm:h-15 w-5 sm:w-7 overflow-hidden z-10 -rotate-90 sm:rotate-180">
-            <div className="size-10 sm:size-15 rounded-full border border-white bg-[#1D8B8A] transparent" />
+          <div className="absolute top-1/2 -left-px z-10 h-10 w-5 -translate-y-1/2 overflow-hidden sm:h-15 sm:w-7 sm:rotate-180">
+            <div className="size-10 rounded-full border border-white bg-[#1D8B8A] sm:size-15" />
           </div>
         )}
+
         {!isLastCard && (
-          <div className="absolute top-[calc(100%+11px)] sm:top-1/2 -translate-y-full sm:-translate-y-1/2 right-1/2 sm:-right-px translate-x-1/2 sm:translate-x-0 h-10 sm:h-15 w-5 sm:w-7 overflow-hidden z-10 rotate-90 sm:rotate-0">
-            <div className="size-10 sm:size-15 rounded-full border border-white bg-[#1D8B8A] " />
+          <div className="absolute top-1/2 -right-px z-10 h-10 w-5 -translate-y-1/2 overflow-hidden sm:h-15 sm:w-7">
+            <div className="size-10 rounded-full border border-white bg-[#1D8B8A] sm:size-15 rotate-90" />
           </div>
         )}
       </div>
 
       {!isLastCard && (
-        <div className="flex h-8 sm:h-11 w-8 sm:w-11 shrink-0 items-center justify-center rounded-full bg-white backdrop-blur-sm absolute right-1/2 sm:right-[-26px] translate-x-1/2 sm:translate-x-0 bottom-[-20px] sm:bottom-auto z-20">
-          <ArrowRight className="h-3.5 w-3.5 text-[#1D8B8A] sm:rotate-0 rotate-90" />
+        <div className="absolute top-1/2 right-[-22px] z-20 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-white backdrop-blur-sm sm:right-[-26px] sm:h-11 sm:w-11">
+          <ArrowRight className="h-3.5 w-3.5 text-[#1D8B8A]" />
         </div>
       )}
     </div>

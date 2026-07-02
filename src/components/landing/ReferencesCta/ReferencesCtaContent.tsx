@@ -26,7 +26,7 @@ export function ReferencesCtaContent() {
           </span>
         ))}
       </p>
-      <div className="mt-2 flex items-end justify-center sm:mt-6 lg:mt-8">  
+      <div className="mt-2 flex w-full min-w-0 justify-center sm:mt-6 lg:mt-8">
           <Workflow />
       </div>
     </div>

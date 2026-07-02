@@ -26,7 +26,7 @@ export function Hero() {
           </div>
         </div>
 
-        <div className="pt-10">
+        <div className="min-w-0 pt-10 pb-10 sm:pb-0">
           <Workflow />
         </div>
       </div>
